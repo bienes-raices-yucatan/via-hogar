@@ -2,12 +2,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GallerySectionData } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Trash2, PlusCircle, Pencil } from 'lucide-react';
+import { Trash2, PlusCircle, Pencil, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
+import { saveImage, getImage } from '@/lib/db';
 
 interface GallerySectionProps {
     data: GallerySectionData;
@@ -19,14 +20,36 @@ interface GallerySectionProps {
 const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
     const [api, setApi] = useState<CarouselApi>()
     const [current, setCurrent] = useState(0)
+    const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+    const [imageUrls, setImageUrls] = useState<{[key: string]: string}>({});
+
+
+    useEffect(() => {
+        const loadImageUrls = async () => {
+            const urls: {[key: string]: string} = {};
+            for (const image of data.images) {
+                if (image.imageKey) {
+                    const blob = await getImage(image.imageKey);
+                    if (blob) {
+                        urls[image.id] = URL.createObjectURL(blob);
+                    }
+                }
+            }
+            setImageUrls(urls);
+        };
+        loadImageUrls();
+        
+        return () => {
+            Object.values(imageUrls).forEach(url => URL.revokeObjectURL(url));
+        }
+    }, [data.images]);
+
 
     useEffect(() => {
         if (!api) {
             return
         }
-
         setCurrent(api.selectedScrollSnap())
-
         api.on("select", () => {
             setCurrent(api.selectedScrollSnap())
         })
@@ -46,6 +69,34 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
         const updatedImages = data.images.map(img => img.id === imageId ? { ...img, title: newTitle } : img);
         updateSection(data.id, { images: updatedImages });
     };
+
+    const handleImageButtonClick = (imageId: string) => {
+        fileInputRefs.current[imageId]?.click();
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, imageId: string) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const key = `gallery-${data.id}-${imageId}-${uuidv4()}`;
+            await saveImage(key, file);
+            
+            const localUrl = URL.createObjectURL(file);
+            setImageUrls(prev => {
+                const newUrls = {...prev};
+                if (prev[imageId]) {
+                    URL.revokeObjectURL(prev[imageId]);
+                }
+                newUrls[imageId] = localUrl;
+                return newUrls;
+            });
+            
+            const updatedImages = data.images.map(img => 
+                img.id === imageId ? { ...img, imageKey: key, url: localUrl } : img
+            );
+            updateSection(data.id, { images: updatedImages });
+        }
+    };
+
 
     const plugin = useRef(
         Autoplay({ delay: 3000, stopOnInteraction: true })
@@ -77,16 +128,26 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
                             <CarouselItem key={image.id} className="basis-1/2 md:basis-1/4">
                                 <div className="p-1">
                                     <div className={`relative rounded-lg overflow-hidden shadow-lg group/image aspect-w-4 aspect-h-3 transition-transform duration-500 ease-in-out ${index === current ? 'scale-110' : 'scale-90 opacity-60'}`}>
-                                        <Image src={image.url} alt={image.title} layout="fill" objectFit="cover" className="transform group-hover/image:scale-105 transition-transform duration-300" />
+                                        <Image src={imageUrls[image.id] || image.url} alt={image.title} layout="fill" objectFit="cover" className="transform group-hover/image:scale-105 transition-transform duration-300" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"/>
                                         <div className="absolute bottom-0 left-0 p-4">
                                             <EditableText value={image.title} onChange={(newTitle) => handleImageTitleChange(image.id, newTitle)} isAdminMode={isAdminMode} className="text-white font-bold text-lg" />
                                         </div>
                                         {isAdminMode && (
-                                            <div className="absolute top-2 right-2 flex items-center gap-2 opacity-0 group-hover/image:opacity-100 transition-opacity">
-                                                <Button size="icon" variant="ghost" className="text-white hover:bg-white/20 h-8 w-8"><Pencil size={16}/></Button>
-                                                <Button size="icon" variant="destructive" className="bg-transparent hover:bg-red-500/50 h-8 w-8" onClick={() => handleDeleteImage(image.id)}><Trash2 size={16}/></Button>
-                                            </div>
+                                            <>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    ref={el => (fileInputRefs.current[image.id] = el)}
+                                                    onChange={e => handleFileChange(e, image.id)}
+                                                />
+                                                <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity bg-black/30 p-1 rounded-md">
+                                                    <Button size="icon" variant="ghost" className="text-white hover:bg-white/20 h-7 w-7" onClick={() => handleImageButtonClick(image.id)} title="Change image"><ImageIcon size={16}/></Button>
+                                                    <Button size="icon" variant="ghost" className="text-white hover:bg-white/20 h-7 w-7"><Pencil size={16}/></Button>
+                                                    <Button size="icon" variant="destructive" className="bg-transparent hover:bg-red-500/50 h-7 w-7" onClick={() => handleDeleteImage(image.id)}><Trash2 size={16}/></Button>
+                                                </div>
+                                            </>
                                         )}
                                     </div>
                                 </div>

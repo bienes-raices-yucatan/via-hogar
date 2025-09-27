@@ -65,6 +65,7 @@ export interface GallerySectionData extends PageSection<'GALLERY'> {
     id: string;
     url: string;
     title: string;
+    imageKey?: string;
   }[];
 }
 
