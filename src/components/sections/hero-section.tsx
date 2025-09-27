@@ -32,29 +32,33 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
       
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
         <div className="max-w-3xl">
-          <div style={{color: data.title.color, fontSize: data.title.fontSize, fontFamily: data.title.fontFamily}}>
-              <EditableText 
-                  value={data.title.text} 
-                  onChange={(val) => handleTextUpdate('title', val)} 
-                  isAdminMode={isAdminMode} 
-                  className="font-bold font-headline leading-tight"
-                  as="h1"
-              />
-          </div>
-          <div style={{color: data.subtitle.color, fontSize: data.subtitle.fontSize, fontFamily: data.subtitle.fontFamily}} className="mt-4">
-              <EditableText
-                  value={data.subtitle.text}
-                  onChange={(val) => handleTextUpdate('subtitle', val)}
-                  isAdminMode={isAdminMode}
-                  className="font-body"
-                  as="p"
-              />
-          </div>
+          {data.title && (
+            <div style={{color: data.title.color, fontSize: data.title.fontSize, fontFamily: data.title.fontFamily}}>
+                <EditableText 
+                    value={data.title.text} 
+                    onChange={(val) => handleTextUpdate('title', val)} 
+                    isAdminMode={isAdminMode} 
+                    className="font-bold font-headline leading-tight"
+                    as="h1"
+                />
+            </div>
+          )}
+          {data.subtitle && (
+            <div style={{color: data.subtitle.color, fontSize: data.subtitle.fontSize, fontFamily: data.subtitle.fontFamily}} className="mt-4">
+                <EditableText
+                    value={data.subtitle.text}
+                    onChange={(val) => handleTextUpdate('subtitle', val)}
+                    isAdminMode={isAdminMode}
+                    className="font-body"
+                    as="p"
+                />
+            </div>
+          )}
           <div className="mt-8">
             <Button size="lg" className="bg-primary hover:bg-amber-600 text-primary-foreground text-lg px-8 py-6">
                 <EditableText
                     value={data.buttonText}
-                    onChange={handleButtonTextUpdate}
+                    onChange={handleButton-text-update}
                     isAdminMode={isAdminMode}
                 />
             </Button>
