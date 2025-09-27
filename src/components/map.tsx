@@ -7,7 +7,8 @@ interface MapProps {
 }
 
 const Map: React.FC<MapProps> = ({ lat, lng }) => {
-  const mapSrc = `https://maps.google.com/maps?q=${lat},${lng}&hl=es;z=15&amp;output=embed`;
+  // Use the correct embeddable URL format for Google Maps without an API key.
+  const mapSrc = `https://maps.google.com/maps?q=${lat},${lng}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
   return (
     <iframe
@@ -16,6 +17,7 @@ const Map: React.FC<MapProps> = ({ lat, lng }) => {
       style={{ border: 0 }}
       loading="lazy"
       allowFullScreen
+      referrerPolicy="no-referrer-when-downgrade"
       src={mapSrc}
     ></iframe>
   );
