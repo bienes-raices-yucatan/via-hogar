@@ -110,85 +110,83 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
   };
 
   return (
-    <div className="p-4 md:p-8">
-      <div 
-        ref={sectionRef}
-        className="relative group/section w-full h-[40vh] md:h-[50vh] bg-cover bg-center rounded-3xl overflow-hidden" 
-        style={{ 
-          backgroundImage: `url(${imageUrl})`,
-          backgroundPosition: backgroundPosition,
-          backgroundAttachment: data.parallaxEnabled && !isAdminMode ? 'fixed' : 'scroll',
-          transition: 'background-position 0.1s ease-out'
-        }}
-      >
-        <div className="absolute inset-0 bg-black/40"></div>
-        
-        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
-          <div className="max-w-3xl">
-            {data.title && (
-              <div style={{color: data.title.color, fontSize: data.title.fontSize, fontFamily: data.title.fontFamily}}>
-                  <EditableText 
-                      value={data.title.text} 
-                      onChange={(val) => handleTextUpdate('title', val)} 
-                      isAdminMode={isAdminMode} 
-                      className="font-bold font-headline leading-tight"
-                      as="h1"
-                      onSelect={createSelectHandler('title')}
-                  />
-              </div>
-            )}
-            {data.subtitle && (
-              <div style={{color: data.subtitle.color, fontSize: data.subtitle.fontSize, fontFamily: data.subtitle.fontFamily}} className="mt-4">
-                  <EditableText
-                      value={data.subtitle.text}
-                      onChange={(val) => handleTextUpdate('subtitle', val)}
-                      isAdminMode={isAdminMode}
-                      className="font-body"
-                      as="p"
-                      onSelect={createSelectHandler('subtitle')}
-                  />
-              </div>
-            )}
-            {data.buttonText && (
-              <div className="mt-8">
-                <Button size="lg" className="bg-slate-800 border-2 border-white hover:bg-slate-700 text-white text-lg px-8 py-6 rounded-full">
-                    <EditableText
-                        value={data.buttonText}
-                        onChange={handleButtonTextUpdate}
-                        isAdminMode={isAdminMode}
-                    />
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        {isAdminMode && (
-          <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg">
-            <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept="image/*"
-            />
-            <div className="flex items-center space-x-2">
-              <Switch
-                id={`parallax-${data.id}`}
-                checked={!!data.parallaxEnabled}
-                onCheckedChange={(checked) => updateSection(data.id, { parallaxEnabled: checked })}
-              />
-              <Label htmlFor={`parallax-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
+    <div 
+      ref={sectionRef}
+      className="relative group/section w-full h-[50vh] md:h-[60vh] bg-cover bg-center rounded-b-3xl overflow-hidden" 
+      style={{ 
+        backgroundImage: `url(${imageUrl})`,
+        backgroundPosition: backgroundPosition,
+        backgroundAttachment: data.parallaxEnabled && !isAdminMode ? 'fixed' : 'scroll',
+        transition: 'background-position 0.1s ease-out'
+      }}
+    >
+      <div className="absolute inset-0 bg-black/40"></div>
+      
+      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
+        <div className="max-w-3xl">
+          {data.title && (
+            <div style={{color: data.title.color, fontSize: data.title.fontSize, fontFamily: data.title.fontFamily}}>
+                <EditableText 
+                    value={data.title.text} 
+                    onChange={(val) => handleTextUpdate('title', val)} 
+                    isAdminMode={isAdminMode} 
+                    className="font-bold font-headline leading-tight"
+                    as="h1"
+                    onSelect={createSelectHandler('title')}
+                />
             </div>
-             <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" onClick={handleImageButtonClick} title="Cambiar imagen de fondo">
-                <ImageIcon />
+          )}
+          {data.subtitle && (
+            <div style={{color: data.subtitle.color, fontSize: data.subtitle.fontSize, fontFamily: data.subtitle.fontFamily}} className="mt-4">
+                <EditableText
+                    value={data.subtitle.text}
+                    onChange={(val) => handleTextUpdate('subtitle', val)}
+                    isAdminMode={isAdminMode}
+                    className="font-body"
+                    as="p"
+                    onSelect={createSelectHandler('subtitle')}
+                />
+            </div>
+          )}
+          {data.buttonText && (
+            <div className="mt-8">
+              <Button size="lg" className="bg-slate-800 border-2 border-white hover:bg-slate-700 text-white text-lg px-8 py-6 rounded-full">
+                  <EditableText
+                      value={data.buttonText}
+                      onChange={handleButtonTextUpdate}
+                      isAdminMode={isAdminMode}
+                  />
               </Button>
-            <Button size="icon" variant="destructive" onClick={() => deleteSection(data.id)}>
-              <Trash2 />
-            </Button>
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
+      
+      {isAdminMode && (
+        <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg">
+          <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+              accept="image/*"
+          />
+          <div className="flex items-center space-x-2">
+            <Switch
+              id={`parallax-${data.id}`}
+              checked={!!data.parallaxEnabled}
+              onCheckedChange={(checked) => updateSection(data.id, { parallaxEnabled: checked })}
+            />
+            <Label htmlFor={`parallax-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
+          </div>
+           <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" onClick={handleImageButtonClick} title="Cambiar imagen de fondo">
+              <ImageIcon />
+            </Button>
+          <Button size="icon" variant="destructive" onClick={() => deleteSection(data.id)}>
+            <Trash2 />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
