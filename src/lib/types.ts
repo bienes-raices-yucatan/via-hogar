@@ -89,6 +89,7 @@ export interface AmenitiesSectionData extends PageSection<'AMENITIES'> {
     icon?: string;
     text: string;
     imageUrl?: string;
+    imageKey?: string;
   }[];
 }
 

@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { AmenitiesSectionData } from '@/lib/types';
 import { Button } from '../ui/button';
@@ -7,6 +7,7 @@ import { Trash2, PlusCircle, Image as ImageIcon } from 'lucide-react';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
 import Image from 'next/image';
+import { saveImage } from '@/lib/db';
 
 type IconName = keyof typeof LucideIcons;
 
@@ -18,6 +19,7 @@ interface AmenitiesSectionProps {
 }
 
 const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
+    const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
     const handleAmenityTextChange = (amenityId: string, newText: string) => {
         const updatedAmenities = data.amenities.map(a => a.id === amenityId ? { ...a, text: newText } : a);
@@ -25,13 +27,31 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection
     };
 
     const handleAddAmenity = () => {
-        const newAmenity = { id: uuidv4(), icon: 'PlusCircle', text: 'Nueva Comodidad' };
+        const newAmenity = { id: uuidv4(), icon: 'PlusCircle' as IconName, text: 'Nueva Comodidad' };
         updateSection(data.id, { amenities: [...data.amenities, newAmenity] });
     };
 
     const handleDeleteAmenity = (amenityId: string) => {
         const updatedAmenities = data.amenities.filter(a => a.id !== amenityId);
         updateSection(data.id, { amenities: updatedAmenities });
+    };
+
+    const handleImageButtonClick = (amenityId: string) => {
+        fileInputRefs.current[amenityId]?.click();
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, amenityId: string) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const key = `amenity-${amenityId}-${uuidv4()}`;
+            await saveImage(key, file);
+            const imageUrl = URL.createObjectURL(file);
+            
+            const updatedAmenities = data.amenities.map(a => 
+                a.id === amenityId ? { ...a, imageUrl: imageUrl, imageKey: key } : a
+            );
+            updateSection(data.id, { amenities: updatedAmenities });
+        }
     };
     
     return (
@@ -52,14 +72,23 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection
                                 )}
                                 <EditableText value={amenity.text} onChange={newText => handleAmenityTextChange(amenity.id, newText)} isAdminMode={isAdminMode} className="text-slate-700" />
                                 {isAdminMode && (
-                                    <div className="absolute -top-2 -right-2 opacity-0 group-hover/amenity:opacity-100 flex flex-col gap-1">
-                                        <Button size="icon" variant="ghost" className="h-6 w-6 text-slate-600 hover:bg-slate-200">
-                                            <ImageIcon size={16} />
-                                        </Button>
-                                        <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteAmenity(amenity.id)}>
-                                            <Trash2 size={16} />
-                                        </Button>
-                                    </div>
+                                    <>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            ref={el => (fileInputRefs.current[amenity.id] = el)}
+                                            onChange={e => handleFileChange(e, amenity.id)}
+                                        />
+                                        <div className="absolute -top-2 -right-2 opacity-0 group-hover/amenity:opacity-100 flex flex-col gap-1">
+                                            <Button size="icon" variant="ghost" className="h-6 w-6 text-slate-600 hover:bg-slate-200" onClick={() => handleImageButtonClick(amenity.id)} title="Cambiar imagen">
+                                                <ImageIcon size={16} />
+                                            </Button>
+                                            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteAmenity(amenity.id)}>
+                                                <Trash2 size={16} />
+                                            </Button>
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         )

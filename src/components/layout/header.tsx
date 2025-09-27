@@ -53,7 +53,7 @@ const Header: React.FC<HeaderProps> = ({
           <div 
             className={`relative w-10 h-10 rounded-full overflow-hidden ${isAdminMode ? 'cursor-pointer hover:opacity-80' : 'cursor-pointer'}`}
             onClick={handleLogoClick}
-            title={isAdminMode ? "Cambiar logo" : "Inicio"}
+            title={isAdminMode ? "Hacer clic para cambiar logo" : "Ir al inicio"}
           >
             <Image src={logoUrl} alt="Logo" layout="fill" objectFit="cover" />
             {isAdminMode && <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />}
