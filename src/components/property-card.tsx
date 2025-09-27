@@ -8,8 +8,6 @@ import EditableText from './editable-text';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import ConfirmationModal from './modals/confirmation-modal';
-import Spinner from './spinner';
-import { useToast } from "@/hooks/use-toast";
 
 interface PropertyCardProps {
   property: Property;
@@ -27,7 +25,6 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   isAdminMode,
 }) => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const { toast } = useToast();
 
   const handleUpdate = (field: 'name' | 'address' | 'price', value: string | number) => {
     onUpdate({ ...property, [field]: value });
@@ -52,9 +49,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           )}
         </div>
         <CardContent className="p-4 flex flex-col flex-grow">
-          <h3 className="text-lg font-headline font-bold mb-2">
-            <EditableText value={property.name} onChange={(val) => handleUpdate('name', val)} isAdminMode={isAdminMode} />
-          </h3>
+          <div className="text-lg font-headline font-bold mb-2">
+            <EditableText value={property.name} onChange={(val) => handleUpdate('name', val)} isAdminMode={isAdminMode} as="h3" />
+          </div>
           <div className="text-sm text-slate-600 mb-2">
             <EditableText value={property.address} onChange={(val) => handleUpdate('address', val)} isAdminMode={isAdminMode} as="div" />
           </div>

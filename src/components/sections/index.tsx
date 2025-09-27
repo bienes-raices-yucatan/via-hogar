@@ -1,11 +1,12 @@
 'use client';
 
-import { Property, AnySectionData } from '@/lib/types';
+import { Property, AnySectionData, ContactSubmission } from '@/lib/types';
 import HeroSection from './hero-section';
 import GallerySection from './gallery-section';
 import AmenitiesSection from './amenities-section';
 import LocationSection from './location-section';
-// Import other section components here as they are created
+import ImageWithFeaturesSection from './image-with-features-section';
+import ContactSection from './contact-section';
 
 interface SectionRendererProps {
   property: Property;
@@ -14,6 +15,7 @@ interface SectionRendererProps {
   isDraggingMode: boolean;
   selectedElement: any;
   setSelectedElement: (element: any) => void;
+  onContactSubmit: (submission: Omit<ContactSubmission, 'id' | 'submittedAt'>) => void;
 }
 
 const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
@@ -32,10 +34,11 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
   };
 
   return (
-    <div className="space-y-8 md:space-y-16">
+    <div>
       {property.sections.map((section) => {
         const componentProps = {
           ...props,
+          key: section.id,
           data: section as any, // Cast to specific type in component
           updateSection,
           deleteSection,
@@ -43,14 +46,17 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
 
         switch (section.type) {
           case 'HERO':
-            return <HeroSection key={section.id} {...componentProps} data={section} />;
-          case 'GALLallery':
-            return <GallerySection key={section.id} {...componentProps} data={section} />;
+            return <HeroSection {...componentProps} />;
+          case 'IMAGE_WITH_FEATURES':
+            return <ImageWithFeaturesSection {...componentProps} />;
+          case 'GALLERY':
+            return <GallerySection {...componentProps} />;
           case 'AMENITIES':
-             return <AmenitiesSection key={section.id} {...componentProps} data={section} />;
+             return <AmenitiesSection {...componentProps} />;
           case 'LOCATION':
-            return <LocationSection key={section.id} {...componentProps} data={section} />;
-          // Add cases for other sections
+            return <LocationSection {...componentProps} />;
+          case 'CONTACT':
+            return <ContactSection {...componentProps} />;
           default:
             return <div key={section.id}>Unknown section type: {section.type}</div>;
         }

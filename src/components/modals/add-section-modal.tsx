@@ -4,7 +4,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AnySectionData } from '@/lib/types';
-import { GalleryHorizontal, LayoutGrid, MapPin, Grid3x3 } from 'lucide-react';
+import { GalleryHorizontal, LayoutGrid, Mail, Image } from 'lucide-react';
 
 interface AddSectionModalProps {
   isOpen: boolean;
@@ -13,8 +13,10 @@ interface AddSectionModalProps {
 }
 
 const sectionOptions = [
+  { type: 'IMAGE_WITH_FEATURES' as const, label: 'Imagen y Características', icon: <Image/> },
   { type: 'GALLERY' as const, label: 'Galería', icon: <GalleryHorizontal/> },
-  { type: 'AMENITIES' as const, label: 'Comodidades', icon: <Grid3x3/> },
+  { type: 'AMENITIES' as const, label: 'Comodidades', icon: <LayoutGrid/> },
+  { type: 'CONTACT' as const, label: 'Contacto', icon: <Mail/> },
   // Add other section types here
 ];
 

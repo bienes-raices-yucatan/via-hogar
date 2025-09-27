@@ -39,9 +39,9 @@ export interface DraggableTextData extends StyledText {
 
 export interface HeroSectionData extends PageSection<'HERO'> {
   imageUrl: string;
-  title: DraggableTextData;
-  floatingTexts: DraggableTextData[];
-  useParallax?: boolean;
+  title: StyledText;
+  subtitle: StyledText;
+  buttonText: string;
 }
 
 export interface ImageWithFeaturesSectionData extends PageSection<'IMAGE_WITH_FEATURES'> {
@@ -52,13 +52,14 @@ export interface ImageWithFeaturesSectionData extends PageSection<'IMAGE_WITH_FE
   };
   features: {
     id: string;
-    imageUrl: string;
+    icon: string;
     title: string;
     subtitle: string;
   }[];
 }
 
 export interface GallerySectionData extends PageSection<'GALLERY'> {
+  title: string;
   images: {
     id: string;
     url: string;

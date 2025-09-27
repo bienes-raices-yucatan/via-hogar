@@ -128,31 +128,29 @@ export default function Home() {
     try {
       const { name, address, price, lat, lng } = newPropertyData;
       
-      const newProperty: Property = {
-        id: uuidv4(),
-        name,
-        address,
-        price,
-        mainImageUrl: 'https://picsum.photos/seed/newprop/800/600',
-        coordinates: { lat, lng },
-        sections: [
-          {
-            id: uuidv4(),
-            type: 'HERO',
-            style: { backgroundColor: '#ffffff' },
-            imageUrl: 'https://picsum.photos/seed/newhero/1920/1080',
-            title: { id: uuidv4(), text: 'Bienvenido a tu Nuevo Hogar', fontSize: '48px', color: '#1E293B', fontFamily: 'Montserrat', position: { x: 50, y: 40 } },
-            floatingTexts: [],
-          },
-          {
-            id: uuidv4(),
-            type: 'LOCATION',
-            style: { backgroundColor: '#F9FAFA' },
-            coordinates: { lat, lng },
-            nearbyPlaces: [],
-          }
-        ],
-      };
+      // Use the structure from initialProperties as a template for new properties
+      const newProperty: Property = JSON.parse(JSON.stringify(initialProperties[0]));
+      
+      newProperty.id = uuidv4();
+      newProperty.name = name;
+      newProperty.address = address;
+      newProperty.price = price;
+      newProperty.mainImageUrl = 'https://picsum.photos/seed/newprop/800/600';
+      newProperty.coordinates = { lat, lng };
+
+      // Update section IDs and specific data
+      newProperty.sections.forEach(section => {
+        section.id = uuidv4();
+        if (section.type === 'HERO') {
+          section.title.text = `Bienvenido a ${name}`;
+          section.imageUrl = 'https://picsum.photos/seed/newhero/1920/1080';
+        }
+        if (section.type === 'LOCATION') {
+          section.coordinates = { lat, lng };
+          section.nearbyPlaces = [];
+        }
+      });
+      
       setProperties([...properties, newProperty]);
       setSelectedPropertyId(newProperty.id);
     } catch (error) {
@@ -177,16 +175,20 @@ export default function Home() {
     let newSection: AnySectionData;
     const sectionId = uuidv4();
 
-    // Default data for new sections
+    // Default data for new sections based on new designs
     switch (sectionType) {
-        // Add cases for other section types here
+        case 'IMAGE_WITH_FEATURES':
+            newSection = { id: sectionId, type: 'IMAGE_WITH_FEATURES', style: {backgroundColor: '#ffffff'}, media: { type: 'image', url: 'https://picsum.photos/seed/newfeatures/800/1000' }, features: [{id: uuidv4(), icon: 'Home', title: 'Característica Principal', subtitle: 'Descripción de la característica.' }] };
+            break;
         case 'GALLERY':
-            newSection = { id: sectionId, type: 'GALLERY', style: {backgroundColor: '#ffffff'}, images: [{id: uuidv4(), url: 'https://picsum.photos/seed/gallery1/800/600', title: 'Nueva Imagen'}] };
+            newSection = { id: sectionId, type: 'GALLERY', style: {backgroundColor: '#ffffff'}, title: 'Galería de Imágenes', images: [{id: uuidv4(), url: 'https://picsum.photos/seed/gallery1/800/600', title: 'Nueva Imagen'}] };
             break;
         case 'AMENITIES':
             newSection = { id: sectionId, type: 'AMENITIES', style: {backgroundColor: '#F9FAFA'}, title: 'Comodidades', amenities: [{id: uuidv4(), icon: 'Bed', text: 'Habitaciones'}] };
             break;
-        // ... other cases
+        case 'CONTACT':
+            newSection = { id: sectionId, type: 'CONTACT', style: {backgroundColor: '#e0f2fe'}, imageUrl: 'https://picsum.photos/seed/newcontact/1920/1080', title: {text: '¿Interesado?', fontSize: '36px', color: '#1E293B', fontFamily: 'Montserrat'}, subtitle: {text: 'Ponte en contacto con nosotros.', fontSize: '18px', color: '#475569', fontFamily: 'Roboto'}, buttonText: 'Enviar Mensaje'};
+            break;
         default:
              toast({ title: "Error", description: "Tipo de sección no válido.", variant: "destructive" });
             return;
@@ -202,6 +204,16 @@ export default function Home() {
     await db.saveImage(key, file);
     localStorage.setItem('logoKey', key);
     setLogoUrl(URL.createObjectURL(file));
+  };
+  
+  const handleContactSubmit = (submission: Omit<ContactSubmission, 'id' | 'submittedAt'>) => {
+    const newSubmission: ContactSubmission = {
+      ...submission,
+      id: uuidv4(),
+      submittedAt: new Date().toISOString(),
+    };
+    setContactSubmissions([...contactSubmissions, newSubmission]);
+    toast({ title: "Mensaje Enviado", description: "Gracias por tu interés. Nos pondremos en contacto contigo pronto." });
   };
 
 
@@ -227,11 +239,11 @@ export default function Home() {
         onNavigateHome={() => setSelectedPropertyId(null)}
       />
 
-      <main className="container mx-auto px-4 py-8">
+      <main>
         {selectedProperty ? (
           <div>
             {isAdminMode && (
-              <div className="mb-4 flex justify-between items-center">
+              <div className="container mx-auto px-4 py-4 flex justify-between items-center sticky top-[65px] bg-background/80 backdrop-blur-sm z-30">
                 <Button variant="outline" onClick={() => setSelectedPropertyId(null)}>
                   &larr; Volver al Listado
                 </Button>
@@ -245,17 +257,20 @@ export default function Home() {
               isDraggingMode={isDraggingMode}
               selectedElement={selectedElement}
               setSelectedElement={setSelectedElement}
+              onContactSubmit={handleContactSubmit}
             />
           </div>
         ) : (
-          <PropertyList
-            properties={properties}
-            onSelectProperty={handleSelectProperty}
-            onDeleteProperty={handleDeleteProperty}
-            onUpdateProperty={handleUpdateProperty}
-            isAdminMode={isAdminMode}
-            onAddNew={() => setIsNewPropertyModalOpen(true)}
-          />
+          <div className="container mx-auto px-4 py-8">
+            <PropertyList
+              properties={properties}
+              onSelectProperty={handleSelectProperty}
+              onDeleteProperty={handleDeleteProperty}
+              onUpdateProperty={handleUpdateProperty}
+              isAdminMode={isAdminMode}
+              onAddNew={() => setIsNewPropertyModalOpen(true)}
+            />
+          </div>
         )}
       </main>
       
