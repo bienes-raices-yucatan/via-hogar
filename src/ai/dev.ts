@@ -1,1 +1,6 @@
-// Flows will be imported for their side effects in this file.
+import { config } from 'dotenv';
+config();
+
+import '@/ai/flows/generate-nearby-places.ts';
+import '@/ai/flows/enhance-property-image.ts';
+import '@/ai/flows/geocode-address.ts';

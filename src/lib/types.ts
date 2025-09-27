@@ -1,0 +1,137 @@
+export interface Property {
+  id: string;
+  name: string;
+  address: string;
+  price: number;
+  mainImageUrl: string;
+  coordinates?: { lat: number; lng: number };
+  sections: AnySectionData[];
+}
+
+export type SectionType = 
+  | 'HERO'
+  | 'IMAGE_WITH_FEATURES'
+  | 'GALLERY'
+  | 'LOCATION'
+  | 'AMENITIES'
+  | 'PRICING'
+  | 'CONTACT';
+
+export interface PageSection<T extends SectionType> {
+  id: string;
+  type: T;
+  style: {
+    backgroundColor: string;
+  };
+}
+
+export interface StyledText {
+  text: string;
+  fontSize: string;
+  color: string;
+  fontFamily: 'Montserrat' | 'Roboto' | 'Lora' | 'Playfair Display';
+}
+
+export interface DraggableTextData extends StyledText {
+  id: string;
+  position: { x: number; y: number }; // Percentage based
+}
+
+export interface HeroSectionData extends PageSection<'HERO'> {
+  imageUrl: string;
+  title: DraggableTextData;
+  floatingTexts: DraggableTextData[];
+  useParallax?: boolean;
+}
+
+export interface ImageWithFeaturesSectionData extends PageSection<'IMAGE_WITH_FEATURES'> {
+  title?: string;
+  media: {
+    type: 'image' | 'video';
+    url: string;
+  };
+  features: {
+    id: string;
+    imageUrl: string;
+    title: string;
+    subtitle: string;
+  }[];
+}
+
+export interface GallerySectionData extends PageSection<'GALLERY'> {
+  images: {
+    id: string;
+    url: string;
+    title: string;
+  }[];
+}
+
+export interface LocationSectionData extends PageSection<'LOCATION'> {
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  nearbyPlaces: {
+    id: string;
+    name: string;
+    type: string;
+    distance: string;
+    icon?: string;
+    imageUrl?: string;
+  }[];
+}
+
+export interface AmenitiesSectionData extends PageSection<'AMENITIES'> {
+  title?: string;
+  amenities: {
+    id: string;
+    icon: string;
+    text: string;
+    imageUrl?: string;
+  }[];
+}
+
+export interface PricingSectionData extends PageSection<'PRICING'> {
+  title?: string;
+  tiers: {
+    id: string;
+    name: string;
+    price: string;
+    frequency: string;
+    features: string[];
+    buttonText: string;
+    isFeatured: boolean;
+  }[];
+}
+
+export interface ContactSectionData extends PageSection<'CONTACT'> {
+  imageUrl: string;
+  title: StyledText;
+  subtitle: StyledText;
+  buttonText: string;
+}
+
+export type AnySectionData =
+  | HeroSectionData
+  | ImageWithFeaturesSectionData
+  | GallerySectionData
+  | LocationSectionData
+  | AmenitiesSectionData
+  | PricingSectionData
+  | ContactSectionData;
+
+export interface ContactSubmission {
+  id: string;
+  propertyId: string;
+  name: string;
+  phone: string;
+  userType: 'buyer' | 'broker';
+  submittedAt: string;
+}
+
+export type EditableElement = 
+    | { type: 'SITE_NAME' }
+    | { type: 'PROPERTY_TEXT'; propertyId: string; field: 'name' | 'address' | 'price' }
+    | { type: 'SECTION_STYLE'; propertyId: string; sectionId: string; field: 'backgroundColor' }
+    | { type: 'DRAGGABLE_TEXT'; propertyId: string; sectionId: string; textId: string; }
+    | { type: 'STYLED_TEXT'; propertyId: string; sectionId: string; field: 'title' | 'subtitle' };
