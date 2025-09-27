@@ -112,7 +112,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
   return (
     <div 
       ref={sectionRef}
-      className="relative group/section w-full h-[50vh] md:h-[60vh] bg-cover bg-center rounded-b-3xl overflow-hidden" 
+      className="relative group/section w-full h-[40vh] md:h-[50vh] bg-cover bg-center rounded-b-3xl overflow-hidden" 
       style={{ 
         backgroundImage: `url(${imageUrl})`,
         backgroundPosition: backgroundPosition,
