@@ -58,7 +58,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
             <Button size="lg" className="bg-primary hover:bg-amber-600 text-primary-foreground text-lg px-8 py-6">
                 <EditableText
                     value={data.buttonText}
-                    onChange={handleButton-text-update}
+                    onChange={handleButtonTextUpdate}
                     isAdminMode={isAdminMode}
                 />
             </Button>
