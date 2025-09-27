@@ -39,7 +39,17 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
             <div className="container mx-auto px-4">
                 <div className="grid md:grid-cols-2 gap-12 items-center">
                     <div className="relative w-full h-[500px] md:h-[600px] rounded-lg overflow-hidden shadow-xl">
-                        <Image src={data.media.url} alt={data.title || 'Property Feature'} layout="fill" objectFit="cover" />
+                        {data.media.type === 'image' ? (
+                            <Image src={data.media.url} alt={data.title || 'Property Feature'} layout="fill" objectFit="cover" />
+                        ) : (
+                            <video
+                                src={data.media.url}
+                                controls
+                                className="w-full h-full object-cover"
+                            >
+                                Tu navegador no soporta la etiqueta de video.
+                            </video>
+                        )}
                     </div>
                     <div className="space-y-8">
                         {data.features.map(feature => {
