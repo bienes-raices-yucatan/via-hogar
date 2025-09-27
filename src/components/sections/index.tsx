@@ -7,6 +7,7 @@ import AmenitiesSection from './amenities-section';
 import ImageWithFeaturesSection from './image-with-features-section';
 import ContactSection from './contact-section';
 import LocationSection from './location-section';
+import PricingSection from './pricing-section';
 
 interface SectionRendererProps {
   property: Property;
@@ -38,7 +39,6 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
       {property.sections.map((section) => {
         const commonProps = {
           ...componentProps,
-          key: section.id,
           data: section,
           updateSection,
           deleteSection,
@@ -46,17 +46,19 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
 
         switch (section.type) {
           case 'HERO':
-            return <HeroSection {...commonProps} />;
+            return <HeroSection key={section.id} {...commonProps} />;
           case 'IMAGE_WITH_FEATURES':
-            return <ImageWithFeaturesSection {...commonProps} />;
+            return <ImageWithFeaturesSection key={section.id} {...commonProps} />;
           case 'GALLERY':
-            return <GallerySection {...commonProps} />;
+            return <GallerySection key={section.id} {...commonProps} />;
           case 'AMENITIES':
-             return <AmenitiesSection {...commonProps} />;
+             return <AmenitiesSection key={section.id} {...commonProps} />;
           case 'LOCATION':
-            return <LocationSection {...commonProps} />;
+            return <LocationSection key={section.id} {...commonProps} />;
           case 'CONTACT':
-            return <ContactSection {...commonProps} propertyId={property.id} onContactSubmit={onContactSubmit} />;
+            return <ContactSection key={section.id} {...commonProps} propertyId={property.id} onContactSubmit={onContactSubmit} />;
+          case 'PRICING':
+            return <PricingSection key={section.id} {...commonProps} />;
           default:
             return <div key={section.id}>Unknown section type: {(section as any).type}</div>;
         }
