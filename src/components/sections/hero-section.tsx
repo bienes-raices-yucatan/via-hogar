@@ -12,9 +12,10 @@ interface HeroSectionProps {
   updateSection: (sectionId: string, updatedData: Partial<HeroSectionData>) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
+  setSelectedElement: (element: any) => void;
 }
 
-const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
+const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSection, isAdminMode, setSelectedElement }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [backgroundPosition, setBackgroundPosition] = useState('center');
 
@@ -59,6 +60,16 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
   const handleButtonTextUpdate = (value: string) => {
     updateSection(data.id, { buttonText: value });
   };
+  
+  const createSelectHandler = (field: 'title' | 'subtitle') => () => {
+    if (data[field]) {
+        setSelectedElement({
+            type: 'STYLED_TEXT',
+            sectionId: data.id,
+            field: field
+        });
+    }
+  };
 
   return (
     <div 
@@ -83,6 +94,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
                     isAdminMode={isAdminMode} 
                     className="font-bold font-headline leading-tight"
                     as="h1"
+                    onSelect={createSelectHandler('title')}
                 />
             </div>
           )}
@@ -94,6 +106,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
                     isAdminMode={isAdminMode}
                     className="font-body"
                     as="p"
+                    onSelect={createSelectHandler('subtitle')}
                 />
             </div>
           )}
@@ -112,7 +125,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
       </div>
       
       {isAdminMode && (
-        <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-white/20 backdrop-blur-sm p-2 rounded-lg">
+        <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg">
           <div className="flex items-center space-x-2">
             <Switch
               id={`parallax-${data.id}`}

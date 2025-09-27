@@ -42,6 +42,11 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
         updateSection(data.id, { images: updatedImages });
     };
 
+    const handleImageTitleChange = (imageId: string, newTitle: string) => {
+        const updatedImages = data.images.map(img => img.id === imageId ? { ...img, title: newTitle } : img);
+        updateSection(data.id, { images: updatedImages });
+    };
+
     const plugin = useRef(
         Autoplay({ delay: 3000, stopOnInteraction: true })
     );
@@ -69,7 +74,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
                                         <Image src={image.url} alt={image.title} layout="fill" objectFit="cover" className="transform group-hover/image:scale-105 transition-transform duration-300" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"/>
                                         <div className="absolute bottom-0 left-0 p-4">
-                                            <EditableText value={image.title} onChange={() => {}} isAdminMode={isAdminMode} className="text-white font-bold text-lg" />
+                                            <EditableText value={image.title} onChange={(newTitle) => handleImageTitleChange(image.id, newTitle)} isAdminMode={isAdminMode} className="text-white font-bold text-lg" />
                                         </div>
                                         {isAdminMode && (
                                             <div className="absolute top-2 right-2 flex items-center gap-2 opacity-0 group-hover/image:opacity-100 transition-opacity">

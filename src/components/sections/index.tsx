@@ -18,7 +18,7 @@ interface SectionRendererProps {
 }
 
 const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
-  const { property, updateProperty, onContactSubmit } = props;
+  const { property, updateProperty, onContactSubmit, ...componentProps } = props;
 
   const updateSection = (sectionId: string, updatedData: Partial<AnySectionData>) => {
     const updatedSections = property.sections.map((section) =>
@@ -36,22 +36,24 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
     <div>
       {property.sections.map((section) => {
         const commonProps = {
-          ...props,
+          ...componentProps,
+          key: section.id,
+          data: section,
           updateSection,
           deleteSection,
         };
 
         switch (section.type) {
           case 'HERO':
-            return <HeroSection key={section.id} {...commonProps} data={section} />;
+            return <HeroSection {...commonProps} />;
           case 'IMAGE_WITH_FEATURES':
-            return <ImageWithFeaturesSection key={section.id} {...commonProps} data={section} />;
+            return <ImageWithFeaturesSection {...commonProps} />;
           case 'GALLERY':
-            return <GallerySection key={section.id} {...commonProps} data={section} />;
+            return <GallerySection {...commonProps} />;
           case 'AMENITIES':
-             return <AmenitiesSection key={section.id} {...commonProps} data={section} />;
+             return <AmenitiesSection {...commonProps} />;
           case 'CONTACT':
-            return <ContactSection key={section.id} {...commonProps} data={section} propertyId={property.id} onContactSubmit={onContactSubmit} />;
+            return <ContactSection {...commonProps} propertyId={property.id} onContactSubmit={onContactSubmit} />;
           default:
             return <div key={section.id}>Unknown section type: {section.type}</div>;
         }

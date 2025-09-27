@@ -8,8 +8,6 @@ interface EditableTextProps {
   isAdminMode: boolean;
   className?: string;
   as?: keyof JSX.IntrinsicElements;
-  isDraggable?: boolean;
-  isDragModeActive?: boolean;
   onSelect?: () => void;
 }
 
@@ -19,8 +17,6 @@ const EditableText: React.FC<EditableTextProps> = ({
   isAdminMode,
   className,
   as: Component = 'div',
-  isDraggable = false,
-  isDragModeActive = false,
   onSelect,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -42,6 +38,12 @@ const EditableText: React.FC<EditableTextProps> = ({
   const handleDoubleClick = () => {
     if (isAdminMode) {
       setIsEditing(true);
+    }
+  };
+
+  const handleClick = () => {
+    if (isAdminMode && onSelect) {
+      onSelect();
     }
   };
 
@@ -82,9 +84,8 @@ const EditableText: React.FC<EditableTextProps> = ({
     return (
       <Component
         onDoubleClick={handleDoubleClick}
-        onClick={onSelect}
-        className={`${className} hover:outline hover:outline-2 hover:outline-amber-500 hover:outline-dashed rounded-sm transition-all
-        ${isDraggable && isDragModeActive ? 'cursor-move' : 'cursor-text'}`}
+        onClick={handleClick}
+        className={`${className} hover:outline hover:outline-2 hover:outline-amber-500 hover:outline-dashed rounded-sm transition-all cursor-pointer`}
         style={{ whiteSpace: 'pre-wrap' }}
       >
         {value}

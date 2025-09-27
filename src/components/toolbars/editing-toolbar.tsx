@@ -1,6 +1,6 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import { DraggableTextData, Property } from '@/lib/types';
+import React, { useState } from 'react';
+import { Property, StyledText } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -27,27 +27,33 @@ const EditingToolbar: React.FC<EditingToolbarProps> = ({
 
     const property = properties.find(p => p.id === selectedPropertyId);
 
-    const getElementData = (): DraggableTextData | null => {
-        if (!property || !selectedElement || selectedElement.type !== 'DRAGGABLE_TEXT') return null;
+    const getElementData = (): StyledText | null => {
+        if (!property || !selectedElement || selectedElement.type !== 'STYLED_TEXT') return null;
+        
         const section = property.sections.find(s => s.id === selectedElement.sectionId);
-        if (section?.type !== 'HERO') return null;
-        if (section.title.id === selectedElement.textId) return section.title;
-        return section.floatingTexts.find(t => t.id === selectedElement.textId) || null;
+        if (!section) return null;
+        
+        if ('title' in section && selectedElement.field === 'title' && section.title) {
+            return section.title;
+        }
+        if ('subtitle' in section && selectedElement.field === 'subtitle' && section.subtitle) {
+            return section.subtitle;
+        }
+        return null;
     }
     
     const elementData = getElementData();
     
-    const handleUpdate = (updates: Partial<DraggableTextData>) => {
-        if (!property || !elementData) return;
+    const handleUpdate = (updates: Partial<StyledText>) => {
+        if (!property || !elementData || !selectedElement) return;
         
-        let updatedProperty = JSON.parse(JSON.stringify(property));
-        let section = updatedProperty.sections.find((s: any) => s.id === selectedElement.sectionId);
+        const updatedProperty = JSON.parse(JSON.stringify(property));
+        const section = updatedProperty.sections.find((s: any) => s.id === selectedElement.sectionId);
         
-        if (section.title.id === elementData.id) {
-            section.title = { ...section.title, ...updates };
-        } else {
-            section.floatingTexts = section.floatingTexts.map((t: any) => t.id === elementData.id ? { ...t, ...updates } : t);
+        if (section && selectedElement.field in section) {
+           section[selectedElement.field] = { ...section[selectedElement.field], ...updates };
         }
+        
         updateProperty(updatedProperty);
     };
 
@@ -77,17 +83,22 @@ const EditingToolbar: React.FC<EditingToolbarProps> = ({
         <div className="fixed z-50" style={{ left: `${position.x}px`, top: `${position.y}px` }}>
             <Card className="w-80 shadow-2xl">
                 <CardHeader className="flex flex-row items-center justify-between p-4 bg-slate-100 cursor-move" onMouseDown={handleMouseDown}>
-                    <CardTitle className="text-base">Editar Texto</CardTitle>
+                    <CardTitle className="text-base">Editar Estilo</CardTitle>
                     <button onClick={() => setSelectedElement(null)} className="p-1 rounded-full hover:bg-slate-200"><X size={16}/></button>
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
                     <div>
                         <Label>Color</Label>
-                        <Input type="color" value={elementData.color} onChange={e => handleUpdate({ color: e.target.value })} />
+                        <Input type="color" value={elementData.color} onChange={e => handleUpdate({ color: e.target.value })} className="w-full h-8 p-0" />
                     </div>
                     <div>
-                        <Label>Tamaño de Fuente (px)</Label>
-                        <Input type="number" value={parseInt(elementData.fontSize)} onChange={e => handleUpdate({ fontSize: `${e.target.value}px` })} />
+                        <Label>Tamaño de Fuente</Label>
+                        <Input 
+                          type="text"
+                          value={elementData.fontSize}
+                          onChange={e => handleUpdate({ fontSize: e.target.value })}
+                          placeholder="Ej: 2.5rem o 36px"
+                        />
                     </div>
                     <div>
                         <Label>Fuente</Label>
