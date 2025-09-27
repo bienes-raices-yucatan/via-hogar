@@ -34,7 +34,7 @@ export interface StyledText {
 
 export interface DraggableTextData extends StyledText {
   id: string;
-  position: { x: number; y: number }; // Percentage based
+  position: { x: number; y: number; }; // Percentage based
 }
 
 export interface HeroSectionData extends PageSection<'HERO'> {
@@ -78,8 +78,7 @@ export interface LocationSectionData extends PageSection<'LOCATION'> {
     name: string;
     type: string;
     distance: string;
-    icon?: string;
-    imageUrl?: string;
+    icon: string;
   }[];
 }
 
@@ -137,4 +136,4 @@ export type EditableElement =
     | { type: 'PROPERTY_TEXT'; propertyId: string; field: 'name' | 'address' | 'price' }
     | { type: 'SECTION_STYLE'; propertyId: string; sectionId: string; field: 'backgroundColor' }
     | { type: 'DRAGGABLE_TEXT'; propertyId: string; sectionId: string; textId: string; }
-    | { type: 'STYLED_TEXT'; propertyId: string; sectionId: string; field: 'title' | 'subtitle' };
+    | { type: 'STYLED_TEXT'; sectionId: string; field: 'title' | 'subtitle' };
