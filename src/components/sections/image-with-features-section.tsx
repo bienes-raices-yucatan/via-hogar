@@ -25,7 +25,7 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
     };
 
     const handleAddFeature = () => {
-        const newFeature = { id: uuidv4(), icon: 'Plus', title: 'Nueva Característica', subtitle: 'Descripción aquí.' };
+        const newFeature = { id: uuidv4(), icon: 'PlusCircle', title: 'Nueva Característica', subtitle: 'Descripción aquí.' };
         updateSection(data.id, { features: [...data.features, newFeature] });
     };
     
