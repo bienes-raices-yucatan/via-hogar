@@ -112,11 +112,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
       </div>
       
       {isAdminMode && (
-        <div className="absolute top-4 right-4 opacity-100 sm:opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-white/20 backdrop-blur-sm p-2 rounded-lg">
+        <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-white/20 backdrop-blur-sm p-2 rounded-lg">
           <div className="flex items-center space-x-2">
             <Switch
               id={`parallax-${data.id}`}
-              checked={data.parallaxEnabled}
+              checked={!!data.parallaxEnabled}
               onCheckedChange={(checked) => updateSection(data.id, { parallaxEnabled: checked })}
             />
             <Label htmlFor={`parallax-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
