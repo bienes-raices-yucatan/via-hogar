@@ -1,5 +1,5 @@
 'use client';
-import { HeroSectionData, Property } from '@/lib/types';
+import { HeroSectionData } from '@/lib/types';
 import { Trash2 } from 'lucide-react';
 import React from 'react';
 import { Button } from '../ui/button';
@@ -7,7 +7,6 @@ import EditableText from '../editable-text';
 
 interface HeroSectionProps {
   data: HeroSectionData;
-  property: Property;
   updateSection: (sectionId: string, updatedData: Partial<HeroSectionData>) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;

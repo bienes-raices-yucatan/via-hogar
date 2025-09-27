@@ -122,13 +122,11 @@ export default function Home() {
     setProperties(properties.map(p => p.id === updatedProperty.id ? updatedProperty : p));
   };
 
-  const handleAddNewProperty = async (newPropertyData: { name: string, address: string, price: number, lat: number, lng: number }) => {
+  const handleAddNewProperty = (newPropertyData: { name: string, address: string, price: number, lat: number, lng: number }) => {
     setIsNewPropertyModalOpen(false);
-    setIsLoading(true);
     try {
       const { name, address, price, lat, lng } = newPropertyData;
       
-      // Use the structure from initialProperties as a template for new properties
       const newProperty: Property = JSON.parse(JSON.stringify(initialProperties[0]));
       
       newProperty.id = uuidv4();
@@ -138,16 +136,11 @@ export default function Home() {
       newProperty.mainImageUrl = 'https://picsum.photos/seed/newprop/800/600';
       newProperty.coordinates = { lat, lng };
 
-      // Update section IDs and specific data
       newProperty.sections.forEach(section => {
         section.id = uuidv4();
         if (section.type === 'HERO') {
           section.title.text = `Bienvenido a ${name}`;
           section.imageUrl = 'https://picsum.photos/seed/newhero/1920/1080';
-        }
-        if (section.type === 'LOCATION') {
-          section.coordinates = { lat, lng };
-          section.nearbyPlaces = [];
         }
       });
       
@@ -156,8 +149,6 @@ export default function Home() {
     } catch (error) {
       console.error(error);
       toast({ title: "Error", description: "No se pudo crear la propiedad.", variant: "destructive" });
-    } finally {
-      setIsLoading(false);
     }
   };
 

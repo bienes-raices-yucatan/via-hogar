@@ -38,8 +38,8 @@ const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onCon
         <div className="relative z-10 container mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="text-center md:text-left">
-                    <h2 className="font-headline font-bold text-slate-800" style={{fontSize: data.title.fontSize, color: data.title.color}}>{data.title.text}</h2>
-                    <p className="mt-4 text-slate-600" style={{fontSize: data.subtitle.fontSize, color: data.subtitle.color}}>{data.subtitle.text}</p>
+                    <h2 className="font-headline font-bold text-slate-800" style={{fontSize: data.title.fontSize, color: data.title.color, fontFamily: data.title.fontFamily}}>{data.title.text}</h2>
+                    <p className="mt-4 text-slate-600" style={{fontSize: data.subtitle.fontSize, color: data.subtitle.color, fontFamily: data.subtitle.fontFamily}}>{data.subtitle.text}</p>
                 </div>
                 <div className="bg-white p-8 rounded-lg shadow-xl border">
                     <form onSubmit={handleSubmit} className="space-y-6">
