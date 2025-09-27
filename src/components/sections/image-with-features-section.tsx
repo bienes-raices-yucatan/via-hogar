@@ -1,12 +1,13 @@
 'use client';
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { ImageWithFeaturesSectionData } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Trash2, PlusCircle } from 'lucide-react';
+import { Trash2, PlusCircle, Image as ImageIcon, Video } from 'lucide-react';
 import Image from 'next/image';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
+import { saveImage, getImage } from '@/lib/db';
 
 type IconName = keyof typeof LucideIcons;
 
@@ -18,6 +19,28 @@ interface ImageWithFeaturesSectionProps {
 }
 
 const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [mediaUrl, setMediaUrl] = useState(data.media.url);
+
+    useEffect(() => {
+        const loadMedia = async () => {
+            if (data.media.imageKey) {
+                const blob = await getImage(data.media.imageKey);
+                if (blob) {
+                    setMediaUrl(URL.createObjectURL(blob));
+                }
+            } else {
+                setMediaUrl(data.media.url);
+            }
+        };
+        loadMedia();
+
+        return () => {
+            if (mediaUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(mediaUrl);
+            }
+        };
+    }, [data.media.imageKey, data.media.url]);
 
     const handleFeatureUpdate = (featureId: string, field: 'title' | 'subtitle', value: string) => {
         const updatedFeatures = data.features.map(f => f.id === featureId ? { ...f, [field]: value } : f);
@@ -34,21 +57,57 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
         updateSection(data.id, { features: updatedFeatures });
     };
 
+    const handleMediaButtonClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const key = `media-${data.id}-${uuidv4()}`;
+            await saveImage(key, file);
+            const mediaType = file.type.startsWith('video') ? 'video' : 'image';
+            updateSection(data.id, {
+                media: {
+                    ...data.media,
+                    type: mediaType,
+                    imageKey: key,
+                }
+            });
+        }
+    };
+
+
     return (
         <div className="py-16 md:py-24 relative group/section" style={{backgroundColor: data.style.backgroundColor}}>
             <div className="container mx-auto px-4">
                 <div className="grid md:grid-cols-2 gap-12 items-center">
-                    <div className="relative w-full h-[500px] md:h-[600px] rounded-lg overflow-hidden shadow-xl">
+                    <div className="relative group/media w-full h-[500px] md:h-[600px] rounded-lg overflow-hidden shadow-xl">
                         {data.media.type === 'image' ? (
-                            <Image src={data.media.url} alt={data.title || 'Property Feature'} layout="fill" objectFit="cover" />
+                            <Image src={mediaUrl} alt={data.title || 'Property Feature'} layout="fill" objectFit="cover" />
                         ) : (
                             <video
-                                src={data.media.url}
+                                key={mediaUrl} // Important for re-rendering video
                                 controls
                                 className="w-full h-full object-cover"
                             >
+                                <source src={mediaUrl} type="video/mp4" />
                                 Tu navegador no soporta la etiqueta de video.
                             </video>
+                        )}
+                        {isAdminMode && (
+                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-4 opacity-0 group-hover/media:opacity-100 transition-opacity">
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                    accept="image/*,video/*"
+                                />
+                                <Button size="lg" variant="secondary" onClick={handleMediaButtonClick}>
+                                   <ImageIcon className="mr-2"/> Cambiar Multimedia
+                                </Button>
+                            </div>
                         )}
                     </div>
                     <div className="space-y-8">
