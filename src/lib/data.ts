@@ -18,9 +18,9 @@ export const initialProperties: Property[] = [
         type: 'HERO',
         style: { backgroundColor: '#e0f2fe' },
         imageUrl: 'https://picsum.photos/seed/hero1/1920/1080',
-        title: { text: 'Un Oasis de Lujo y Tranquilidad', fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: '#ffffff', fontFamily: 'Playfair Display' },
-        subtitle: { text: 'Descubre una vida de comodidad y elegancia en esta impresionante villa frente al mar.', fontSize: 'clamp(1rem, 2vw, 1.25rem)', color: '#e2e8f0', fontFamily: 'Roboto' },
-        buttonText: 'Contactar Agente',
+        title: { text: 'Elegancia y confort: Una casa diseñada para quienes buscan lo mejor.', fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: '#ffffff', fontFamily: 'Playfair Display' },
+        subtitle: { text: '', fontSize: 'clamp(1rem, 2vw, 1.25rem)', color: '#e2e8f0', fontFamily: 'Roboto' },
+        buttonText: 'Contáctanos',
       },
       {
         id: uuidv4(),
