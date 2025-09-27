@@ -127,22 +127,25 @@ export default function Home() {
     try {
       const { name, address, price, lat, lng } = newPropertyData;
       
-      const newProperty: Property = JSON.parse(JSON.stringify(initialProperties[0]));
-      
-      newProperty.id = uuidv4();
-      newProperty.name = name;
-      newProperty.address = address;
-      newProperty.price = price;
-      newProperty.mainImageUrl = 'https://picsum.photos/seed/newprop/800/600';
-      newProperty.coordinates = { lat, lng };
-
-      newProperty.sections.forEach(section => {
-        section.id = uuidv4();
-        if (section.type === 'HERO') {
-          section.title.text = `Bienvenido a ${name}`;
-          section.imageUrl = 'https://picsum.photos/seed/newhero/1920/1080';
-        }
-      });
+      const newProperty: Property = {
+        id: uuidv4(),
+        name,
+        address,
+        price,
+        mainImageUrl: 'https://picsum.photos/seed/newprop/800/600',
+        coordinates: { lat, lng },
+        sections: [
+          {
+            id: uuidv4(),
+            type: 'HERO',
+            style: { backgroundColor: '#e0f2fe' },
+            imageUrl: 'https://picsum.photos/seed/newhero/1920/1080',
+            title: { text: `Bienvenido a ${name}`, fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: '#ffffff', fontFamily: 'Playfair Display' },
+            subtitle: { text: 'Una nueva propiedad increíble te espera.', fontSize: 'clamp(1rem, 2vw, 1.25rem)', color: '#e2e8f0', fontFamily: 'Roboto' },
+            buttonText: 'Contactar',
+          }
+        ]
+      };
       
       setProperties([...properties, newProperty]);
       setSelectedPropertyId(newProperty.id);
