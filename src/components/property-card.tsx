@@ -55,16 +55,17 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           <h3 className="text-lg font-headline font-bold mb-2">
             <EditableText value={property.name} onChange={(val) => handleUpdate('name', val)} isAdminMode={isAdminMode} />
           </h3>
-          <p className="text-sm text-slate-600 mb-2">
-            <EditableText value={property.address} onChange={(val) => handleUpdate('address', val)} isAdminMode={isAdminMode} />
-          </p>
-          <p className="text-xl font-bold text-primary mt-auto pt-2">
+          <div className="text-sm text-slate-600 mb-2">
+            <EditableText value={property.address} onChange={(val) => handleUpdate('address', val)} isAdminMode={isAdminMode} as="div" />
+          </div>
+          <div className="text-xl font-bold text-primary mt-auto pt-2">
             <EditableText
               value={`$${Number(property.price).toLocaleString()}`}
               onChange={(val) => handleUpdate('price', Number(val.replace(/[^0-9.-]+/g,"")))}
               isAdminMode={isAdminMode}
+              as="div"
             />
-          </p>
+          </div>
           <div className="mt-4 flex gap-2">
             <Button className="w-full bg-primary hover:bg-amber-600" onClick={() => onSelect(property.id)}>
               Ver Detalles
