@@ -230,7 +230,7 @@ export default function Home() {
   const selectedProperty = properties.find(p => p.id === selectedPropertyId);
 
   return (
-    <div className={`min-h-screen bg-background font-body text-slate-800 ${isAdminMode ? 'admin-mode' : ''}`}>
+    <div className={`min-h-screen bg-background font-body text-slate-800 flex flex-col ${isAdminMode ? 'admin-mode' : ''}`}>
       <Header
         siteName={siteName}
         setSiteName={setSiteName}
@@ -241,7 +241,7 @@ export default function Home() {
         onNavigateHome={() => setSelectedPropertyId(null)}
       />
 
-      <main>
+      <main className="flex-grow">
         {selectedProperty ? (
           <div>
             {isAdminMode && (
