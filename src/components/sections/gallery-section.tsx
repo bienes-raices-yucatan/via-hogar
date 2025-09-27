@@ -54,7 +54,13 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
     return (
         <div style={{backgroundColor: data.style.backgroundColor}} className="py-16 md:py-24 relative group/section overflow-hidden">
             <div className="container mx-auto px-4">
-                <h2 className="text-3xl md:text-4xl font-headline font-bold text-center mb-12 text-slate-800">{data.title}</h2>
+                <EditableText
+                    value={data.title}
+                    onChange={(val) => updateSection(data.id, { title: val })}
+                    isAdminMode={isAdminMode}
+                    as="h2"
+                    className="text-3xl md:text-4xl font-headline font-bold text-center mb-12 text-slate-800"
+                />
                 <Carousel
                     setApi={setApi}
                     plugins={[plugin.current]}

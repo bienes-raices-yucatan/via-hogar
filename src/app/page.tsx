@@ -50,21 +50,18 @@ export default function Home() {
         setProperties(JSON.parse(storedProperties));
       } else {
         setProperties(initialProperties);
-        localStorage.setItem('properties', JSON.stringify(initialProperties));
       }
 
       if (storedSiteName) {
         setSiteName(storedSiteName);
       } else {
         setSiteName(initialSiteName);
-        localStorage.setItem('siteName', initialSiteName);
       }
 
       if (storedLogoKey) {
         const logo = await db.getImage(storedLogoKey);
         if (logo) setLogoUrl(URL.createObjectURL(logo));
       } else {
-        // For initial load, we don't have a blob, so we just use the public path
         setLogoUrl(initialLogo);
       }
 
@@ -78,6 +75,7 @@ export default function Home() {
     loadData();
   }, []);
   
+  // Persist data to localStorage whenever it changes
   useEffect(() => {
     if(!isLoading) {
       localStorage.setItem('properties', JSON.stringify(properties));
@@ -119,7 +117,7 @@ export default function Home() {
   };
   
   const handleUpdateProperty = (updatedProperty: Property) => {
-    setProperties(properties.map(p => p.id === updatedProperty.id ? updatedProperty : p));
+    setProperties(prevProperties => prevProperties.map(p => p.id === updatedProperty.id ? updatedProperty : p));
   };
 
   const handleAddNewProperty = (newPropertyData: { name: string, address: string, price: number, lat: number, lng: number }) => {
@@ -148,7 +146,7 @@ export default function Home() {
         ]
       };
       
-      setProperties([...properties, newProperty]);
+      setProperties(prevProperties => [...prevProperties, newProperty]);
       setSelectedPropertyId(newProperty.id);
     } catch (error) {
       console.error(error);
@@ -157,7 +155,7 @@ export default function Home() {
   };
 
   const handleDeleteProperty = (id: string) => {
-    setProperties(properties.filter(p => p.id !== id));
+    setProperties(prevProperties => prevProperties.filter(p => p.id !== id));
     if (selectedPropertyId === id) {
       setSelectedPropertyId(null);
     }
@@ -170,7 +168,6 @@ export default function Home() {
     let newSection: AnySectionData;
     const sectionId = uuidv4();
 
-    // Default data for new sections based on new designs
     switch (sectionType) {
         case 'IMAGE_WITH_FEATURES':
             newSection = { id: sectionId, type: 'IMAGE_WITH_FEATURES', style: {backgroundColor: '#ffffff'}, media: { type: 'image', url: 'https://picsum.photos/seed/newfeatures/800/1000' }, features: [{id: uuidv4(), icon: 'Home', title: 'Característica Principal', subtitle: 'Descripción de la característica.' }] };
@@ -201,10 +198,15 @@ export default function Home() {
   };
   
   const handleUpdateLogo = async (file: File) => {
-    const key = `logo-${uuidv4()}`;
-    await db.saveImage(key, file);
-    localStorage.setItem('logoKey', key);
-    setLogoUrl(URL.createObjectURL(file));
+    try {
+        const key = `logo-${uuidv4()}`;
+        await db.saveImage(key, file);
+        localStorage.setItem('logoKey', key);
+        setLogoUrl(URL.createObjectURL(file));
+    } catch (error) {
+        console.error("Failed to update logo:", error);
+        toast({ title: "Error", description: "No se pudo actualizar el logo.", variant: "destructive" });
+    }
   };
   
   const handleContactSubmit = (submission: Omit<ContactSubmission, 'id' | 'submittedAt'>) => {
@@ -213,10 +215,9 @@ export default function Home() {
       id: uuidv4(),
       submittedAt: new Date().toISOString(),
     };
-    setContactSubmissions([...contactSubmissions, newSubmission]);
+    setContactSubmissions(prevSubmissions => [...prevSubmissions, newSubmission]);
     toast({ title: "Mensaje Enviado", description: "Gracias por tu interés. Nos pondremos en contacto contigo pronto." });
   };
-
 
   if (isLoading) {
     return (
