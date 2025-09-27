@@ -36,7 +36,6 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
       {property.sections.map((section) => {
         const componentProps = {
           ...props,
-          key: section.id,
           data: section as any, // Cast to specific type in component
           updateSection,
           deleteSection,
@@ -44,13 +43,13 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
 
         switch (section.type) {
           case 'HERO':
-            return <HeroSection {...componentProps} data={section} />;
-          case 'GALLERY':
-            return <GallerySection {...componentProps} data={section} />;
+            return <HeroSection key={section.id} {...componentProps} data={section} />;
+          case 'GALLallery':
+            return <GallerySection key={section.id} {...componentProps} data={section} />;
           case 'AMENITIES':
-             return <AmenitiesSection {...componentProps} data={section} />;
+             return <AmenitiesSection key={section.id} {...componentProps} data={section} />;
           case 'LOCATION':
-            return <LocationSection {...componentProps} data={section} />;
+            return <LocationSection key={section.id} {...componentProps} data={section} />;
           // Add cases for other sections
           default:
             return <div key={section.id}>Unknown section type: {section.type}</div>;
