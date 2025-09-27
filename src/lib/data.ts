@@ -65,6 +65,18 @@ export const initialProperties: Property[] = [
           { id: uuidv4(), icon: 'SwimmingPool', text: 'Piscina Privada'}
         ],
       },
+      {
+        id: uuidv4(),
+        type: 'LOCATION',
+        style: { backgroundColor: '#f8fafc' },
+        coordinates: { lat: 25.7617, lng: -80.1918 },
+        nearbyPlaces: [
+            { id: uuidv4(), name: 'South Pointe Park', type: 'Parque', distance: '5 min', icon: 'Trees' },
+            { id: uuidv4(), name: 'Joe\'s Stone Crab', type: 'Restaurante', distance: '10 min', icon: 'Utensils' },
+            { id: uuidv4(), name: 'Lincoln Road Mall', type: 'Centro Comercial', distance: '15 min', icon: 'ShoppingBag' },
+            { id: uuidv4(), name: 'Miami International Airport', type: 'Aeropuerto', distance: '25 min', icon: 'Plane' },
+        ]
+       },
        {
         id: uuidv4(),
         type: 'CONTACT',

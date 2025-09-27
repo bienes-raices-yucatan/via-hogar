@@ -6,6 +6,7 @@ import GallerySection from './gallery-section';
 import AmenitiesSection from './amenities-section';
 import ImageWithFeaturesSection from './image-with-features-section';
 import ContactSection from './contact-section';
+import LocationSection from './location-section';
 
 interface SectionRendererProps {
   property: Property;
@@ -52,10 +53,12 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
             return <GallerySection {...commonProps} />;
           case 'AMENITIES':
              return <AmenitiesSection {...commonProps} />;
+          case 'LOCATION':
+            return <LocationSection {...commonProps} />;
           case 'CONTACT':
             return <ContactSection {...commonProps} propertyId={property.id} onContactSubmit={onContactSubmit} />;
           default:
-            return <div key={section.id}>Unknown section type: {section.type}</div>;
+            return <div key={section.id}>Unknown section type: {(section as any).type}</div>;
         }
       })}
     </div>

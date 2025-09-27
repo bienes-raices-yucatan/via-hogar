@@ -180,6 +180,9 @@ export default function Home() {
         case 'AMENITIES':
             newSection = { id: sectionId, type: 'AMENITIES', style: {backgroundColor: '#F9FAFA'}, title: 'Comodidades', amenities: [{id: uuidv4(), icon: 'Bed', text: 'Habitaciones'}] };
             break;
+        case 'LOCATION':
+            newSection = { id: sectionId, type: 'LOCATION', style: {backgroundColor: '#ffffff'}, coordinates: property.coordinates, nearbyPlaces: [] };
+            break;
         case 'CONTACT':
             newSection = { id: sectionId, type: 'CONTACT', style: {backgroundColor: '#e0f2fe'}, imageUrl: 'https://picsum.photos/seed/newcontact/1920/1080', title: {text: '¿Interesado?', fontSize: '36px', color: '#1E293B', fontFamily: 'Montserrat'}, subtitle: {text: 'Ponte en contacto con nosotros.', fontSize: '18px', color: '#475569', fontFamily: 'Roboto'}, buttonText: 'Enviar Mensaje'};
             break;

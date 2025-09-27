@@ -4,7 +4,7 @@ export interface Property {
   address: string;
   price: number;
   mainImageUrl: string;
-  coordinates?: { lat: number; lng: number };
+  coordinates: { lat: number; lng: number };
   sections: AnySectionData[];
 }
 
