@@ -38,7 +38,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
     loadImage();
 
     return () => {
-        if (imageUrl.startsWith('blob:')) {
+        if (imageUrl && imageUrl.startsWith('blob:')) {
             URL.revokeObjectURL(imageUrl);
         }
     };
@@ -112,7 +112,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
   return (
     <div 
       ref={sectionRef}
-      className="relative group/section w-full h-[70vh] md:h-[80vh] bg-cover bg-center" 
+      className="relative group/section w-full h-[50vh] md:h-[60vh] bg-cover bg-center" 
       style={{ 
         backgroundImage: `url(${imageUrl})`,
         backgroundPosition: backgroundPosition,
