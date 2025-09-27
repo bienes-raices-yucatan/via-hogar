@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Property, AnySectionData, ContactSubmission } from '@/lib/types';
-import { geocodeAddress } from '@/ai/flows/geocode-address';
-import { generateNearbyPlaces } from '@/ai/flows/generate-nearby-places';
 import { initialProperties, initialSiteName, initialLogo } from '@/lib/data';
 import * as db from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
@@ -124,20 +122,19 @@ export default function Home() {
     setProperties(properties.map(p => p.id === updatedProperty.id ? updatedProperty : p));
   };
 
-  const handleAddNewProperty = async (address: string) => {
+  const handleAddNewProperty = async (newPropertyData: { name: string, address: string, price: number, lat: number, lng: number }) => {
     setIsNewPropertyModalOpen(false);
     setIsLoading(true);
     try {
-      const coords = await geocodeAddress({ address });
-      const nearbyPlaces = await generateNearbyPlaces({ latitude: coords.latitude, longitude: coords.longitude });
+      const { name, address, price, lat, lng } = newPropertyData;
       
       const newProperty: Property = {
         id: uuidv4(),
-        name: `Propiedad en ${address.split(',')[0]}`,
+        name,
         address,
-        price: 500000,
+        price,
         mainImageUrl: 'https://picsum.photos/seed/newprop/800/600',
-        coordinates: { lat: coords.latitude, lng: coords.longitude },
+        coordinates: { lat, lng },
         sections: [
           {
             id: uuidv4(),
@@ -151,8 +148,8 @@ export default function Home() {
             id: uuidv4(),
             type: 'LOCATION',
             style: { backgroundColor: '#F9FAFA' },
-            coordinates: { lat: coords.latitude, lng: coords.longitude },
-            nearbyPlaces: nearbyPlaces.map(p => ({...p, id: uuidv4()})),
+            coordinates: { lat, lng },
+            nearbyPlaces: [],
           }
         ],
       };
@@ -160,7 +157,7 @@ export default function Home() {
       setSelectedPropertyId(newProperty.id);
     } catch (error) {
       console.error(error);
-      toast({ title: "Error de IA", description: "No se pudo crear la propiedad.", variant: "destructive" });
+      toast({ title: "Error", description: "No se pudo crear la propiedad.", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }

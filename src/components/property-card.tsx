@@ -5,10 +5,9 @@ import Image from 'next/image';
 import { Property } from '@/lib/types';
 import { Button } from './ui/button';
 import EditableText from './editable-text';
-import { Sparkles, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import ConfirmationModal from './modals/confirmation-modal';
-import { enhancePropertyImage } from '@/ai/flows/enhance-property-image';
 import Spinner from './spinner';
 import { useToast } from "@/hooks/use-toast";
 
@@ -28,28 +27,12 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   isAdminMode,
 }) => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [isEnhancing, setIsEnhancing] = useState(false);
   const { toast } = useToast();
 
   const handleUpdate = (field: 'name' | 'address' | 'price', value: string | number) => {
     onUpdate({ ...property, [field]: value });
   };
   
-  const handleEnhanceImage = async () => {
-    setIsEnhancing(true);
-    try {
-      // This is a simplified example. A real implementation would convert
-      // the image URL to a data URI before sending.
-      toast({ title: "Mejora de Imagen", description: "Esta función requiere una URL de imagen a un Data URI, lo cual no es implementado en este demo." });
-      // const result = await enhancePropertyImage({ imageDataUri: property.mainImageUrl });
-      // onUpdate({ ...property, mainImageUrl: result.enhancedImageDataUri });
-    } catch (error) {
-      toast({ title: "Error de IA", description: "No se pudo mejorar la imagen.", variant: "destructive" });
-    } finally {
-      setIsEnhancing(false);
-    }
-  };
-
   return (
     <>
       <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
@@ -64,9 +47,6 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           />
           {isAdminMode && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" onClick={handleEnhanceImage} disabled={isEnhancing}>
-                {isEnhancing ? <Spinner /> : <Sparkles />}
-              </Button>
               <Button size="icon" variant="ghost" className="text-white hover:bg-white/20"><Pencil /></Button>
             </div>
           )}

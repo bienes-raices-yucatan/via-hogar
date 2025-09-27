@@ -3,9 +3,10 @@ import React from 'react';
 import { LocationSectionData } from '@/lib/types';
 import Map from '../map';
 import { Button } from '../ui/button';
-import { Trash2, BrainCircuit } from 'lucide-react';
+import { Trash2, PlusCircle } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import EditableText from '../editable-text';
+import { v4 as uuidv4 } from 'uuid';
 
 type IconName = keyof typeof LucideIcons;
 
@@ -23,6 +24,23 @@ const LocationSection: React.FC<LocationSectionProps> = ({ data, updateSection, 
         updateSection(data.id, { nearbyPlaces: updatedPlaces });
     }
 
+    const handleAddPlace = () => {
+        const newPlace = {
+            id: uuidv4(),
+            name: "Nuevo Lugar",
+            type: "Tipo",
+            distance: "0 km",
+            icon: "MapPin"
+        };
+        const updatedPlaces = [...data.nearbyPlaces, newPlace];
+        updateSection(data.id, { nearbyPlaces: updatedPlaces });
+    };
+
+    const handleDeletePlace = (placeId: string) => {
+        const updatedPlaces = data.nearbyPlaces.filter(p => p.id !== placeId);
+        updateSection(data.id, { nearbyPlaces: updatedPlaces });
+    };
+
     return (
         <div className="py-12 relative group/section" style={{backgroundColor: data.style.backgroundColor}}>
             <div className="container mx-auto px-4">
@@ -33,21 +51,26 @@ const LocationSection: React.FC<LocationSectionProps> = ({ data, updateSection, 
                     </div>
                     <div>
                         <h3 className="text-2xl font-bold mb-4">Puntos de Interés Cercanos</h3>
-                        {isAdminMode && <Button size="sm" className="mb-4"><BrainCircuit className="mr-2 h-4 w-4" /> Generar con IA</Button>}
                         <ul className="space-y-4">
                             {data.nearbyPlaces.map(place => {
                                 const Icon = LucideIcons[place.icon as IconName] as React.ElementType;
                                 return (
-                                <li key={place.id} className="flex items-center gap-4 p-2 hover:bg-slate-100 rounded-md">
+                                <li key={place.id} className="flex items-center gap-4 p-2 hover:bg-slate-100 rounded-md group/place">
                                     {Icon && <Icon className="h-6 w-6 text-primary flex-shrink-0" />}
                                     <div className="flex-grow">
                                         <EditableText value={place.name} onChange={val => handlePlaceUpdate(place.id, 'name', val)} isAdminMode={isAdminMode} className="font-semibold text-slate-800" />
                                         <EditableText value={place.type} onChange={val => handlePlaceUpdate(place.id, 'type', val)} isAdminMode={isAdminMode} className="text-sm text-slate-500" />
                                     </div>
                                     <EditableText value={place.distance} onChange={val => handlePlaceUpdate(place.id, 'distance', val)} isAdminMode={isAdminMode} className="text-sm font-medium text-slate-600" />
+                                    {isAdminMode && (
+                                        <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover/place:opacity-100" onClick={() => handleDeletePlace(place.id)}>
+                                            <Trash2 size={16} className="text-destructive"/>
+                                        </Button>
+                                    )}
                                 </li>
                             )})}
                         </ul>
+                        {isAdminMode && <Button size="sm" variant="outline" className="mt-4" onClick={handleAddPlace}><PlusCircle className="mr-2 h-4 w-4" /> Añadir Lugar</Button>}
                     </div>
                 </div>
             </div>

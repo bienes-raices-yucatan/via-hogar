@@ -70,9 +70,9 @@ export const initialProperties: Property[] = [
         style: { backgroundColor: '#ffffff' },
         coordinates: { lat: 40.7128, lng: -74.0060 },
         nearbyPlaces: [
-          { id: uuidv4(), name: 'Central Park', type: 'Park', distance: '1.5 miles' },
-          { id: uuidv4(), name: 'Broadway', type: 'Theater', distance: '0.8 miles' },
-          { id: uuidv4(), name: 'Gourmet Market', type: 'Store', distance: '0.2 miles' },
+          { id: uuidv4(), icon: 'Trees', name: 'Central Park', type: 'Park', distance: '1.5 miles' },
+          { id: uuidv4(), icon: 'Theater', name: 'Broadway', type: 'Theater', distance: '0.8 miles' },
+          { id: uuidv4(), icon: 'ShoppingBasket', name: 'Gourmet Market', type: 'Store', distance: '0.2 miles' },
         ],
       },
     ],
