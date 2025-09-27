@@ -38,14 +38,14 @@ const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onCon
             if (blob) {
                 setImageUrl(URL.createObjectURL(blob));
             }
-        } else {
+        } else if (data.imageUrl) {
             setImageUrl(data.imageUrl);
         }
     };
     loadImage();
 
     return () => {
-        if (imageUrl.startsWith('blob:')) {
+        if (imageUrl && imageUrl.startsWith('blob:')) {
             URL.revokeObjectURL(imageUrl);
         }
     };
@@ -108,7 +108,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onCon
     if (file) {
         const key = `contact-${data.id}-${uuidv4()}`;
         await saveImage(key, file);
-        updateSection(data.id, { imageKey: key });
+        updateSection(data.id, { imageKey: key, imageUrl: undefined });
     }
   };
 

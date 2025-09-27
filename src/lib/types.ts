@@ -38,7 +38,7 @@ export interface DraggableTextData extends StyledText {
 }
 
 export interface HeroSectionData extends PageSection<'HERO'> {
-  imageUrl: string;
+  imageUrl?: string;
   imageKey?: string;
   title?: StyledText;
   subtitle?: StyledText;
@@ -50,7 +50,7 @@ export interface ImageWithFeaturesSectionData extends PageSection<'IMAGE_WITH_FE
   title?: string;
   media: {
     type: 'image' | 'video';
-    url: string;
+    url?: string;
     imageKey?: string;
   };
   features: {
@@ -65,7 +65,7 @@ export interface GallerySectionData extends PageSection<'GALLERY'> {
   title: string;
   images: {
     id: string;
-    url: string;
+    url?: string;
     title: string;
     imageKey?: string;
   }[];
@@ -110,7 +110,7 @@ export interface PricingSectionData extends PageSection<'PRICING'> {
 }
 
 export interface ContactSectionData extends PageSection<'CONTACT'> {
-  imageUrl: string;
+  imageUrl?: string;
   imageKey?: string;
   title?: StyledText;
   subtitle?: StyledText;

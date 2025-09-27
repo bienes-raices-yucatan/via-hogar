@@ -113,11 +113,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
     <div 
       ref={sectionRef}
       className="relative group/section w-full h-[40vh] md:h-[50vh] bg-cover bg-center rounded-b-3xl overflow-hidden" 
+      onClick={isAdminMode ? handleImageButtonClick : undefined}
       style={{ 
         backgroundImage: `url(${imageUrl})`,
         backgroundPosition: backgroundPosition,
         backgroundAttachment: data.parallaxEnabled && !isAdminMode ? 'fixed' : 'scroll',
-        transition: 'background-position 0.1s ease-out'
+        transition: 'background-position 0.1s ease-out',
+        cursor: isAdminMode ? 'pointer' : 'default',
       }}
     >
       <div className="absolute inset-0 bg-black/40"></div>
@@ -163,7 +165,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
       </div>
       
       {isAdminMode && (
-        <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg">
+        <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg" onClick={(e) => e.stopPropagation()}>
           <input
               type="file"
               ref={fileInputRef}

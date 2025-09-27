@@ -33,6 +33,8 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
                     if (blob) {
                         urls[image.id] = URL.createObjectURL(blob);
                     }
+                } else if (image.url) {
+                    urls[image.id] = image.url;
                 }
             }
             setImageUrls(urls);
@@ -40,7 +42,11 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
         loadImageUrls();
         
         return () => {
-            Object.values(imageUrls).forEach(url => URL.revokeObjectURL(url));
+            Object.values(imageUrls).forEach(url => {
+                if (url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url)
+                }
+            });
         }
     }, [data.images]);
 
@@ -83,7 +89,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
             const localUrl = URL.createObjectURL(file);
             setImageUrls(prev => {
                 const newUrls = {...prev};
-                if (prev[imageId]) {
+                if (prev[imageId] && prev[imageId].startsWith('blob:')) {
                     URL.revokeObjectURL(prev[imageId]);
                 }
                 newUrls[imageId] = localUrl;
@@ -91,7 +97,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
             });
             
             const updatedImages = data.images.map(img => 
-                img.id === imageId ? { ...img, imageKey: key, url: localUrl } : img
+                img.id === imageId ? { ...img, imageKey: key, url: undefined } : img
             );
             updateSection(data.id, { images: updatedImages });
         }
@@ -124,35 +130,37 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
                     className="w-full"
                 >
                     <CarouselContent>
-                        {data.images.map((image, index) => (
-                            <CarouselItem key={image.id} className="basis-1/2 md:basis-1/4">
-                                <div className="p-1">
-                                    <div className={`relative rounded-lg overflow-hidden shadow-lg group/image aspect-w-4 aspect-h-3 transition-transform duration-500 ease-in-out ${index === current ? 'scale-110' : 'scale-90 opacity-60'}`}>
-                                        <Image src={imageUrls[image.id] || image.url} alt={image.title} layout="fill" objectFit="cover" className="transform group-hover/image:scale-105 transition-transform duration-300" />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"/>
-                                        <div className="absolute bottom-0 left-0 p-4">
-                                            <EditableText value={image.title} onChange={(newTitle) => handleImageTitleChange(image.id, newTitle)} isAdminMode={isAdminMode} className="text-white font-bold text-lg" />
+                        {data.images.map((image, index) => {
+                            const currentImageUrl = imageUrls[image.id] || image.url;
+                            return (
+                                <CarouselItem key={image.id} className="basis-1/2 md:basis-1/4">
+                                    <div className="p-1">
+                                        <div className={`relative rounded-lg overflow-hidden shadow-lg group/image aspect-w-4 aspect-h-3 transition-transform duration-500 ease-in-out ${index === current ? 'scale-110' : 'scale-90 opacity-60'}`}>
+                                            <Image src={currentImageUrl} alt={image.title} layout="fill" objectFit="cover" className="transform group-hover/image:scale-105 transition-transform duration-300" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"/>
+                                            <div className="absolute bottom-0 left-0 p-4">
+                                                <EditableText value={image.title} onChange={(newTitle) => handleImageTitleChange(image.id, newTitle)} isAdminMode={isAdminMode} className="text-white font-bold text-lg" />
+                                            </div>
+                                            {isAdminMode && (
+                                                <>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        ref={el => (fileInputRefs.current[image.id] = el)}
+                                                        onChange={e => handleFileChange(e, image.id)}
+                                                    />
+                                                    <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity bg-black/30 p-1 rounded-md">
+                                                        <Button size="icon" variant="ghost" className="text-white hover:bg-white/20 h-7 w-7" onClick={() => handleImageButtonClick(image.id)} title="Change image"><ImageIcon size={16}/></Button>
+                                                        <Button size="icon" variant="destructive" className="bg-transparent hover:bg-red-500/50 h-7 w-7" onClick={() => handleDeleteImage(image.id)}><Trash2 size={16}/></Button>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
-                                        {isAdminMode && (
-                                            <>
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    className="hidden"
-                                                    ref={el => (fileInputRefs.current[image.id] = el)}
-                                                    onChange={e => handleFileChange(e, image.id)}
-                                                />
-                                                <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity bg-black/30 p-1 rounded-md">
-                                                    <Button size="icon" variant="ghost" className="text-white hover:bg-white/20 h-7 w-7" onClick={() => handleImageButtonClick(image.id)} title="Change image"><ImageIcon size={16}/></Button>
-                                                    <Button size="icon" variant="ghost" className="text-white hover:bg-white/20 h-7 w-7"><Pencil size={16}/></Button>
-                                                    <Button size="icon" variant="destructive" className="bg-transparent hover:bg-red-500/50 h-7 w-7" onClick={() => handleDeleteImage(image.id)}><Trash2 size={16}/></Button>
-                                                </div>
-                                            </>
-                                        )}
                                     </div>
-                                </div>
-                            </CarouselItem>
-                        ))}
+                                </CarouselItem>
+                            )
+                        })}
                     </CarouselContent>
                 </Carousel>
 

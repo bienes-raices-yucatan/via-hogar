@@ -29,14 +29,14 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
                 if (blob) {
                     setMediaUrl(URL.createObjectURL(blob));
                 }
-            } else {
+            } else if (data.media.url) {
                 setMediaUrl(data.media.url);
             }
         };
         loadMedia();
 
         return () => {
-            if (mediaUrl.startsWith('blob:')) {
+            if (mediaUrl && mediaUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(mediaUrl);
             }
         };
@@ -69,8 +69,8 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
             const mediaType = file.type.startsWith('video') ? 'video' : 'image';
             updateSection(data.id, {
                 media: {
-                    ...data.media,
                     type: mediaType,
+                    url: undefined, // Clear static URL
                     imageKey: key,
                 }
             });
@@ -83,17 +83,21 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
             <div className="container mx-auto px-4">
                 <div className="grid md:grid-cols-2 gap-12 items-center">
                     <div className="relative group/media w-full h-[500px] md:h-[600px] rounded-lg overflow-hidden shadow-xl">
-                        {data.media.type === 'image' ? (
+                        {data.media.type === 'image' && mediaUrl ? (
                             <Image src={mediaUrl} alt={data.title || 'Property Feature'} layout="fill" objectFit="cover" />
-                        ) : (
+                        ) : mediaUrl ? (
                             <video
                                 key={mediaUrl} // Important for re-rendering video
                                 controls
                                 className="w-full h-full object-cover"
                             >
-                                <source src={mediaUrl} type="video/mp4" />
+                                <source src={mediaUrl} />
                                 Tu navegador no soporta la etiqueta de video.
                             </video>
+                        ) : (
+                          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                            <ImageIcon className="text-gray-400 w-24 h-24" />
+                          </div>
                         )}
                         {isAdminMode && (
                              <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-4 opacity-0 group-hover/media:opacity-100 transition-opacity">

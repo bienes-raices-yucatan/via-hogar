@@ -20,11 +20,9 @@ interface AmenitiesSectionProps {
 
 const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
-    // Local state to manage image URLs from blobs
     const [imageUrls, setImageUrls] = useState<{[key: string]: string}>({});
 
     useEffect(() => {
-        // Load images from IndexedDB when component mounts
         const loadImageUrls = async () => {
             const urls: {[key: string]: string} = {};
             for (const amenity of data.amenities) {
@@ -33,15 +31,20 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection
                     if (blob) {
                         urls[amenity.id] = URL.createObjectURL(blob);
                     }
+                } else if (amenity.imageUrl) {
+                    urls[amenity.id] = amenity.imageUrl;
                 }
             }
             setImageUrls(urls);
         };
         loadImageUrls();
         
-        // Cleanup blob URLs on unmount
         return () => {
-            Object.values(imageUrls).forEach(url => URL.revokeObjectURL(url));
+            Object.values(imageUrls).forEach(url => {
+                if (url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url)
+                }
+            });
         }
     }, [data.amenities]);
 
@@ -71,11 +74,18 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection
             const key = `amenity-${amenityId}-${uuidv4()}`;
             await saveImage(key, file);
             
-            const imageUrl = URL.createObjectURL(file);
-            setImageUrls(prev => ({...prev, [amenityId]: imageUrl}));
+            const localUrl = URL.createObjectURL(file);
+            setImageUrls(prev => {
+                const newUrls = {...prev};
+                if (prev[amenityId] && prev[amenityId].startsWith('blob:')) {
+                    URL.revokeObjectURL(prev[amenityId]);
+                }
+                newUrls[amenityId] = localUrl;
+                return newUrls;
+            });
             
             const updatedAmenities = data.amenities.map(a => 
-                a.id === amenityId ? { ...a, imageKey: key, imageUrl: undefined } : a // Store key, not blob URL
+                a.id === amenityId ? { ...a, imageKey: key, imageUrl: undefined } : a
             );
             updateSection(data.id, { amenities: updatedAmenities });
         }
