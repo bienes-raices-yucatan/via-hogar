@@ -7,16 +7,7 @@ interface MapProps {
 }
 
 const Map: React.FC<MapProps> = ({ lat, lng }) => {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  const mapSrc = `https://www.google.com/maps/embed/v1/view?key=${apiKey}&center=${lat},${lng}&zoom=15&maptype=roadmap`;
-
-  if (!apiKey) {
-    return (
-        <div className="w-full h-full bg-slate-200 flex items-center justify-center">
-            <p className="text-slate-600 text-center p-4">La clave API de Google Maps no está configurada.<br/>Añada NEXT_PUBLIC_GOOGLE_MAPS_API_KEY a sus variables de entorno.</p>
-        </div>
-    )
-  }
+  const mapSrc = `https://maps.google.com/maps?q=${lat},${lng}&hl=es;z=15&amp;output=embed`;
 
   return (
     <iframe
