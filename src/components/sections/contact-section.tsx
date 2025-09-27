@@ -1,25 +1,59 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ContactSectionData, ContactSubmission } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Image as ImageIcon } from 'lucide-react';
+import { Switch } from '../ui/switch';
+import EditableText from '../editable-text';
 
 interface ContactSectionProps {
   data: ContactSectionData;
   propertyId: string;
   onContactSubmit: (submission: Omit<ContactSubmission, 'id' | 'submittedAt'>) => void;
+  updateSection: (sectionId: string, updatedData: Partial<ContactSectionData>) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
 }
 
-const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onContactSubmit, deleteSection, isAdminMode }) => {
+const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onContactSubmit, updateSection, deleteSection, isAdminMode }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [userType, setUserType] = useState<'buyer' | 'broker'>('buyer');
+  
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [backgroundPosition, setBackgroundPosition] = useState('center');
+
+  useEffect(() => {
+    if (!data.parallaxEnabled || isAdminMode) {
+      setBackgroundPosition('center');
+      return;
+    }
+
+    let animationFrameId: number;
+    const handleScroll = () => {
+       if (sectionRef.current) {
+        const top = sectionRef.current.getBoundingClientRect().top;
+        const speed = 0.3; // Slower speed for a more subtle effect
+        const newY = -(top * speed);
+        
+        animationFrameId = requestAnimationFrame(() => {
+          setBackgroundPosition(`50% ${newY}px`);
+        });
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [data.parallaxEnabled, isAdminMode]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,18 +62,44 @@ const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onCon
     setPhone('');
     setUserType('buyer');
   };
+  
+  const handleTextUpdate = (field: 'title' | 'subtitle', value: string) => {
+    const currentData = data[field];
+    if (currentData) {
+      const updatedField = { ...currentData, text: value };
+      updateSection(data.id, { [field]: updatedField });
+    }
+  };
+
+  const handleButtonTextUpdate = (value: string) => {
+    updateSection(data.id, { buttonText: value });
+  };
+
 
   return (
     <div 
+        ref={sectionRef}
         className="relative group/section w-full py-16 md:py-24 bg-cover bg-center"
-        style={{ backgroundImage: `url(${data.imageUrl})` }}
+        style={{ 
+          backgroundImage: `url(${data.imageUrl})`,
+          backgroundPosition,
+          backgroundAttachment: data.parallaxEnabled && !isAdminMode ? 'fixed' : 'scroll'
+        }}
     >
         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm"></div>
         <div className="relative z-10 container mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="text-center md:text-left">
-                    {data.title && <h2 className="font-headline font-bold text-slate-800" style={{fontSize: data.title.fontSize, color: data.title.color, fontFamily: data.title.fontFamily}}>{data.title.text}</h2>}
-                    {data.subtitle && <p className="mt-4 text-slate-600" style={{fontSize: data.subtitle.fontSize, color: data.subtitle.color, fontFamily: data.subtitle.fontFamily}}>{data.subtitle.text}</p>}
+                    {data.title && (
+                      <div style={{fontSize: data.title.fontSize, color: data.title.color, fontFamily: data.title.fontFamily}}>
+                        <EditableText value={data.title.text} onChange={(val) => handleTextUpdate('title', val)} isAdminMode={isAdminMode} className="font-headline font-bold" as="h2"/>
+                      </div>
+                    )}
+                    {data.subtitle && (
+                      <div style={{fontSize: data.subtitle.fontSize, color: data.subtitle.color, fontFamily: data.subtitle.fontFamily}} className="mt-4">
+                        <EditableText value={data.subtitle.text} onChange={(val) => handleTextUpdate('subtitle', val)} isAdminMode={isAdminMode} as="p"/>
+                      </div>
+                    )}
                 </div>
                 <div className="bg-white p-8 rounded-lg shadow-xl border">
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -64,16 +124,27 @@ const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onCon
                                 </div>
                             </RadioGroup>
                         </div>
-                        <Button type="submit" className="w-full bg-primary hover:bg-amber-600 text-lg py-6">{data.buttonText}</Button>
+                        <Button type="submit" className="w-full bg-primary hover:bg-amber-600 text-lg py-6">
+                           {data.buttonText && <EditableText value={data.buttonText} onChange={handleButtonTextUpdate} isAdminMode={isAdminMode} />}
+                        </Button>
                     </form>
                 </div>
             </div>
         </div>
          {isAdminMode && (
-            <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity">
-                <Button size="icon" variant="destructive" onClick={() => deleteSection(data.id)}>
-                    <Trash2 />
-                </Button>
+            <div className="absolute top-4 right-4 opacity-100 sm:opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id={`parallax-contact-${data.id}`}
+                  checked={data.parallaxEnabled}
+                  onCheckedChange={(checked) => updateSection(data.id, { parallaxEnabled: checked })}
+                />
+                <Label htmlFor={`parallax-contact-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
+              </div>
+              <Button size="icon" variant="ghost" className="text-white hover:bg-white/20"><ImageIcon /></Button>
+              <Button size="icon" variant="destructive" onClick={() => deleteSection(data.id)}>
+                  <Trash2 />
+              </Button>
             </div>
         )}
     </div>

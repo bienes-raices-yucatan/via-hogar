@@ -1,9 +1,11 @@
 'use client';
 import { HeroSectionData } from '@/lib/types';
-import { Trash2 } from 'lucide-react';
-import React from 'react';
+import { Trash2, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
 import EditableText from '../editable-text';
+import { Switch } from '../ui/switch';
+import { Label } from '../ui/label';
 
 interface HeroSectionProps {
   data: HeroSectionData;
@@ -13,20 +15,61 @@ interface HeroSectionProps {
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
-  
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [backgroundPosition, setBackgroundPosition] = useState('center');
+
+  useEffect(() => {
+    if (!data.parallaxEnabled || isAdminMode) {
+      setBackgroundPosition('center');
+      return;
+    }
+
+    let animationFrameId: number;
+
+    const handleScroll = () => {
+      if (sectionRef.current) {
+        const top = sectionRef.current.getBoundingClientRect().top;
+        const speed = 0.4;
+        const newY = -(top * speed);
+        
+        animationFrameId = requestAnimationFrame(() => {
+          setBackgroundPosition(`50% ${newY}px`);
+        });
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [data.parallaxEnabled, isAdminMode]);
+
   const handleTextUpdate = (field: 'title' | 'subtitle', value: string) => {
-    const updatedField = { ...data[field], text: value };
-    updateSection(data.id, { [field]: updatedField });
-  }
+    const currentData = data[field];
+    if (currentData) {
+      const updatedField = { ...currentData, text: value };
+      updateSection(data.id, { [field]: updatedField });
+    }
+  };
   
   const handleButtonTextUpdate = (value: string) => {
     updateSection(data.id, { buttonText: value });
-  }
+  };
 
   return (
     <div 
+      ref={sectionRef}
       className="relative group/section w-full h-[70vh] md:h-[80vh] bg-cover bg-center" 
-      style={{ backgroundImage: `url(${data.imageUrl})` }}
+      style={{ 
+        backgroundImage: `url(${data.imageUrl})`,
+        backgroundPosition: backgroundPosition,
+        backgroundAttachment: data.parallaxEnabled && !isAdminMode ? 'fixed' : 'scroll',
+        transition: 'background-position 0.1s ease-out'
+      }}
     >
       <div className="absolute inset-0 bg-black/40"></div>
       
@@ -69,7 +112,16 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
       </div>
       
       {isAdminMode && (
-        <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity flex gap-2">
+        <div className="absolute top-4 right-4 opacity-100 sm:opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-white/20 backdrop-blur-sm p-2 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id={`parallax-${data.id}`}
+              checked={data.parallaxEnabled}
+              onCheckedChange={(checked) => updateSection(data.id, { parallaxEnabled: checked })}
+            />
+            <Label htmlFor={`parallax-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
+          </div>
+           <Button size="icon" variant="ghost" className="text-white hover:bg-white/20"><ImageIcon /></Button>
           <Button size="icon" variant="destructive" onClick={() => deleteSection(data.id)}>
             <Trash2 />
           </Button>

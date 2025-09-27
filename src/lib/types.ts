@@ -39,9 +39,10 @@ export interface DraggableTextData extends StyledText {
 
 export interface HeroSectionData extends PageSection<'HERO'> {
   imageUrl: string;
-  title: StyledText;
-  subtitle: StyledText;
-  buttonText: string;
+  title?: StyledText;
+  subtitle?: StyledText;
+  buttonText?: string;
+  parallaxEnabled?: boolean;
 }
 
 export interface ImageWithFeaturesSectionData extends PageSection<'IMAGE_WITH_FEATURES'> {
@@ -107,9 +108,10 @@ export interface PricingSectionData extends PageSection<'PRICING'> {
 
 export interface ContactSectionData extends PageSection<'CONTACT'> {
   imageUrl: string;
-  title: StyledText;
-  subtitle: StyledText;
-  buttonText: string;
+  title?: StyledText;
+  subtitle?: StyledText;
+  buttonText?: string;
+  parallaxEnabled?: boolean;
 }
 
 export type AnySectionData =
