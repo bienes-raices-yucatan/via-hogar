@@ -1,3 +1,4 @@
+
 import { serverTimestamp } from 'firebase/firestore';
 
 export interface Property {
@@ -39,6 +40,8 @@ export interface StyledText {
 export interface DraggableTextData extends StyledText {
   id: string;
   position: { x: number; y: number; }; // Percentage based
+  width?: number; // Width in pixels
+  height?: number; // Height in pixels
 }
 
 export interface HeroSectionData extends PageSection<'HERO'> {

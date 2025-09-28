@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Property, DraggableTextData } from '@/lib/types';
@@ -130,6 +131,26 @@ const EditingToolbar: React.FC<EditingToolbarProps> = ({
                             step={0.1}
                             value={[elementData.fontSize]}
                             onValueChange={([value]) => handleUpdate({ fontSize: value })}
+                        />
+                    </div>
+                    <div>
+                        <Label>Ancho del Cuadro ({elementData.width || 300}px)</Label>
+                        <Slider
+                            min={50}
+                            max={1000}
+                            step={10}
+                            value={[elementData.width || 300]}
+                            onValueChange={([value]) => handleUpdate({ width: value })}
+                        />
+                    </div>
+                    <div>
+                        <Label>Alto del Cuadro ({elementData.height || 'auto'}px)</Label>
+                        <Slider
+                            min={20}
+                            max={500}
+                            step={5}
+                            value={[elementData.height || 50]}
+                            onValueChange={([value]) => handleUpdate({ height: value })}
                         />
                     </div>
                     <div>

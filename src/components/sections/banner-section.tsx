@@ -36,6 +36,8 @@ const DraggableText: React.FC<DraggableTextProps> = ({ data, sectionId, isAdminM
         color: data.color,
         fontSize: `${data.fontSize}rem`,
         fontFamily: data.fontFamily,
+        width: data.width ? `${data.width}px` : 'auto',
+        height: data.height ? `${data.height}px` : 'auto',
         zIndex: 20,
         transform: `translate(-50%, -50%)`,
     };
@@ -51,12 +53,12 @@ const DraggableText: React.FC<DraggableTextProps> = ({ data, sectionId, isAdminM
             className="group/text relative p-2"
         >
              <div 
-              className="flex items-center gap-2"
+              className="flex items-start gap-2"
             >
                 <div 
                     {...listeners} 
                     {...attributes} 
-                    className="cursor-grab text-white opacity-50 hover:opacity-100 transition-opacity"
+                    className="cursor-grab text-white opacity-50 hover:opacity-100 transition-opacity pt-1"
                     onClick={(e) => e.stopPropagation()}
                     onDoubleClick={(e) => {
                       e.stopPropagation();
@@ -65,10 +67,13 @@ const DraggableText: React.FC<DraggableTextProps> = ({ data, sectionId, isAdminM
                 >
                     <GripVertical size={20} />
                 </div>
-                <div onDoubleClick={(e) => {
+                <div 
+                  onDoubleClick={(e) => {
                     e.stopPropagation();
                     if (isAdminMode) onSelect();
-                  }}>
+                  }}
+                  className="h-full w-full"
+                >
                     <EditableText
                         value={data.text}
                         onChange={(val) => onUpdate({ text: val })}
@@ -160,7 +165,9 @@ const BannerSection: React.FC<BannerSectionProps> = ({
         fontSize: 1.25,
         color: '#ffffff',
         fontFamily: 'Roboto',
-        position: { x: 50, y: 50 }
+        position: { x: 50, y: 50 },
+        width: 300,
+        height: 50,
     };
     const updatedTexts = [...(data.draggableTexts || []), newText];
     updateSection(data.id, { draggableTexts: updatedTexts });
@@ -291,18 +298,18 @@ const BannerSection: React.FC<BannerSectionProps> = ({
                 <ImageIcon />
               </div>
             </Label>
-            <Button size="icon" variant="destructive" onClick={(e) => { e.stopPropagation(); deleteSection(data.id);}}>
-              <Trash2 />
-            </Button>
-          </div>
-           <input
+            <input
               type="file"
               id={uploadId}
               ref={fileInputRef}
               onChange={handleFileChange}
               className="hidden"
               accept="image/*"
-          />
+            />
+            <Button size="icon" variant="destructive" onClick={(e) => { e.stopPropagation(); deleteSection(data.id);}}>
+              <Trash2 />
+            </Button>
+          </div>
         </div>
       )}
     </div>
