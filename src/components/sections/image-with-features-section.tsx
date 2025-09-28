@@ -8,7 +8,7 @@ import Image from 'next/image';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
 import { Label } from '../ui/label';
-import { db } from '@/lib/db';
+import { useStorage, uploadFile } from '@/firebase/storage';
 
 type IconName = keyof typeof LucideIcons;
 
@@ -22,6 +22,7 @@ interface ImageWithFeaturesSectionProps {
 
 const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const storage = useStorage();
     
     const handleFeatureUpdate = (featureId: string, field: 'title' | 'subtitle', value: string) => {
         const updatedFeatures = data.features.map(f => f.id === featureId ? { ...f, [field]: value } : f);
@@ -42,14 +43,14 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
         const file = e.target.files?.[0];
         if (file) {
             const mediaType = file.type.startsWith('video') ? 'video' : 'image';
-            const dataUrl = await fileToDataUrl(file);
+            const filePath = `sections/${data.id}/media/${file.name}`;
+            const newUrl = await uploadFile(storage, file, filePath);
             updateSection(data.id, {
                 media: {
                     type: mediaType,
-                    url: dataUrl,
+                    url: newUrl,
                 }
             });
-            await db.setItem(`section-media-${data.id}`, { type: mediaType, url: dataUrl });
         }
     };
 
@@ -135,15 +136,4 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
     );
 };
 
-const fileToDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-};
-
 export default ImageWithFeaturesSection;
-
-    

@@ -1,19 +1,29 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import AdminLoginModal from '../modals/admin-login-modal';
+import { useAuth } from '@/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
 
-interface FooterProps {
-  onAdminLogin: (success: boolean) => void;
-}
-
-const Footer: React.FC<FooterProps> = ({ onAdminLogin }) => {
+const Footer: React.FC = () => {
   const [isLoginVisible, setIsLoginVisible] = useState(false);
+  const auth = useAuth();
+  const { toast } = useToast();
 
-  const handleAdminClick = () => {
-    setIsLoginVisible(true);
+  const handleAdminLogin = async (credentials: {username: string, password: string})=> {
+    try {
+        await signInWithEmailAndPassword(auth, credentials.username, credentials.password);
+        setIsLoginVisible(false);
+    } catch(error: any) {
+        console.error("Login failed:", error);
+        toast({
+            variant: "destructive",
+            title: "Error de inicio de sesión",
+            description: "Usuario o contraseña incorrectos.",
+        });
+    }
   };
   
   return (
@@ -26,7 +36,7 @@ const Footer: React.FC<FooterProps> = ({ onAdminLogin }) => {
           </div>
           <div className="flex items-center justify-center gap-4">
             <button
-              onClick={handleAdminClick}
+              onClick={() => setIsLoginVisible(true)}
               className="w-2 h-2 bg-slate-600 rounded-full hover:bg-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ring-offset-slate-900"
               aria-label="Admin Login"
               title="Admin Login"
@@ -38,12 +48,10 @@ const Footer: React.FC<FooterProps> = ({ onAdminLogin }) => {
       <AdminLoginModal
         isOpen={isLoginVisible}
         onClose={() => setIsLoginVisible(false)}
-        onLogin={onAdminLogin}
+        onLogin={handleAdminLogin}
       />
     </footer>
   );
 };
 
 export default Footer;
-
-    

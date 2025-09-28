@@ -1,65 +1,17 @@
-/**
- * @description This ruleset enforces a public read, owner-write model for properties and their page sections,
- *  and allows anyone to create contact submissions.
- * @dataStructure
- *  /properties/{propertyId} - Stores property data.
- *  /properties/{propertyId}/pageSections/{pageSectionId} - Stores page sections for a given property.
- *  /contactSubmissions/{contactSubmissionId} - Stores contact form submissions.
- * @keySecurityDecisions
- *  - Properties are publicly readable, but only owners can create, update, or delete them.
- *  - Contact submissions can be created by anyone (no authentication required).
- *  - Listing properties is allowed for all users.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    /**
-     * @description Controls access to property documents. Properties are publicly readable, but only owners can modify them.
-     * @path /properties/{propertyId}
-     * @allow (get, list): if true
-     * @allow (create): if request.auth != null
-     * @allow (update, delete): if request.auth != null && resource.data.id == propertyId
-     * @deny (create): if request.auth == null
-     * @deny (update, delete): if resource == null || request.auth == null || resource.data.id != propertyId
-     * @principle Public read, owner-only writes.
-     */
-    match /properties/{propertyId} {
-      allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource.data.id == propertyId;
+    match /properties/{propertyId=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
     }
-
-    /**
-     * @description Controls access to page section documents under a property.
-     * @path /properties/{propertyId}/pageSections/{pageSectionId}
-     * @allow (get, list): if true
-     * @allow (create): if request.auth != null
-     * @allow (update, delete): if request.auth != null && resource.data.propertyId == propertyId
-     * @deny (create): if request.auth == null
-     * @deny (update, delete): if resource == null || request.auth == null || resource.data.propertyId != propertyId
-     * @principle Public read, owner-only writes, enforcing the propertyId link.
-     */
-    match /properties/{propertyId}/pageSections/{pageSectionId} {
-      allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource.data.propertyId == propertyId;
+    match /config/{configId} {
+      allow read: if true;
+      allow write: if request.auth != null;
     }
-
-    /**
-     * @description Controls access to contact submission documents. Anyone can create a submission.
-     * @path /contactSubmissions/{contactSubmissionId}
-     * @allow (create): if true
-     * @deny (get, list, update, delete): if false
-     * @principle Open access for contact submissions.
-     */
-    match /contactSubmissions/{contactSubmissionId} {
+    match /contactSubmissions/{submissionId} {
       allow create: if true;
-      allow get, list, update, delete: if false;
-    }
-
-    function isSignedIn() {
-      return request.auth != null;
+      allow read, update, delete: if request.auth != null;
     }
   }
 }

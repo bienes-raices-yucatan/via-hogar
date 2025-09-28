@@ -10,7 +10,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { cn } from '@/lib/utils';
 import { useDraggable } from '@dnd-kit/core';
 import { Slider } from '../ui/slider';
-import { db } from '@/lib/db';
+import { useStorage, uploadFile } from '@/firebase/storage';
+
 
 interface DraggableTextProps {
     data: DraggableTextData;
@@ -113,6 +114,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   const sectionRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [backgroundPosition, setBackgroundPosition] = useState('center');
+  const storage = useStorage();
   
   useEffect(() => {
     if (!data.parallaxEnabled || isAdminMode) {
@@ -182,9 +184,9 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   };
 
   const handleFileChange = async (file: File) => {
-    const dataUrl = await fileToDataUrl(file);
-    updateSection(data.id, { imageUrl: dataUrl });
-    await db.setItem(`section-bg-${data.id}`, dataUrl);
+    const filePath = `sections/${data.id}/${file.name}`;
+    const newUrl = await uploadFile(storage, file, filePath);
+    updateSection(data.id, { imageUrl: newUrl });
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -308,15 +310,4 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   );
 };
 
-const fileToDataUrl = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-};
-
 export default BannerSection;
-
-    

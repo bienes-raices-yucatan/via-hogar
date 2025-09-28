@@ -1,3 +1,5 @@
+import { serverTimestamp } from 'firebase/firestore';
+
 export interface Property {
   id: string;
   name: string;
@@ -6,7 +8,7 @@ export interface Property {
   mainImageUrl: string;
   coordinates: { lat: number; lng: number };
   sections: AnySectionData[];
-  createdAt: any; // Using 'any' for Firestore ServerTimestamp compatibility
+  createdAt: ReturnType<typeof serverTimestamp>;
 }
 
 export type SectionType = 
@@ -134,7 +136,7 @@ export interface ContactSubmission {
   name: string;
   phone: string;
   userType: 'buyer' | 'broker';
-  submittedAt: any; // Using 'any' for Firestore ServerTimestamp compatibility
+  submittedAt: ReturnType<typeof serverTimestamp>;
 }
 
 export type EditableElement = 

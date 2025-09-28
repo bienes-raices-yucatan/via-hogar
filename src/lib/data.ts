@@ -1,9 +1,14 @@
-import { Property } from './types';
+import { Property, SiteConfig } from './types';
 import { v4 as uuidv4 } from 'uuid';
+import { serverTimestamp } from 'firebase/firestore';
 
-export const initialProperties: Omit<Property, 'createdAt'>[] = [
+export const initialSiteConfig: SiteConfig = {
+    siteName: 'Vía Hogar',
+    logoUrl: '/logo.svg'
+}
+
+export const initialProperties: Omit<Property, 'id' | 'createdAt'>[] = [
   {
-    id: 'prop1',
     name: 'Villa Moderna con Vista al Mar',
     address: '123 Ocean Drive, Miami, FL',
     price: 3500000,

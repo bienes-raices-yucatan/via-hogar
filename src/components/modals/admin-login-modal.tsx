@@ -9,18 +9,16 @@ import { Label } from '@/components/ui/label';
 interface AdminLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (success: boolean) => void;
+  onLogin: (credentials: {username: string, password: string}) => void;
 }
 
 const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose, onLogin }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('admin@viahogar.com');
+  const [password, setPassword] = useState('password');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(username === 'Admin' && password === 'Aguilar1');
-    setUsername('');
-    setPassword('');
+    onLogin({ username, password });
   };
 
   return (
@@ -37,6 +35,7 @@ const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose, onLo
               </Label>
               <Input
                 id="username"
+                type="email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="col-span-3"

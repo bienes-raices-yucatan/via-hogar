@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
 import { Label } from '../ui/label';
+import { useStorage, uploadFile } from '@/firebase/storage';
 
 interface GallerySectionProps {
     data: GallerySectionData;
@@ -22,6 +23,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
     const [api, setApi] = useState<CarouselApi>()
     const [current, setCurrent] = useState(0)
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+    const storage = useStorage();
     
     useEffect(() => {
         if (!api) {
@@ -51,14 +53,14 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, imageId: string) => {
         const file = e.target.files?.[0];
         if (file) {
-            const dataUrl = await fileToDataUrl(file);
+            const filePath = `sections/${data.id}/gallery/${imageId}/${file.name}`;
+            const newUrl = await uploadFile(storage, file, filePath);
             const updatedImages = data.images.map(img => 
-                img.id === imageId ? { ...img, url: dataUrl } : img
+                img.id === imageId ? { ...img, url: newUrl } : img
             );
             updateSection(data.id, { images: updatedImages });
         }
     };
-
 
     const plugin = useRef(
         Autoplay({ delay: 3000, stopOnInteraction: true })
@@ -142,15 +144,4 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
     );
 };
 
-const fileToDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-};
-
 export default GallerySection;
-
-    

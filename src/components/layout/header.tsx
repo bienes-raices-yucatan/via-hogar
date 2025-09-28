@@ -4,14 +4,16 @@ import Image from 'next/image';
 import { Button } from '../ui/button';
 import EditableText from '../editable-text';
 import { Label } from '../ui/label';
+import { useStorage, uploadFile } from '@/firebase/storage';
+import { useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
 
 interface HeaderProps {
   siteName: string;
   setSiteName: (name: string) => void;
   logoUrl: string;
-  setLogoUrl: (file: File) => void;
+  setLogoUrl: (url: string) => void;
   isAdminMode: boolean;
-  onLogout: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -20,15 +22,23 @@ const Header: React.FC<HeaderProps> = ({
   logoUrl,
   setLogoUrl,
   isAdminMode,
-  onLogout,
 }) => {
   const logoFileInputRef = useRef<HTMLInputElement>(null);
+  const storage = useStorage();
+  const auth = useAuth();
 
   const handleLogoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setLogoUrl(e.target.files[0]);
+      const file = e.target.files[0];
+      const filePath = `config/logo/${file.name}`;
+      const newLogoUrl = await uploadFile(storage, file, filePath);
+      setLogoUrl(newLogoUrl);
     }
   };
+  
+  const handleLogout = () => {
+    signOut(auth);
+  }
   
   const scrollToSection = (sectionId: string) => {
     const sectionElement = document.getElementById(sectionId);
@@ -64,7 +74,7 @@ const Header: React.FC<HeaderProps> = ({
         <button onClick={() => scrollToSection('section-location')} className="hover:text-amber-300 transition-colors hidden sm:block">Ubicación</button>
         <button onClick={() => scrollToSection('section-contact')} className="hover:text-amber-300 transition-colors hidden sm:block">Contacto</button>
         {isAdminMode && (
-          <Button variant="outline" size="sm" onClick={onLogout} className="bg-transparent text-white border-white hover:bg-white hover:text-black">
+          <Button variant="outline" size="sm" onClick={handleLogout} className="bg-transparent text-white border-white hover:bg-white hover:text-black">
             Salir
           </Button>
         )}

@@ -2,6 +2,11 @@
 import { FirebaseStorage, getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useFirebaseApp } from './provider';
 
+export const useStorage = () => {
+    const app = useFirebaseApp();
+    return getStorage(app);
+};
+
 export const uploadFile = async (storage: FirebaseStorage, file: File, path: string): Promise<string> => {
   const storageRef = ref(storage, path);
   try {
