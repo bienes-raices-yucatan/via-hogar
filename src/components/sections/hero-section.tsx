@@ -43,18 +43,18 @@ const DraggableText: React.FC<DraggableTextProps> = ({ data, sectionId, isAdminM
         <div
             ref={setNodeRef}
             style={style}
-            {...(isAdminMode ? listeners : {})}
-            {...(isAdminMode ? attributes : {})}
             className="group/text relative p-2"
         >
-            <EditableText
-                value={data.text}
-                onChange={(val) => onUpdate({ text: val })}
-                isAdminMode={isAdminMode}
-                className="font-bold font-headline leading-tight"
-                as="div"
-                onSelect={onSelect}
-            />
+            <div {...(isAdminMode ? listeners : {})} {...(isAdminMode ? attributes : {})}>
+                <EditableText
+                    value={data.text}
+                    onChange={(val) => onUpdate({ text: val })}
+                    isAdminMode={isAdminMode}
+                    className="font-bold font-headline leading-tight"
+                    as="div"
+                    onSelect={onSelect}
+                />
+            </div>
             {isAdminMode && (
                 <button 
                     onClick={onDelete} 
