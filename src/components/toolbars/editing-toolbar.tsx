@@ -134,26 +134,6 @@ const EditingToolbar: React.FC<EditingToolbarProps> = ({
                         />
                     </div>
                     <div>
-                        <Label>Ancho del Cuadro ({elementData.width || 300}px)</Label>
-                        <Slider
-                            min={50}
-                            max={1000}
-                            step={10}
-                            value={[elementData.width || 300]}
-                            onValueChange={([value]) => handleUpdate({ width: value })}
-                        />
-                    </div>
-                    <div>
-                        <Label>Alto del Cuadro ({elementData.height || 'auto'}px)</Label>
-                        <Slider
-                            min={20}
-                            max={500}
-                            step={5}
-                            value={[elementData.height || 50]}
-                            onValueChange={([value]) => handleUpdate({ height: value })}
-                        />
-                    </div>
-                    <div>
                         <Label>Fuente</Label>
                          <Select value={elementData.fontFamily} onValueChange={(val: any) => handleUpdate({ fontFamily: val })}>
                             <SelectTrigger><SelectValue/></SelectTrigger>

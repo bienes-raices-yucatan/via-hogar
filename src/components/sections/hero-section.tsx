@@ -1,7 +1,7 @@
 
 'use client';
 import { HeroSectionData, DraggableTextData } from '@/lib/types';
-import { Trash2, Image as ImageIcon, PlusCircle, GripVertical } from 'lucide-react';
+import { Trash2, Image as ImageIcon, PlusCircle } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
 import EditableText from '../editable-text';
@@ -9,94 +9,9 @@ import { Switch } from '../ui/switch';
 import { Label } from '../ui/label';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '@/lib/utils';
-import { useDraggable } from '@dnd-kit/core';
 import { Slider } from '../ui/slider';
 import { useStorage, uploadFile } from '@/firebase/storage';
-
-interface DraggableTextProps {
-    data: DraggableTextData;
-    sectionId: string;
-    isAdminMode: boolean;
-    onSelect: () => void;
-    onUpdate: (updates: Partial<DraggableTextData>) => void;
-    onDelete: () => void;
-}
-
-const DraggableText: React.FC<DraggableTextProps> = ({ data, sectionId, isAdminMode, onSelect, onUpdate, onDelete }) => {
-    const { attributes, listeners, setNodeRef, transform } = useDraggable({
-        id: `text-${sectionId}-${data.id}`,
-        disabled: !isAdminMode,
-    });
-    
-    const style: React.CSSProperties = {
-        position: 'absolute',
-        left: `${data.position.x}%`,
-        top: `${data.position.y}%`,
-        color: data.color,
-        fontSize: `${data.fontSize}rem`,
-        fontFamily: data.fontFamily,
-        width: data.width ? `${data.width}px` : 'auto',
-        height: data.height ? `${data.height}px` : 'auto',
-        zIndex: 20,
-        transform: `translate(-50%, -50%)`,
-    };
-
-    if (transform) {
-      style.transform = `translate3d(${transform.x}px, ${transform.y}px, 0) translate(-50%, -50%)`;
-    }
-
-    return (
-        <div
-            ref={setNodeRef}
-            style={style}
-            className="group/text relative p-2"
-        >
-            <div 
-              className="flex items-start gap-2"
-            >
-                <div 
-                    {...listeners} 
-                    {...attributes} 
-                    className="cursor-grab text-white opacity-50 hover:opacity-100 transition-opacity pt-1"
-                    onClick={(e) => e.stopPropagation()}
-                    onDoubleClick={(e) => {
-                      e.stopPropagation();
-                      if (isAdminMode) onSelect();
-                    }}
-                >
-                    <GripVertical size={20} />
-                </div>
-                <div 
-                  onDoubleClick={(e) => {
-                      e.stopPropagation();
-                      if (isAdminMode) onSelect();
-                  }}
-                  className="h-full w-full"
-                >
-                  <EditableText
-                      value={data.text}
-                      onChange={(val) => onUpdate({ text: val })}
-                      isAdminMode={isAdminMode}
-                      className="font-bold font-headline leading-tight text-center"
-                      as="div"
-                      onSelect={onSelect}
-                  />
-                </div>
-            </div>
-            {isAdminMode && (
-                <button 
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete();
-                    }} 
-                    className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center opacity-0 group-hover/text:opacity-100"
-                >
-                    <Trash2 size={12}/>
-                </button>
-            )}
-        </div>
-    );
-};
+import ResizableDraggableText from './resizable-draggable-text';
 
 
 interface HeroSectionProps {
@@ -104,6 +19,7 @@ interface HeroSectionProps {
   updateSection: (sectionId: string, updatedData: Partial<HeroSectionData>) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
+  selectedElement: any;
   setSelectedElement: (element: any) => void;
   isFirstSection: boolean;
   isDraggingMode: boolean;
@@ -114,6 +30,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   updateSection, 
   deleteSection, 
   isAdminMode, 
+  selectedElement,
   setSelectedElement,
   isFirstSection,
 }) => {
@@ -226,6 +143,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         transition: 'background-position 0.1s ease-out',
         overflow: 'hidden'
       }}
+      onClick={() => setSelectedElement(null)}
     >
       <div 
         className="absolute inset-0 bg-black/30"
@@ -233,14 +151,16 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       ></div>
       
       {data.draggableTexts && data.draggableTexts.map(text => (
-        <DraggableText 
-            key={text.id}
-            data={text}
-            sectionId={data.id}
-            isAdminMode={isAdminMode}
-            onSelect={createSelectHandler(text.id)}
-            onUpdate={(updates) => handleDraggableTextUpdate(text.id, updates)}
-            onDelete={() => handleDeleteDraggableText(text.id)}
+        <ResizableDraggableText
+          key={text.id}
+          data={text}
+          sectionId={data.id}
+          isAdminMode={isAdminMode}
+          onSelect={createSelectHandler(text.id)}
+          onUpdate={(updates) => handleDraggableTextUpdate(text.id, updates)}
+          onDelete={() => handleDeleteDraggableText(text.id)}
+          isSelected={selectedElement?.type === 'DRAGGABLE_TEXT' && selectedElement?.textId === text.id}
+          containerRef={sectionRef}
         />
       ))}
 
