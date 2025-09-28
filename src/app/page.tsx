@@ -264,27 +264,23 @@ export default function Home() {
     // Handle Draggable Text reordering
     if (active.id.toString().startsWith('text-')) {
         const [_, sectionId, textId] = active.id.toString().split('-');
-
         const { delta } = event;
-        
-        const updatedSections = property.sections.map(section => {
-            if (section.id === sectionId && ('draggableTexts' in section) && section.draggableTexts) {
-                const text = section.draggableTexts.find(t => t.id === textId);
-                const container = document.querySelector(`.draggable-text-container[data-section-id="${section.id}"]`);
-                if (text && container) {
-                    const containerRect = container.getBoundingClientRect();
-                    const newX = text.position.x + (delta.x / containerRect.width) * 100;
-                    const newY = text.position.y + (delta.y / containerRect.height) * 100;
 
-                    return {
-                        ...section,
-                        draggableTexts: section.draggableTexts.map(t => 
-                            t.id === textId 
-                                ? { ...t, position: { x: newX, y: newY } }
-                                : t
-                        )
-                    };
-                }
+        const updatedSections = property.sections.map(section => {
+            if (section.id === sectionId && 'draggableTexts' in section && section.draggableTexts) {
+                const updatedTexts = section.draggableTexts.map(text => {
+                    if (text.id === textId) {
+                        const container = document.querySelector(`.draggable-text-container[data-section-id="${section.id}"]`);
+                        if(container){
+                            const containerRect = container.getBoundingClientRect();
+                            const newX = text.position.x + (delta.x / containerRect.width) * 100;
+                            const newY = text.position.y + (delta.y / containerRect.height) * 100;
+                            return { ...text, position: { x: newX, y: newY } };
+                        }
+                    }
+                    return text;
+                });
+                return { ...section, draggableTexts: updatedTexts };
             }
             return section;
         });

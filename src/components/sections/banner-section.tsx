@@ -37,25 +37,28 @@ const DraggableText: React.FC<DraggableTextProps> = ({ data, sectionId, isAdminM
         color: data.color,
         fontSize: data.fontSize,
         fontFamily: data.fontFamily,
-        zIndex: 20
+        zIndex: 20,
+        ...transform ? {
+            transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        } : {},
     };
 
     return (
         <div
             ref={setNodeRef}
             style={style}
-            className="group/text relative flex items-center gap-2 p-2"
+            className="group/text relative p-2"
         >
-            {isAdminMode && (
-                <div 
-                    {...listeners} 
-                    {...attributes} 
-                    className="cursor-grab text-white opacity-50 group-hover/text:opacity-100 transition-opacity"
-                >
-                    <GripVertical size={20} />
-                </div>
-            )}
-            <div>
+            <div className="flex items-center gap-2">
+                {isAdminMode && (
+                    <div 
+                        {...listeners} 
+                        {...attributes} 
+                        className="cursor-grab text-white opacity-50 hover:opacity-100 transition-opacity"
+                    >
+                        <GripVertical size={20} />
+                    </div>
+                )}
                 <EditableText
                     value={data.text}
                     onChange={(val) => onUpdate({ text: val })}
@@ -147,6 +150,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   }, [data.parallaxEnabled, isAdminMode]);
 
   const handleDraggableTextUpdate = (textId: string, updates: Partial<DraggableTextData>) => {
+    if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
     updateSection(data.id, { draggableTexts: updatedTexts });
   };
