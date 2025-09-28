@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -48,6 +49,8 @@ export default function Home() {
   // Effect to seed initial data if collections are empty
   useEffect(() => {
     const seedData = async () => {
+      if (!isAdminMode) return;
+  
       if (properties && properties.length === 0 && propertiesRef) {
         const batch = writeBatch(firestore);
         initialProperties.forEach(propData => {
@@ -60,10 +63,11 @@ export default function Home() {
         await setDocumentNonBlocking(siteConfigRef, initialSiteConfig);
       }
     };
+
     if (!isLoadingProperties && !isLoadingSiteConfig) {
       seedData();
     }
-  }, [properties, siteConfig, isLoadingProperties, isLoadingSiteConfig, firestore, propertiesRef, siteConfigRef]);
+  }, [properties, siteConfig, isLoadingProperties, isLoadingSiteConfig, firestore, propertiesRef, siteConfigRef, isAdminMode]);
   
   useEffect(() => {
     setIsAdminMode(!!user);
@@ -81,7 +85,7 @@ export default function Home() {
 
   const handleAddNewProperty = async () => {
     if (!propertiesRef) return;
-    const newProperty: Omit<Property, 'id'> = {
+    const newProperty: Omit<Property, 'id' | 'createdAt'> = {
       name: "Nueva Propiedad",
       address: "Dirección de la nueva propiedad",
       price: 0,
@@ -109,10 +113,9 @@ export default function Home() {
           ]
         }
       ],
-      createdAt: serverTimestamp(),
     };
     
-    const newDocRef = await addDocumentNonBlocking(propertiesRef, newProperty);
+    const newDocRef = await addDocumentNonBlocking(propertiesRef, newProperty as any);
     if(newDocRef) {
       setSelectedPropertyId(newDocRef.id);
     }
@@ -191,9 +194,10 @@ export default function Home() {
     updateDocumentNonBlocking(siteConfigRef, { siteName: newName });
   }
 
-  const handleContactSubmit = (submission: Omit<ContactSubmission, 'id' | 'submittedAt'>) => {
+  const handleContactSubmit = (submission: Omit<ContactSubmission, 'id' | 'propertyId' | 'submittedAt'>) => {
+    if (!selectedPropertyId) return;
     const submissionsRef = collection(firestore, 'contactSubmissions');
-    addDocumentNonBlocking(submissionsRef, { ...submission, submittedAt: serverTimestamp() });
+    addDocumentNonBlocking(submissionsRef, { ...submission, propertyId: selectedPropertyId, submittedAt: serverTimestamp() });
     alert('¡Gracias por tu interés! Nos pondremos en contacto contigo pronto.');
   };
   
@@ -330,3 +334,5 @@ export default function Home() {
     </DndContext>
   );
 }
+
+    
