@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GallerySectionData } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Trash2, PlusCircle, Image as ImageIcon } from 'lucide-react';
+import { Trash2, PlusCircle } from 'lucide-react';
 import Image from 'next/image';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
@@ -22,7 +22,6 @@ interface GallerySectionProps {
 
 const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
     const [api, setApi] = useState<CarouselApi>()
-    const [current, setCurrent] = useState(0)
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
     const storage = useStorage();
     
@@ -30,24 +29,18 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
         if (!api) {
             return
         }
-        setCurrent(api.selectedScrollSnap())
         api.on("select", () => {
-            setCurrent(api.selectedScrollSnap())
+            // Do something on select.
         })
     }, [api])
 
     const handleAddImage = () => {
-        const newImage = { id: uuidv4(), url: 'https://picsum.photos/seed/new-gallery/800/600', title: 'Nueva Imagen' };
+        const newImage = { id: uuidv4(), url: 'https://picsum.photos/seed/new-gallery/1920/1080', title: 'Nueva Imagen' };
         updateSection(data.id, { images: [...data.images, newImage] });
     };
     
     const handleDeleteImage = (imageId: string) => {
         const updatedImages = data.images.filter(img => img.id !== imageId);
-        updateSection(data.id, { images: updatedImages });
-    };
-
-    const handleImageTitleChange = (imageId: string, newTitle: string) => {
-        const updatedImages = data.images.map(img => img.id === imageId ? { ...img, title: newTitle } : img);
         updateSection(data.id, { images: updatedImages });
     };
 
@@ -64,19 +57,12 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
     };
 
     const plugin = useRef(
-        Autoplay({ delay: 3000, stopOnInteraction: true })
+        Autoplay({ delay: 5000, stopOnInteraction: true })
     );
 
     return (
-        <div style={{backgroundColor: data.style.backgroundColor}} className="py-16 md:py-24 relative group/section overflow-hidden">
-            <div className="container mx-auto px-4">
-                <EditableText
-                    value={data.title}
-                    onChange={(val) => updateSection(data.id, { title: val })}
-                    isAdminMode={isAdminMode}
-                    as="h2"
-                    className="text-3xl md:text-4xl font-headline font-bold text-center mb-12 text-slate-800"
-                />
+        <div style={{backgroundColor: data.style.backgroundColor}} className="relative group/section overflow-hidden">
+            <div className="container mx-auto px-0">
                 <Carousel
                     setApi={setApi}
                     plugins={[plugin.current]}
@@ -89,40 +75,34 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
                     className="w-full"
                 >
                     <CarouselContent>
-                        {data.images.map((image, index) => {
+                        {data.images.map((image) => {
                             const uploadId = `gallery-upload-${image.id}`;
                             return (
-                                <CarouselItem key={image.id} className="basis-1/2 md:basis-1/4">
-                                    <div className="p-1">
-                                        <div className={`relative rounded-lg overflow-hidden shadow-lg group/image aspect-w-4 aspect-h-3 transition-transform duration-500 ease-in-out ${index === current ? 'scale-110' : 'scale-90 opacity-60'}`}>
-                                            <Label htmlFor={uploadId} className={isAdminMode ? 'cursor-pointer' : ''}>
-                                                <div className="relative w-full h-full aspect-[4/3]" title={isAdminMode ? "Cambiar imagen" : ""}>
-                                                    {image.url && <Image src={image.url} alt={image.title} layout="fill" objectFit="cover" className="transform group-hover/image:scale-105 transition-transform duration-300" />}
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"/>
-                                                    {isAdminMode && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/image:opacity-100 transition-opacity"></div>}
-                                                </div>
-                                            </Label>
-                                            
-                                            <div className="absolute bottom-0 left-0 p-4">
-                                                <EditableText value={image.title} onChange={(newTitle) => handleImageTitleChange(image.id, newTitle)} isAdminMode={isAdminMode} className="text-white font-bold text-lg" />
+                                <CarouselItem key={image.id} className="basis-full">
+                                    <div className="relative group/image h-[70vh]">
+                                        <Label htmlFor={uploadId} className={isAdminMode ? 'cursor-pointer' : ''}>
+                                            <div className="relative w-full h-full" title={isAdminMode ? "Cambiar imagen" : ""}>
+                                                {image.url && <Image src={image.url} alt={image.title} layout="fill" objectFit="cover" />}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"/>
+                                                {isAdminMode && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center text-white text-lg font-bold">Hacer clic para cambiar</div>}
                                             </div>
-
-                                            {isAdminMode && (
-                                                <>
-                                                    <input
-                                                        type="file"
-                                                        id={uploadId}
-                                                        accept="image/*"
-                                                        className="hidden"
-                                                        ref={el => (fileInputRefs.current[image.id] = el)}
-                                                        onChange={e => handleFileChange(e, image.id)}
-                                                    />
-                                                    <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity bg-black/30 p-1 rounded-md">
-                                                        <Button size="icon" variant="destructive" className="bg-transparent hover:bg-red-500/50 h-7 w-7" onClick={(e) => { e.stopPropagation(); handleDeleteImage(image.id);}}><Trash2 size={16}/></Button>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
+                                        </Label>
+                                        
+                                        {isAdminMode && (
+                                            <>
+                                                <input
+                                                    type="file"
+                                                    id={uploadId}
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    ref={el => (fileInputRefs.current[image.id] = el)}
+                                                    onChange={e => handleFileChange(e, image.id)}
+                                                />
+                                                <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover/image:opacity-100 transition-opacity bg-black/30 p-2 rounded-md">
+                                                    <Button size="icon" variant="destructive" className="bg-transparent hover:bg-red-500/50 h-8 w-8" onClick={(e) => { e.stopPropagation(); handleDeleteImage(image.id);}}><Trash2 size={18}/></Button>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 </CarouselItem>
                             )
@@ -131,18 +111,30 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
                 </Carousel>
 
                 {isAdminMode && (
-                    <div className="flex items-center justify-center mt-8">
-                        <Button variant="outline" className="text-slate-500" onClick={handleAddImage}>
-                            <PlusCircle className="mr-2"/>Añadir Imagen
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+                        <Button variant="outline" className="text-slate-800 bg-white/80" onClick={handleAddImage}>
+                            <PlusCircle className="mr-2"/>Añadir Imagen a la Galería
                         </Button>
                     </div>
                 )}
             </div>
-            {isAdminMode && (
+            {isAdminMode && !data.title && (
                 <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity">
                     <Button size="icon" variant="destructive" onClick={() => deleteSection(data.id)}>
                         <Trash2 />
                     </Button>
+                </div>
+            )}
+            
+            {data.title && (
+                <div className="absolute top-0 left-0 right-0 p-4 z-10 bg-gradient-to-b from-black/50 to-transparent">
+                     <EditableText
+                        value={data.title}
+                        onChange={(val) => updateSection(data.id, { title: val })}
+                        isAdminMode={isAdminMode}
+                        as="h2"
+                        className="text-3xl md:text-4xl font-headline font-bold text-center text-white"
+                    />
                 </div>
             )}
         </div>
