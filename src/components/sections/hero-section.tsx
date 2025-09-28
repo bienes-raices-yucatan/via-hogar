@@ -172,7 +172,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
             <Label htmlFor={`parallax-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
           </div>
           <Label htmlFor={`hero-image-upload-${data.id}`} className="cursor-pointer">
-            <Button size="icon" variant="ghost" className="text-white hover:bg-white/20 pointer-events-none" as="span" title="Cambiar imagen de fondo">
+            <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" as="span" title="Cambiar imagen de fondo">
               <ImageIcon />
             </Button>
           </Label>

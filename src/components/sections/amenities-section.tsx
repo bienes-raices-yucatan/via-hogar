@@ -116,7 +116,7 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection
                                         />
                                         <div className="absolute -top-2 -right-2 opacity-0 group-hover/amenity:opacity-100 flex flex-col gap-1">
                                             <Label htmlFor={uploadId} className="cursor-pointer">
-                                                <Button as="span" size="icon" variant="ghost" className="h-6 w-6 text-slate-600 hover:bg-slate-200 pointer-events-none" title="Cambiar imagen">
+                                                <Button as="span" size="icon" variant="ghost" className="h-6 w-6 text-slate-600 hover:bg-slate-200" title="Cambiar imagen">
                                                     <ImageIcon size={16} />
                                                 </Button>
                                             </Label>

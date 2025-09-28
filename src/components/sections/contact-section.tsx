@@ -180,7 +180,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onCon
                 <Label htmlFor={`parallax-contact-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
               </div>
               <Label htmlFor={uploadId} className="cursor-pointer">
-                <Button size="icon" variant="ghost" as="span" className="text-white hover:bg-white/20 pointer-events-none" title="Cambiar imagen de fondo">
+                <Button size="icon" variant="ghost" as="span" className="text-white hover:bg-white/20" title="Cambiar imagen de fondo">
                   <ImageIcon />
                 </Button>
               </Label>

@@ -120,7 +120,7 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
                                     <div className="flex-1">
                                         <EditableText value={feature.title} onChange={(val) => handleFeatureUpdate(feature.id, 'title', val)} isAdminMode={isAdminMode} as="h3" className="text-xl font-bold font-headline text-slate-800"/>
                                         <div className="text-slate-600 mt-1">
-                                            <EditableText value={feature.subtitle} onChange={(val) => handleFeatureUpdate(feature.id, 'subtitle', val)} isAdminMode={isAdminMode} />
+                                            <EditableText value={feature.subtitle} onChange={(val) => handleFeatureUpdate(feature.id, 'subtitle', val)} isAdminMode={isAdminMode} as="div" />
                                         </div>
                                     </div>
                                     {isAdminMode && (
