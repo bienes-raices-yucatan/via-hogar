@@ -95,11 +95,18 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
                                 <CarouselItem key={image.id} className="basis-1/2 md:basis-1/4">
                                     <div className="p-1">
                                         <div className={`relative rounded-lg overflow-hidden shadow-lg group/image aspect-w-4 aspect-h-3 transition-transform duration-500 ease-in-out ${index === current ? 'scale-110' : 'scale-90 opacity-60'}`}>
-                                            {image.url && <Image src={image.url} alt={image.title} layout="fill" objectFit="cover" className="transform group-hover/image:scale-105 transition-transform duration-300" />}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"/>
+                                            <Label htmlFor={uploadId} className={isAdminMode ? 'cursor-pointer' : ''}>
+                                                <div className="relative w-full h-full aspect-[4/3]" title={isAdminMode ? "Cambiar imagen" : ""}>
+                                                    {image.url && <Image src={image.url} alt={image.title} layout="fill" objectFit="cover" className="transform group-hover/image:scale-105 transition-transform duration-300" />}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"/>
+                                                    {isAdminMode && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/image:opacity-100 transition-opacity"></div>}
+                                                </div>
+                                            </Label>
+                                            
                                             <div className="absolute bottom-0 left-0 p-4">
                                                 <EditableText value={image.title} onChange={(newTitle) => handleImageTitleChange(image.id, newTitle)} isAdminMode={isAdminMode} className="text-white font-bold text-lg" />
                                             </div>
+
                                             {isAdminMode && (
                                                 <>
                                                     <input
@@ -111,9 +118,6 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
                                                         onChange={e => handleFileChange(e, image.id)}
                                                     />
                                                     <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity bg-black/30 p-1 rounded-md">
-                                                        <Label htmlFor={uploadId} className="cursor-pointer">
-                                                            <div className="h-7 w-7 flex items-center justify-center text-white hover:bg-white/20 rounded-md" title="Change image"><ImageIcon size={16}/></div>
-                                                        </Label>
                                                         <Button size="icon" variant="destructive" className="bg-transparent hover:bg-red-500/50 h-7 w-7" onClick={(e) => { e.stopPropagation(); handleDeleteImage(image.id);}}><Trash2 size={16}/></Button>
                                                     </div>
                                                 </>

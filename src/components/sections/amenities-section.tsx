@@ -70,35 +70,28 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection
                         const uploadId = `amenity-upload-${amenity.id}`;
                         return (
                             <div key={amenity.id} className="text-center p-4 rounded-lg transition-colors group/amenity relative">
-                                {amenity.imageUrl ? (
-                                    <div className="relative w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden">
-                                        <Image src={amenity.imageUrl} alt={amenity.text} layout="fill" objectFit="cover" />
-                                    </div>
-                                ) : (
-                                    Icon && <Icon className="mx-auto h-10 w-10 text-primary mb-3" />
-                                )}
-                                <EditableText value={amenity.text} onChange={newText => handleAmenityTextChange(amenity.id, newText)} isAdminMode={isAdminMode} className="text-slate-700" />
-                                {isAdminMode && (
-                                    <>
-                                        <input
-                                            type="file"
-                                            id={uploadId}
-                                            accept="image/*"
-                                            className="hidden"
-                                            ref={el => (fileInputRefs.current[amenity.id] = el)}
-                                            onChange={e => handleFileChange(e, amenity.id)}
-                                        />
-                                        <div className="absolute -top-2 -right-2 opacity-0 group-hover/amenity:opacity-100 flex flex-col gap-1">
-                                            <Label htmlFor={uploadId} className="cursor-pointer">
-                                                <div className="h-6 w-6 text-slate-600 hover:bg-slate-200 rounded-md flex items-center justify-center" title="Cambiar imagen">
-                                                    <ImageIcon size={16} />
-                                                </div>
-                                            </Label>
-                                            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:bg-destructive/10" onClick={(e) => {e.stopPropagation(); handleDeleteAmenity(amenity.id)}}>
-                                                <Trash2 size={16} />
-                                            </Button>
+                                <div className="relative w-16 h-16 mx-auto mb-3">
+                                    <Label htmlFor={uploadId} className={isAdminMode ? 'cursor-pointer' : ''}>
+                                        <div className="relative w-16 h-16 rounded-full overflow-hidden group/image" title={isAdminMode ? "Cambiar imagen" : ""}>
+                                            {amenity.imageUrl ? (
+                                                <Image src={amenity.imageUrl} alt={amenity.text} layout="fill" objectFit="cover" />
+                                            ) : (
+                                                Icon && <div className="w-full h-full flex items-center justify-center bg-slate-100"><Icon className="h-10 w-10 text-primary" /></div>
+                                            )}
+                                            {isAdminMode && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/image:opacity-100 transition-opacity"></div>}
                                         </div>
-                                    </>
+                                    </Label>
+                                    {isAdminMode && <input type="file" id={uploadId} accept="image/*" className="hidden" ref={el => (fileInputRefs.current[amenity.id] = el)} onChange={e => handleFileChange(e, amenity.id)} />}
+                                </div>
+                                
+                                <EditableText value={amenity.text} onChange={newText => handleAmenityTextChange(amenity.id, newText)} isAdminMode={isAdminMode} className="text-slate-700" />
+                                
+                                {isAdminMode && (
+                                    <div className="absolute -top-2 -right-2 opacity-0 group-hover/amenity:opacity-100">
+                                        <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:bg-destructive/10" onClick={(e) => {e.stopPropagation(); handleDeleteAmenity(amenity.id)}}>
+                                            <Trash2 size={16} />
+                                        </Button>
+                                    </div>
                                 )}
                             </div>
                         )

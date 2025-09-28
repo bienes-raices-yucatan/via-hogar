@@ -62,38 +62,36 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
             <div className="container mx-auto px-4">
                 <div className="grid md:grid-cols-2 gap-12 items-center">
                     <div className="relative group/media w-full h-[500px] md:h-[600px] rounded-lg overflow-hidden shadow-xl">
-                        {data.media.type === 'image' && data.media.url ? (
-                            <Image src={data.media.url} alt={data.title || 'Property Feature'} layout="fill" objectFit="cover" />
-                        ) : data.media.url ? (
-                            <video
-                                key={data.media.url} // Important for re-rendering video
-                                controls
-                                className="w-full h-full object-cover"
-                            >
-                                <source src={data.media.url} />
-                                Tu navegador no soporta la etiqueta de video.
-                            </video>
-                        ) : (
-                          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                            <ImageIcon className="text-gray-400 w-24 h-24" />
-                          </div>
-                        )}
-                        {isAdminMode && (
-                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-4 opacity-0 group-hover/media:opacity-100 transition-opacity">
-                                <input
-                                    type="file"
-                                    id={uploadId}
-                                    ref={fileInputRef}
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                    accept="image/*,video/*"
-                                />
-                                <Label htmlFor={uploadId} className="cursor-pointer">
-                                  <Button size="lg" variant="secondary" as="span">
-                                     <ImageIcon className="mr-2"/> Cambiar Multimedia
-                                  </Button>
-                                </Label>
+                        <Label htmlFor={uploadId} className={isAdminMode ? 'cursor-pointer' : ''}>
+                             <div className="relative w-full h-full" title={isAdminMode ? "Cambiar multimedia" : ""}>
+                                {data.media.type === 'image' && data.media.url ? (
+                                    <Image src={data.media.url} alt={data.title || 'Property Feature'} layout="fill" objectFit="cover" />
+                                ) : data.media.type === 'video' && data.media.url ? (
+                                    <video
+                                        key={data.media.url}
+                                        controls
+                                        className="w-full h-full object-cover"
+                                    >
+                                        <source src={data.media.url} />
+                                        Tu navegador no soporta la etiqueta de video.
+                                    </video>
+                                ) : (
+                                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                    <ImageIcon className="text-gray-400 w-24 h-24" />
+                                  </div>
+                                )}
+                                {isAdminMode && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/media:opacity-100 transition-opacity"></div>}
                             </div>
+                        </Label>
+                        {isAdminMode && (
+                            <input
+                                type="file"
+                                id={uploadId}
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                className="hidden"
+                                accept="image/*,video/*"
+                            />
                         )}
                     </div>
                     <div className="space-y-8">

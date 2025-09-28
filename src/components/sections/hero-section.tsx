@@ -184,16 +184,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       });
   };
 
-  const handleFileChange = async (file: File) => {
-    const filePath = `sections/${data.id}/${file.name}`;
-    const newUrl = await uploadFile(storage, file, filePath);
-    updateSection(data.id, { imageUrl: newUrl });
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const filePath = `sections/${data.id}/${file.name}`;
+      const newUrl = await uploadFile(storage, file, filePath);
+      updateSection(data.id, { imageUrl: newUrl });
+    }
   };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) handleFileChange(file);
-  }
   
   const uploadId = `hero-image-upload-${data.id}`;
 
@@ -259,7 +257,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               type="file"
               id={uploadId}
               ref={fileInputRef}
-              onChange={handleFileInputChange}
+              onChange={handleFileChange}
               className="hidden"
               accept="image/*"
           />

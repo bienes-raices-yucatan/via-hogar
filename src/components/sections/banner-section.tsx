@@ -184,16 +184,14 @@ const BannerSection: React.FC<BannerSectionProps> = ({
       });
   };
 
-  const handleFileChange = async (file: File) => {
-    const filePath = `sections/${data.id}/${file.name}`;
-    const newUrl = await uploadFile(storage, file, filePath);
-    updateSection(data.id, { imageUrl: newUrl });
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const filePath = `sections/${data.id}/${file.name}`;
+      const newUrl = await uploadFile(storage, file, filePath);
+      updateSection(data.id, { imageUrl: newUrl });
+    }
   };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) handleFileChange(file);
-  }
   
   const uploadId = `banner-image-upload-${data.id}`;
 
@@ -301,7 +299,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
               type="file"
               id={uploadId}
               ref={fileInputRef}
-              onChange={handleFileInputChange}
+              onChange={handleFileChange}
               className="hidden"
               accept="image/*"
           />
