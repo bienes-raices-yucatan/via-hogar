@@ -151,7 +151,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
         fontFamily: 'Roboto',
         position: { x: 50, y: 50 }
     };
-    const updatedTexts = [...data.draggableTexts, newText];
+    const updatedTexts = [...(data.draggableTexts || []), newText];
     updateSection(data.id, { draggableTexts: updatedTexts });
   };
 
@@ -214,7 +214,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
         style={{ borderRadius: containerBorderRadius }}
       ></div>
       
-      {data.draggableTexts.map(text => (
+      {data.draggableTexts && data.draggableTexts.map(text => (
         <DraggableText 
             key={text.id}
             data={text}
@@ -301,3 +301,5 @@ const BannerSection: React.FC<BannerSectionProps> = ({
 };
 
 export default BannerSection;
+
+    

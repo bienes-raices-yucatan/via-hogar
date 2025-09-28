@@ -210,24 +210,7 @@ export default function Home() {
               parallaxEnabled: true,
               height: '50vh',
               borderRadius: '3rem',
-              draggableTexts: [
-                 {
-                    id: uuidv4(),
-                    text: 'Nuevo Banner',
-                    fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-                    color: '#ffffff',
-                    fontFamily: 'Playfair Display',
-                    position: { x: 50, y: 40 }
-                  },
-                  {
-                    id: uuidv4(),
-                    text: 'Un subtítulo atractivo',
-                    fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-                    color: '#e2e8f0',
-                    fontFamily: 'Roboto',
-                    position: { x: 50, y: 60 }
-                  }
-              ]
+              draggableTexts: []
             };
             break;
         default:
@@ -405,3 +388,5 @@ export default function Home() {
     </DndContext>
   );
 }
+
+    
