@@ -265,18 +265,14 @@ export default function Home() {
     if (active.id.toString().startsWith('text-')) {
         const [_, sectionId, textId] = active.id.toString().split('-');
 
-        const { delta, activatorEvent } = event;
-        const target = activatorEvent.target as HTMLElement;
-        const container = target.closest('.draggable-text-container') as HTMLElement;
+        const { delta } = event;
         
-        if (!container) return;
-
-        const containerRect = container.getBoundingClientRect();
-
         const updatedSections = property.sections.map(section => {
-            if (section.id === sectionId && ('draggableTexts' in section)) {
+            if (section.id === sectionId && ('draggableTexts' in section) && section.draggableTexts) {
                 const text = section.draggableTexts.find(t => t.id === textId);
-                if (text) {
+                const container = document.querySelector(`.draggable-text-container[data-section-id="${section.id}"]`);
+                if (text && container) {
+                    const containerRect = container.getBoundingClientRect();
                     const newX = text.position.x + (delta.x / containerRect.width) * 100;
                     const newY = text.position.y + (delta.y / containerRect.height) * 100;
 
@@ -388,5 +384,3 @@ export default function Home() {
     </DndContext>
   );
 }
-
-    

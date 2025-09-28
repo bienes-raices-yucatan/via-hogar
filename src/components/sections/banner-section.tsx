@@ -195,6 +195,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   return (
     <div 
       ref={sectionRef}
+      data-section-id={data.id}
       className={cn(
         'relative group/section w-full bg-cover bg-center my-8 draggable-text-container',
         { 'mt-[-5rem]': isFirstSection }

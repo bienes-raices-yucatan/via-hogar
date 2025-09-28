@@ -115,21 +115,21 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
 
         switch (section.type) {
           case 'HERO':
-            return sectionWrapper(<HeroSection key={section.id} {...commonProps} data={section} />);
+            return sectionWrapper(<HeroSection {...commonProps} data={section} />);
           case 'BANNER':
-            return sectionWrapper(<BannerSection key={section.id} {...commonProps} data={section} />);
+            return sectionWrapper(<BannerSection {...commonProps} data={section} />);
           case 'IMAGE_WITH_FEATURES':
-            return sectionWrapper(<ImageWithFeaturesSection key={section.id} {...commonProps} data={section} />);
+            return sectionWrapper(<ImageWithFeaturesSection {...commonProps} data={section} />);
           case 'GALLERY':
-            return sectionWrapper(<GallerySection key={section.id} {...commonProps} data={section} />);
+            return sectionWrapper(<GallerySection {...commonProps} data={section} />);
           case 'AMENITIES':
-             return sectionWrapper(<AmenitiesSection key={section.id} {...commonProps} data={section} />);
+             return sectionWrapper(<AmenitiesSection {...commonProps} data={section} />);
           case 'LOCATION':
-            return sectionWrapper(<LocationSection key={section.id} {...commonProps} data={section} />);
+            return sectionWrapper(<LocationSection {...commonProps} data={section} />);
           case 'CONTACT':
-            return sectionWrapper(<ContactSection key={section.id} {...commonProps} data={section} propertyId={property.id} onContactSubmit={onContactSubmit} />);
+            return sectionWrapper(<ContactSection {...commonProps} data={section} propertyId={property.id} onContactSubmit={onContactSubmit} />);
           case 'PRICING':
-            return sectionWrapper(<PricingSection key={section.id} {...commonProps} data={section} />);
+            return sectionWrapper(<PricingSection {...commonProps} data={section} />);
           default:
             return <div key={section.id}>Unknown section type: {(section as any).type}</div>;
         }

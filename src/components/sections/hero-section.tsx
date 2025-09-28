@@ -194,6 +194,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   return (
     <div 
       ref={sectionRef}
+      data-section-id={data.id}
       className={cn(
         'relative group/section w-full bg-cover bg-center draggable-text-container',
         { 'mt-[-5rem]': isFirstSection }
