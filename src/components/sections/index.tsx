@@ -84,7 +84,6 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
         const isFirstSection = index === 0;
         const commonProps = {
           ...componentProps,
-          key: section.id,
           data: section,
           updateSection,
           deleteSection,
@@ -106,7 +105,7 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
         }
 
         const sectionWrapper = (content: React.ReactNode) => (
-            <div id={sectionHtmlId} key={section.id}>
+            <div id={sectionHtmlId}>
               <SortableSectionWrapper id={`section-${section.id}`} isDraggingMode={isDraggingMode}>
                 {content}
               </SortableSectionWrapper>
@@ -116,21 +115,21 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
 
         switch (section.type) {
           case 'HERO':
-            return sectionWrapper(<HeroSection {...commonProps} data={section} />);
+            return sectionWrapper(<HeroSection key={section.id} {...commonProps} data={section} />);
           case 'BANNER':
-            return sectionWrapper(<BannerSection {...commonProps} data={section} />);
+            return sectionWrapper(<BannerSection key={section.id} {...commonProps} data={section} />);
           case 'IMAGE_WITH_FEATURES':
-            return sectionWrapper(<ImageWithFeaturesSection {...commonProps} data={section} />);
+            return sectionWrapper(<ImageWithFeaturesSection key={section.id} {...commonProps} data={section} />);
           case 'GALLERY':
-            return sectionWrapper(<GallerySection {...commonProps} data={section} />);
+            return sectionWrapper(<GallerySection key={section.id} {...commonProps} data={section} />);
           case 'AMENITIES':
-             return sectionWrapper(<AmenitiesSection {...commonProps} data={section} />);
+             return sectionWrapper(<AmenitiesSection key={section.id} {...commonProps} data={section} />);
           case 'LOCATION':
-            return sectionWrapper(<LocationSection {...commonProps} data={section} />);
+            return sectionWrapper(<LocationSection key={section.id} {...commonProps} data={section} />);
           case 'CONTACT':
-            return sectionWrapper(<ContactSection {...commonProps} data={section} propertyId={property.id} onContactSubmit={onContactSubmit} />);
+            return sectionWrapper(<ContactSection key={section.id} {...commonProps} data={section} propertyId={property.id} onContactSubmit={onContactSubmit} />);
           case 'PRICING':
-            return sectionWrapper(<PricingSection {...commonProps} data={section} />);
+            return sectionWrapper(<PricingSection key={section.id} {...commonProps} data={section} />);
           default:
             return <div key={section.id}>Unknown section type: {(section as any).type}</div>;
         }
