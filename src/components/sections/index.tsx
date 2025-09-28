@@ -2,6 +2,7 @@
 
 import { Property, AnySectionData, ContactSubmission } from '@/lib/types';
 import HeroSection from './hero-section';
+import BannerSection from './banner-section';
 import GallerySection from './gallery-section';
 import AmenitiesSection from './amenities-section';
 import ImageWithFeaturesSection from './image-with-features-section';
@@ -43,7 +44,7 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
 
   return (
     <div>
-      {property.sections.map((section) => {
+      {property.sections.map((section, index) => {
         const commonProps = {
           ...componentProps,
           data: section,
@@ -74,6 +75,8 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
         switch (section.type) {
           case 'HERO':
             return <HeroSection key={section.id} {...commonProps} />;
+          case 'BANNER':
+            return <BannerSection key={section.id} {...commonProps} isFirstSection={index === 0} />;
           case 'IMAGE_WITH_FEATURES':
             return sectionWrapper(<ImageWithFeaturesSection key={section.id} {...commonProps} />);
           case 'GALLERY':

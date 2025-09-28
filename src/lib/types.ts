@@ -15,7 +15,8 @@ export type SectionType =
   | 'LOCATION'
   | 'AMENITIES'
   | 'PRICING'
-  | 'CONTACT';
+  | 'CONTACT'
+  | 'BANNER';
 
 export interface PageSection<T extends SectionType> {
   id: string;
@@ -44,6 +45,16 @@ export interface HeroSectionData extends PageSection<'HERO'> {
   subtitle?: StyledText;
   buttonText?: string;
   parallaxEnabled?: boolean;
+}
+
+export interface BannerSectionData extends PageSection<'BANNER'> {
+  imageUrl?: string;
+  imageKey?: string;
+  title?: StyledText;
+  subtitle?: StyledText;
+  buttonText?: string;
+  parallaxEnabled?: boolean;
+  roundedCorners?: boolean;
 }
 
 export interface ImageWithFeaturesSectionData extends PageSection<'IMAGE_WITH_FEATURES'> {
@@ -116,6 +127,7 @@ export interface ContactSectionData extends PageSection<'CONTACT'> {
 
 export type AnySectionData =
   | HeroSectionData
+  | BannerSectionData
   | ImageWithFeaturesSectionData
   | GallerySectionData
   | LocationSectionData

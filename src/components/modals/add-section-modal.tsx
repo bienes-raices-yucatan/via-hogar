@@ -4,7 +4,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AnySectionData } from '@/lib/types';
-import { GalleryHorizontal, LayoutGrid, Mail, Image, MapPin, BadgeDollarSign } from 'lucide-react';
+import { GalleryHorizontal, LayoutGrid, Mail, Image, MapPin, BadgeDollarSign, RectangleHorizontal } from 'lucide-react';
 
 interface AddSectionModalProps {
   isOpen: boolean;
@@ -13,6 +13,7 @@ interface AddSectionModalProps {
 }
 
 const sectionOptions = [
+  { type: 'BANNER' as const, label: 'Banner', icon: <RectangleHorizontal/> },
   { type: 'IMAGE_WITH_FEATURES' as const, label: 'Imagen y Características', icon: <Image/> },
   { type: 'GALLERY' as const, label: 'Galería', icon: <GalleryHorizontal/> },
   { type: 'AMENITIES' as const, label: 'Comodidades', icon: <LayoutGrid/> },
@@ -53,5 +54,3 @@ const AddSectionModal: React.FC<AddSectionModalProps> = ({ isOpen, onClose, onAd
 };
 
 export default AddSectionModal;
-
-    

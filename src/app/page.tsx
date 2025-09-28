@@ -179,6 +179,19 @@ export default function Home() {
         case 'PRICING':
             newSection = { id: sectionId, type: 'PRICING', style: {backgroundColor: '#f8fafc'}, icon: 'Home', title: 'Precio de la propiedad', price: '5,500,000 MDP', originalPrice: '6,500,000 MDP', subtitle: 'Lista para escriturar y con entrega inmediata.', buttonText: 'ME INTERESA' };
             break;
+        case 'BANNER':
+            newSection = {
+              id: sectionId,
+              type: 'BANNER',
+              style: { backgroundColor: '#000000' },
+              imageUrl: 'https://picsum.photos/seed/newbanner/1920/600',
+              title: { text: "Nuevo Banner", fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: '#ffffff', fontFamily: 'Playfair Display' },
+              subtitle: { text: 'Un subtítulo atractivo', fontSize: 'clamp(1rem, 2vw, 1.25rem)', color: '#e2e8f0', fontFamily: 'Roboto' },
+              buttonText: 'Llamada a la acción',
+              parallaxEnabled: true,
+              roundedCorners: true,
+            };
+            break;
         default:
             return;
     }
