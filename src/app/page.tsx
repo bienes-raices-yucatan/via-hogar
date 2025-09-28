@@ -9,23 +9,16 @@ import { v4 as uuidv4 } from 'uuid';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import PropertyList from '@/components/property-list';
-import AdminLoginModal from '@/components/modals/admin-login-modal';
-import AddSectionModal from '@/components/modals/add-section-modal';
-import NewPropertyModal from '@/components/modals/new-property-modal';
 import { Button } from '@/components/ui/button';
 import Spinner from '@/components/spinner';
 import SectionRenderer from '@/components/sections';
 import AdminToolbar from '@/components/toolbars/admin-toolbar';
-import EditingToolbar from '@/components/toolbars/editing-toolbar';
 import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isNewPropertyModalOpen, setIsNewPropertyModalOpen] = useState(false);
-  const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [siteName, setSiteName] = useState('Vía Hogar');
   const [logoUrl, setLogoUrl] = useState('/logo.svg');
@@ -33,8 +26,7 @@ export default function Home() {
 
   // Editing state
   const [isDraggingMode, setIsDraggingMode] = useState(false);
-  const [selectedElement, setSelectedElement] = useState<any>(null);
-
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -98,7 +90,6 @@ export default function Home() {
   const handleLogin = (success: boolean) => {
     if (success) {
       setIsAdminMode(true);
-      setIsLoginModalOpen(false);
       toast({ title: "Modo Administrador Activado" });
     } else {
       toast({ title: "Error", description: "Usuario o contraseña incorrectos.", variant: "destructive" });
@@ -107,7 +98,6 @@ export default function Home() {
 
   const handleLogout = () => {
     setIsAdminMode(false);
-    setSelectedElement(null);
     setIsDraggingMode(false);
     toast({ title: "Has salido del modo administrador." });
   };
@@ -120,26 +110,23 @@ export default function Home() {
     setProperties(prevProperties => prevProperties.map(p => p.id === updatedProperty.id ? updatedProperty : p));
   };
 
-  const handleAddNewProperty = (newPropertyData: { name: string, address: string, price: number, lat: number, lng: number }) => {
-    setIsNewPropertyModalOpen(false);
+  const handleAddNewProperty = () => {
     try {
-      const { name, address, price, lat, lng } = newPropertyData;
-      
       const newProperty: Property = {
         id: uuidv4(),
-        name,
-        address,
-        price,
+        name: "Nueva Propiedad",
+        address: "Dirección de la nueva propiedad",
+        price: 0,
         mainImageUrl: 'https://picsum.photos/seed/newprop/800/600',
-        coordinates: { lat, lng },
+        coordinates: { lat: 0, lng: 0 },
         sections: [
           {
             id: uuidv4(),
             type: 'HERO',
             style: { backgroundColor: '#e0f2fe' },
             imageUrl: 'https://picsum.photos/seed/newhero/1920/1080',
-            title: { text: `Bienvenido a ${name}`, fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: '#ffffff', fontFamily: 'Playfair Display' },
-            subtitle: { text: 'Una nueva propiedad increíble te espera.', fontSize: 'clamp(1rem, 2vw, 1.25rem)', color: '#e2e8f0', fontFamily: 'Roboto' },
+            title: { text: "Bienvenido a tu Nueva Propiedad", fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: '#ffffff', fontFamily: 'Playfair Display' },
+            subtitle: { text: 'Empieza a personalizar esta página.', fontSize: 'clamp(1rem, 2vw, 1.25rem)', color: '#e2e8f0', fontFamily: 'Roboto' },
             buttonText: 'Contactar',
             parallaxEnabled: true,
           }
@@ -194,7 +181,6 @@ export default function Home() {
     
     const updatedProperty = { ...property, sections: [...property.sections, newSection] };
     handleUpdateProperty(updatedProperty);
-    setIsAddSectionModalOpen(false);
   };
   
   const handleUpdateLogo = async (file: File) => {
@@ -249,7 +235,9 @@ export default function Home() {
                 <Button variant="outline" onClick={() => setSelectedPropertyId(null)}>
                   &larr; Volver al Listado
                 </Button>
-                <Button onClick={() => setIsAddSectionModalOpen(true)}>Añadir Sección</Button>
+                <div>
+                  {/* TODO: Implementar un selector de secciones no modal */}
+                </div>
               </div>
             )}
             <SectionRenderer
@@ -257,8 +245,7 @@ export default function Home() {
               updateProperty={handleUpdateProperty}
               isAdminMode={isAdminMode}
               isDraggingMode={isDraggingMode}
-              selectedElement={selectedElement}
-              setSelectedElement={setSelectedElement}
+              setSelectedElement={() => {}}
               onContactSubmit={handleContactSubmit}
             />
           </div>
@@ -270,29 +257,15 @@ export default function Home() {
               onDeleteProperty={handleDeleteProperty}
               onUpdateProperty={handleUpdateProperty}
               isAdminMode={isAdminMode}
-              onAddNew={() => setIsNewPropertyModalOpen(true)}
+              onAddNew={handleAddNewProperty}
             />
           </div>
         )}
       </main>
       
-      <Footer onAdminClick={() => setIsLoginModalOpen(true)} />
+      <Footer onLogin={handleLogin} isAdminMode={isAdminMode} />
 
       {isAdminMode && <AdminToolbar isDraggingMode={isDraggingMode} onToggleDragMode={() => setIsDraggingMode(!isDraggingMode)} />}
-      
-      {isAdminMode && selectedElement && (
-        <EditingToolbar
-          selectedElement={selectedElement}
-          setSelectedElement={setSelectedElement}
-          updateProperty={handleUpdateProperty}
-          properties={properties}
-          selectedPropertyId={selectedPropertyId}
-        />
-      )}
-
-      <AdminLoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} onLogin={handleLogin} />
-      {isAdminMode && <NewPropertyModal isOpen={isNewPropertyModalOpen} onClose={() => setIsNewPropertyModalOpen(false)} onSubmit={handleAddNewProperty} />}
-      {isAdminMode && selectedPropertyId && <AddSectionModal isOpen={isAddSectionModalOpen} onClose={() => setIsAddSectionModalOpen(false)} onAddSection={handleAddSection} />}
     </div>
   );
 }

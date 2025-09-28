@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { Property } from '@/lib/types';
 import { Button } from './ui/button';
 import EditableText from './editable-text';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
-import ConfirmationModal from './modals/confirmation-modal';
 
 interface PropertyCardProps {
   property: Property;
@@ -24,7 +23,6 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   onUpdate,
   isAdminMode,
 }) => {
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const handleUpdate = (field: 'name' | 'address' | 'price', value: string | number) => {
     onUpdate({ ...property, [field]: value });
@@ -68,20 +66,13 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
               Ver Detalles
             </Button>
             {isAdminMode && (
-              <Button size="icon" variant="destructive" onClick={() => setIsConfirmOpen(true)}>
+              <Button size="icon" variant="destructive" onClick={() => onDelete(property.id)}>
                 <Trash2 />
               </Button>
             )}
           </div>
         </CardContent>
       </Card>
-      <ConfirmationModal
-        isOpen={isConfirmOpen}
-        onClose={() => setIsConfirmOpen(false)}
-        onConfirm={() => onDelete(property.id)}
-        title="Eliminar Propiedad"
-        description="¿Estás seguro de que quieres eliminar esta propiedad? Esta acción no se puede deshacer."
-      />
     </>
   );
 };
