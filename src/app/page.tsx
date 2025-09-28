@@ -17,17 +17,16 @@ import Header from '@/components/layout/header';
 
 import { Property, AnySectionData, ContactSubmission, SiteConfig } from '@/lib/types';
 import { initialProperties, initialSiteConfig } from '@/lib/data';
-import { useFirestore, useCollection, useDoc, updateDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { useUser } from '@/firebase/provider';
+import { useFirestore, useCollection, useDoc, updateDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useUser, useMemoFirebase } from '@/firebase';
 
 export default function Home() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   
-  const propertiesRef = useMemo(() => collection(firestore, 'properties'), [firestore]);
+  const propertiesRef = useMemoFirebase(() => collection(firestore, 'properties'), [firestore]);
   const { data: properties, isLoading: isLoadingProperties } = useCollection<Property>(propertiesRef);
   
-  const siteConfigRef = useMemo(() => doc(firestore, 'config', 'site'), [firestore]);
+  const siteConfigRef = useMemoFirebase(() => doc(firestore, 'config', 'site'), [firestore]);
   const { data: siteConfig, isLoading: isLoadingSiteConfig } = useDoc<SiteConfig>(siteConfigRef);
 
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
@@ -49,7 +48,7 @@ export default function Home() {
   // Effect to seed initial data if collections are empty
   useEffect(() => {
     const seedData = async () => {
-      if (properties && properties.length === 0) {
+      if (properties && properties.length === 0 && propertiesRef) {
         const batch = writeBatch(firestore);
         initialProperties.forEach(propData => {
           const propRef = doc(propertiesRef);
@@ -57,7 +56,7 @@ export default function Home() {
         });
         await batch.commit();
       }
-      if (siteConfig === null) {
+      if (siteConfig === null && siteConfigRef) {
         await setDocumentNonBlocking(siteConfigRef, initialSiteConfig);
       }
     };
@@ -75,11 +74,13 @@ export default function Home() {
   };
   
   const handleUpdateProperty = async (updatedProperty: Property) => {
+    if (!propertiesRef) return;
     const propRef = doc(firestore, 'properties', updatedProperty.id);
     updateDocumentNonBlocking(propRef, updatedProperty);
   };
 
   const handleAddNewProperty = async () => {
+    if (!propertiesRef) return;
     const newProperty: Omit<Property, 'id'> = {
       name: "Nueva Propiedad",
       address: "Dirección de la nueva propiedad",
@@ -123,7 +124,7 @@ export default function Home() {
   };
 
   const confirmDeleteProperty = async () => {
-    if (!propertyToDelete) return;
+    if (!propertyToDelete || !propertiesRef) return;
     const propRef = doc(firestore, 'properties', propertyToDelete);
     deleteDocumentNonBlocking(propRef);
     if (selectedPropertyId === propertyToDelete) {
@@ -181,10 +182,12 @@ export default function Home() {
   };
   
   const handleUpdateLogo = async (newLogoUrl: string) => {
+    if (!siteConfigRef) return;
     updateDocumentNonBlocking(siteConfigRef, { logoUrl: newLogoUrl });
   };
   
   const handleUpdateSiteName = async (newName: string) => {
+    if (!siteConfigRef) return;
     updateDocumentNonBlocking(siteConfigRef, { siteName: newName });
   }
 
