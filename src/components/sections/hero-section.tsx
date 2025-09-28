@@ -15,10 +15,9 @@ import { Slider } from '../ui/slider';
 interface DraggableTextProps {
     data: DraggableTextData;
     sectionId: string;
-    containerRef: React.RefObject<HTMLDivElement>;
     isAdminMode: boolean;
     onSelect: () => void;
-    onUpdate: (updatedText: Partial<DraggableTextData>) => void;
+    onUpdate: (updates: Partial<DraggableTextData>) => void;
     onDelete: () => void;
 }
 
@@ -27,20 +26,21 @@ const DraggableText: React.FC<DraggableTextProps> = ({ data, sectionId, isAdminM
         id: `text-${sectionId}-${data.id}`,
         disabled: !isAdminMode,
     });
-
-    const style = {
-        position: 'absolute' as const,
+    
+    const style: React.CSSProperties = {
+        position: 'absolute',
         left: `${data.position.x}%`,
         top: `${data.position.y}%`,
-        transform: `translate(-50%, -50%) ${transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : ''}`,
         color: data.color,
-        fontSize: data.fontSize,
+        fontSize: `${data.fontSize}rem`,
         fontFamily: data.fontFamily,
         zIndex: 20,
-        ...transform ? {
-            transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        } : {},
+        transform: `translate(-50%, -50%)`,
     };
+
+    if (transform) {
+      style.transform = `translate3d(${transform.x}px, ${transform.y}px, 0) translate(-50%, -50%)`;
+    }
 
     return (
         <div
@@ -48,28 +48,40 @@ const DraggableText: React.FC<DraggableTextProps> = ({ data, sectionId, isAdminM
             style={style}
             className="group/text relative p-2"
         >
-            <div className="flex items-center gap-2">
+            <div 
+              className="flex items-center gap-2"
+              onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  if (isAdminMode) onSelect();
+              }}
+            >
                 {isAdminMode && (
                     <div 
                         {...listeners} 
                         {...attributes} 
                         className="cursor-grab text-white opacity-50 hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <GripVertical size={20} />
                     </div>
                 )}
-                <EditableText
-                    value={data.text}
-                    onChange={(val) => onUpdate({ text: val })}
-                    isAdminMode={isAdminMode}
-                    className="font-bold font-headline leading-tight"
-                    as="div"
-                    onSelect={onSelect}
-                />
+                <div onDoubleClick={onSelect}>
+                  <EditableText
+                      value={data.text}
+                      onChange={(val) => onUpdate({ text: val })}
+                      isAdminMode={isAdminMode}
+                      className="font-bold font-headline leading-tight text-center"
+                      as="div"
+                      onSelect={onSelect}
+                  />
+                </div>
             </div>
             {isAdminMode && (
                 <button 
-                    onClick={onDelete} 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete();
+                    }} 
                     className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center opacity-0 group-hover/text:opacity-100"
                 >
                     <Trash2 size={12}/>
@@ -159,7 +171,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
     const newText: DraggableTextData = {
         id: uuidv4(),
         text: 'Nuevo Texto',
-        fontSize: 'clamp(1rem, 2vw, 1.25rem)',
+        fontSize: 1.25,
         color: '#ffffff',
         fontFamily: 'Roboto',
         position: { x: 50, y: 50 }
@@ -236,7 +248,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             key={text.id}
             data={text}
             sectionId={data.id}
-            containerRef={sectionRef}
             isAdminMode={isAdminMode}
             onSelect={createSelectHandler(text.id)}
             onUpdate={(updates) => handleDraggableTextUpdate(text.id, updates)}

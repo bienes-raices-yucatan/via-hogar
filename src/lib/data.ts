@@ -25,7 +25,7 @@ export const initialProperties: Property[] = [
           {
             id: uuidv4(),
             text: 'Elegancia y confort: Una casa diseñada para quienes buscan lo mejor.',
-            fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+            fontSize: 4,
             color: '#ffffff',
             fontFamily: 'Playfair Display',
             position: { x: 50, y: 40 }
@@ -91,7 +91,7 @@ export const initialProperties: Property[] = [
         id: uuidv4(),
         type: 'CONTACT',
         style: { backgroundColor: '#ffffff' },
-        title: { text: '¿Te interesa la casa para ti o eres vendedor inmobiliario?', fontSize: '2rem', color: '#1E293B', fontFamily: 'Montserrat' },
+        title: { text: '¿Te interesa la casa para ti o eres vendedor inmobiliario?', fontSize: 2, color: '#1E293B', fontFamily: 'Montserrat' },
         buttonText: 'Enviar',
       },
     ],

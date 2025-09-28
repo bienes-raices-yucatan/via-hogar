@@ -142,7 +142,7 @@ export default function Home() {
               {
                 id: uuidv4(),
                 text: 'Elegancia y confort: Una casa diseñada para quienes buscan lo mejor.',
-                fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+                fontSize: 4,
                 color: '#ffffff',
                 fontFamily: 'Playfair Display',
                 position: { x: 50, y: 40 }
@@ -195,7 +195,7 @@ export default function Home() {
             newSection = { id: sectionId, type: 'LOCATION', style: {backgroundColor: '#ffffff'}, coordinates: property.coordinates, nearbyPlaces: [] };
             break;
         case 'CONTACT':
-            newSection = { id: sectionId, type: 'CONTACT', style: {backgroundColor: '#ffffff'}, title: {text: '¿Te interesa la casa para ti o eres vendedor inmobiliario?', fontSize: '2rem', color: '#1E293B', fontFamily: 'Montserrat'}, buttonText: 'Enviar' };
+            newSection = { id: sectionId, type: 'CONTACT', style: {backgroundColor: '#ffffff'}, title: {text: '¿Te interesa la casa para ti o eres vendedor inmobiliario?', fontSize: 2, color: '#1E293B', fontFamily: 'Montserrat'}, buttonText: 'Enviar' };
             break;
         case 'PRICING':
             newSection = { id: sectionId, type: 'PRICING', style: {backgroundColor: '#f8fafc'}, icon: 'Home', title: 'Precio de la propiedad', price: '5,500,000 MDP', originalPrice: '6,500,000 MDP', subtitle: 'Lista para escriturar y con entrega inmediata.', buttonText: 'ME INTERESA' };
@@ -263,20 +263,20 @@ export default function Home() {
     
     // Handle Draggable Text reordering
     if (active.id.toString().startsWith('text-')) {
-        const [_, sectionId, textId] = active.id.toString().split('-');
         const { delta } = event;
+        const [_, sectionId, textId] = active.id.toString().split('-');
 
         const updatedSections = property.sections.map(section => {
             if (section.id === sectionId && 'draggableTexts' in section && section.draggableTexts) {
                 const updatedTexts = section.draggableTexts.map(text => {
                     if (text.id === textId) {
-                        const container = document.querySelector(`.draggable-text-container[data-section-id="${section.id}"]`);
-                        if(container){
-                            const containerRect = container.getBoundingClientRect();
-                            const newX = text.position.x + (delta.x / containerRect.width) * 100;
-                            const newY = text.position.y + (delta.y / containerRect.height) * 100;
-                            return { ...text, position: { x: newX, y: newY } };
-                        }
+                      const container = document.querySelector(`.draggable-text-container[data-section-id="${section.id}"]`);
+                      if (container) {
+                          const containerRect = container.getBoundingClientRect();
+                          const newX = text.position.x + (delta.x / containerRect.width) * 100;
+                          const newY = text.position.y + (delta.y / containerRect.height) * 100;
+                          return { ...text, position: { x: newX, y: newY } };
+                      }
                     }
                     return text;
                 });

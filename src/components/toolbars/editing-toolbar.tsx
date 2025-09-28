@@ -1,14 +1,16 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Property, StyledText, DraggableTextData } from '@/lib/types';
+import { Property, DraggableTextData } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { X } from 'lucide-react';
+import { X, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, AlignCenterHorizontal } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Textarea } from '../ui/textarea';
+import { Slider } from '../ui/slider';
+import { Button } from '../ui/button';
 
 interface EditingToolbarProps {
   selectedElement: any;
@@ -42,22 +44,13 @@ const EditingToolbar: React.FC<EditingToolbarProps> = ({
     }, [transform]);
 
 
-    const getElementData = (): StyledText | null => {
-        if (!property || !selectedElement) return null;
+    const getElementData = (): DraggableTextData | null => {
+        if (!property || !selectedElement || selectedElement.type !== 'DRAGGABLE_TEXT') return null;
 
-        const section = property.sections.find(s => s.id === selectedElement.sectionId);
-        if (!section) return null;
-
-        if (selectedElement.type === 'STYLED_TEXT') {
-            if ('title' in section && selectedElement.field === 'title' && section.title) {
-                return section.title;
-            }
-            if ('subtitle' in section && selectedElement.field === 'subtitle' && section.subtitle) {
-                return section.subtitle;
-            }
-        } else if (selectedElement.type === 'DRAGGABLE_TEXT') {
-            if ('draggableTexts' in section) {
-                return section.draggableTexts.find(t => t.id === selectedElement.textId) || null;
+        for (const section of property.sections) {
+            if ('draggableTexts' in section && section.draggableTexts) {
+                const text = section.draggableTexts.find(t => t.id === selectedElement.textId);
+                if (text) return text;
             }
         }
         return null;
@@ -65,25 +58,38 @@ const EditingToolbar: React.FC<EditingToolbarProps> = ({
     
     const elementData = getElementData();
     
-    const handleUpdate = (updates: Partial<StyledText>) => {
+    const handleUpdate = (updates: Partial<DraggableTextData>) => {
         if (!property || !elementData || !selectedElement) return;
         
         const updatedProperty = JSON.parse(JSON.stringify(property));
         const section = updatedProperty.sections.find((s: any) => s.id === selectedElement.sectionId);
         
-        if (!section) return;
-
-        if (selectedElement.type === 'STYLED_TEXT' && selectedElement.field in section) {
-           section[selectedElement.field] = { ...section[selectedElement.field], ...updates };
-        } else if (selectedElement.type === 'DRAGGABLE_TEXT' && 'draggableTexts' in section) {
-            const textIndex = section.draggableTexts.findIndex((t: DraggableTextData) => t.id === selectedElement.textId);
-            if (textIndex > -1) {
-                section.draggableTexts[textIndex] = { ...section.draggableTexts[textIndex], ...updates };
-            }
+        if (!section || !('draggableTexts' in section)) return;
+        
+        const textIndex = section.draggableTexts.findIndex((t: DraggableTextData) => t.id === selectedElement.textId);
+        if (textIndex > -1) {
+            section.draggableTexts[textIndex] = { ...section.draggableTexts[textIndex], ...updates };
         }
         
         updateProperty(updatedProperty);
     };
+
+    const handleMove = (direction: 'up' | 'down' | 'left' | 'right') => {
+        if (!elementData) return;
+        const step = 1; // Move by 1%
+        let { x, y } = elementData.position;
+        switch (direction) {
+            case 'up': y -= step; break;
+            case 'down': y += step; break;
+            case 'left': x -= step; break;
+            case 'right': x += step; break;
+        }
+        handleUpdate({ position: { x, y } });
+    };
+
+    const handleCenter = () => {
+        handleUpdate({ position: { x: 50, y: 50 } });
+    }
     
     if (!elementData) return null;
     
@@ -117,12 +123,13 @@ const EditingToolbar: React.FC<EditingToolbarProps> = ({
                         <Input type="color" value={elementData.color} onChange={e => handleUpdate({ color: e.target.value })} className="w-full h-8 p-0" />
                     </div>
                     <div>
-                        <Label>Tamaño de Fuente</Label>
-                        <Input 
-                          type="text"
-                          value={elementData.fontSize}
-                          onChange={e => handleUpdate({ fontSize: e.target.value })}
-                          placeholder="Ej: 2.5rem o clamp(...)"
+                        <Label>Tamaño de Fuente ({elementData.fontSize}rem)</Label>
+                         <Slider
+                            min={0.5}
+                            max={10}
+                            step={0.1}
+                            value={[elementData.fontSize]}
+                            onValueChange={([value]) => handleUpdate({ fontSize: value })}
                         />
                     </div>
                     <div>
@@ -136,6 +143,22 @@ const EditingToolbar: React.FC<EditingToolbarProps> = ({
                                 <SelectItem value="Playfair Display">Playfair Display</SelectItem>
                             </SelectContent>
                         </Select>
+                    </div>
+                    <div>
+                        <Label>Posición</Label>
+                        <div className="grid grid-cols-3 items-center gap-2">
+                             <div></div>
+                             <Button size="icon" variant="outline" onClick={() => handleMove('up')}><ArrowUp /></Button>
+                             <div></div>
+
+                             <Button size="icon" variant="outline" onClick={() => handleMove('left')}><ArrowLeft /></Button>
+                             <Button size="icon" variant="outline" onClick={handleCenter}><AlignCenterHorizontal /></Button>
+                             <Button size="icon" variant="outline" onClick={() => handleMove('right')}><ArrowRight /></Button>
+
+                             <div></div>
+                             <Button size="icon" variant="outline" onClick={() => handleMove('down')}><ArrowDown /></Button>
+                             <div></div>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

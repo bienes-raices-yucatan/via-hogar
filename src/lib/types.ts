@@ -28,7 +28,7 @@ export interface PageSection<T extends SectionType> {
 
 export interface StyledText {
   text: string;
-  fontSize: string;
+  fontSize: number; // Represents rem
   color: string;
   fontFamily: 'Montserrat' | 'Roboto' | 'Lora' | 'Playfair Display';
 }
