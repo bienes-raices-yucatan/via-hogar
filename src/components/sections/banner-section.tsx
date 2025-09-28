@@ -119,7 +119,8 @@ const BannerSection: React.FC<BannerSectionProps> = ({
     "relative group/section w-full h-[50vh] bg-cover bg-center",
     {
       "rounded-b-[3rem]": isFirstSection,
-      "rounded-[3rem]": !isFirstSection && data.roundedCorners,
+      "my-8 rounded-[3rem]": !isFirstSection && data.roundedCorners,
+      "my-8": !isFirstSection && !data.roundedCorners
     }
   );
 

@@ -39,11 +39,13 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
   return (
     <div>
       {property.sections.map((section, index) => {
+        const isFirstSection = index === 0;
         const commonProps = {
           ...componentProps,
           data: section,
           updateSection,
           deleteSection,
+          isFirstSection,
         };
         
         let sectionId = '';
@@ -70,7 +72,7 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
           case 'HERO':
             return <HeroSection key={section.id} {...commonProps} />;
           case 'BANNER':
-            return <BannerSection key={section.id} {...commonProps} isFirstSection={index === 0} />;
+            return <BannerSection key={section.id} {...commonProps} />;
           case 'IMAGE_WITH_FEATURES':
             return sectionWrapper(<ImageWithFeaturesSection key={section.id} {...commonProps} />);
           case 'GALLERY':

@@ -8,7 +8,7 @@ import { Switch } from '../ui/switch';
 import { Label } from '../ui/label';
 import { v4 as uuidv4 } from 'uuid';
 import { saveImage, getImage } from '@/lib/db';
-import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 interface HeroSectionProps {
   data: HeroSectionData;
@@ -16,6 +16,7 @@ interface HeroSectionProps {
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
   setSelectedElement: (element: any) => void;
+  isFirstSection: boolean;
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({ 
@@ -24,6 +25,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   deleteSection, 
   isAdminMode, 
   setSelectedElement,
+  isFirstSection,
 }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -113,10 +115,25 @@ const HeroSection: React.FC<HeroSectionProps> = ({
     document.getElementById('section-contact')?.scrollIntoView({ behavior: 'smooth' });
   }
 
+  const containerClasses = cn(
+    "relative group/section w-full h-[75vh] md:h-[85vh] bg-cover bg-center",
+    {
+      "rounded-b-[3rem]": isFirstSection,
+    }
+  );
+
+  const overlayClasses = cn(
+    "absolute inset-0 bg-black/30",
+    {
+      "rounded-b-[3rem]": isFirstSection,
+    }
+  );
+
+
   return (
     <div 
       ref={sectionRef}
-      className="relative group/section w-full h-[75vh] md:h-[85vh] bg-cover bg-center rounded-b-[3rem]" 
+      className={containerClasses} 
       style={{ 
         backgroundImage: `url(${imageUrl})`,
         backgroundPosition: backgroundPosition,
@@ -124,7 +141,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         transition: 'background-position 0.1s ease-out',
       }}
     >
-      <div className="absolute inset-0 bg-black/30 rounded-b-[3rem]"></div>
+      <div className={overlayClasses}></div>
       
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
         <div className="max-w-3xl">
