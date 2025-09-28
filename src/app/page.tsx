@@ -12,6 +12,9 @@ import { Button } from '@/components/ui/button';
 import Spinner from '@/components/spinner';
 import SectionRenderer from '@/components/sections';
 import AdminToolbar from '@/components/toolbars/admin-toolbar';
+import EditingToolbar from '@/components/toolbars/editing-toolbar';
+import ConfirmationModal from '@/components/modals/confirmation-modal';
+
 
 export default function Home() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -24,6 +27,9 @@ export default function Home() {
 
   // Editing state
   const [isDraggingMode, setIsDraggingMode] = useState(false);
+  const [selectedElement, setSelectedElement] = useState<any>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null);
   
   useEffect(() => {
     const loadData = async () => {
@@ -117,9 +123,9 @@ export default function Home() {
             type: 'HERO',
             style: { backgroundColor: '#e0f2fe' },
             imageUrl: 'https://picsum.photos/seed/newhero/1920/1080',
-            title: { text: "Bienvenido a tu Nueva Propiedad", fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: '#ffffff', fontFamily: 'Playfair Display' },
-            subtitle: { text: 'Empieza a personalizar esta página.', fontSize: 'clamp(1rem, 2vw, 1.25rem)', color: '#e2e8f0', fontFamily: 'Roboto' },
-            buttonText: 'Contactar',
+            title: { text: "Elegancia y confort: Una casa diseñada para quienes buscan lo mejor.", fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: '#ffffff', fontFamily: 'Playfair Display' },
+            subtitle: { text: '', fontSize: 'clamp(1rem, 2vw, 1.25rem)', color: '#e2e8f0', fontFamily: 'Roboto' },
+            buttonText: 'Contáctanos',
             parallaxEnabled: true,
           }
         ]
@@ -133,10 +139,18 @@ export default function Home() {
   };
 
   const handleDeleteProperty = (id: string) => {
-    setProperties(prevProperties => prevProperties.filter(p => p.id !== id));
-    if (selectedPropertyId === id) {
+    setPropertyToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteProperty = () => {
+    if (!propertyToDelete) return;
+    setProperties(prevProperties => prevProperties.filter(p => p.id !== propertyToDelete));
+    if (selectedPropertyId === propertyToDelete) {
       setSelectedPropertyId(null);
     }
+    setPropertyToDelete(null);
+    setIsDeleteModalOpen(false);
   };
 
   const handleAddSection = (sectionType: AnySectionData['type']) => {
@@ -213,7 +227,8 @@ export default function Home() {
               updateProperty={handleUpdateProperty}
               isAdminMode={isAdminMode}
               isDraggingMode={isDraggingMode}
-              setSelectedElement={() => {}}
+              selectedElement={selectedElement}
+              setSelectedElement={setSelectedElement}
               onContactSubmit={handleContactSubmit}
               siteName={siteName}
               setSiteName={setSiteName}
@@ -237,9 +252,29 @@ export default function Home() {
         )}
       </main>
       
+      {isAdminMode && selectedElement && (
+        <EditingToolbar 
+          selectedElement={selectedElement}
+          setSelectedElement={setSelectedElement}
+          updateProperty={handleUpdateProperty}
+          properties={properties}
+          selectedPropertyId={selectedPropertyId}
+        />
+      )}
+      
       <Footer onLogin={handleLogin} isAdminMode={isAdminMode} />
 
       {isAdminMode && selectedProperty && <AdminToolbar isDraggingMode={isDraggingMode} onToggleDragMode={() => setIsDraggingMode(!isDraggingMode)} onAddSection={handleAddSection} />}
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDeleteProperty}
+        title="¿Estás seguro?"
+        description="Esta acción no se puede deshacer. Esto eliminará permanentemente la propiedad."
+      />
     </div>
   );
 }
+
+    

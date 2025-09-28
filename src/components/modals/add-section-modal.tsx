@@ -37,7 +37,10 @@ const AddSectionModal: React.FC<AddSectionModalProps> = ({ isOpen, onClose, onAd
               key={option.type}
               variant="outline"
               className="h-24 flex flex-col gap-2"
-              onClick={() => onAddSection(option.type)}
+              onClick={() => {
+                onAddSection(option.type);
+                onClose();
+              }}
             >
                 {option.icon}
               <span>{option.label}</span>
@@ -50,3 +53,5 @@ const AddSectionModal: React.FC<AddSectionModalProps> = ({ isOpen, onClose, onAd
 };
 
 export default AddSectionModal;
+
+    
