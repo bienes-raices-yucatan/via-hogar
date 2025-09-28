@@ -139,7 +139,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   return (
     <div 
       ref={sectionRef}
-      className="relative group/section w-full h-[58vh] md:h-[65vh] bg-cover bg-center rounded-2xl" 
+      className="relative group/section w-full h-[58vh] md:h-[65vh] bg-cover bg-center rounded-[3rem]" 
       style={{ 
         backgroundImage: `url(${imageUrl})`,
         backgroundPosition: backgroundPosition,
@@ -147,7 +147,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         transition: 'background-position 0.1s ease-out',
       }}
     >
-      <div className="absolute inset-0 bg-black/30 rounded-2xl"></div>
+      <div className="absolute inset-0 bg-black/30 rounded-[3rem]"></div>
       
       {/* Integrated Header */}
       <div className="absolute top-0 left-0 right-0 z-20 p-6 flex justify-between items-center text-white">
