@@ -7,9 +7,11 @@ import EditableText from '../editable-text';
 import { Switch } from '../ui/switch';
 import { Label } from '../ui/label';
 import { v4 as uuidv4 } from 'uuid';
-import { cn, fileToDataUrl } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useDraggable } from '@dnd-kit/core';
 import { Slider } from '../ui/slider';
+import { uploadFile } from '@/firebase/storage';
+import { useStorage } from '@/firebase';
 
 interface DraggableTextProps {
     data: DraggableTextData;
@@ -49,22 +51,23 @@ const DraggableText: React.FC<DraggableTextProps> = ({ data, sectionId, isAdminM
         >
             <div 
               className="flex items-center gap-2"
-              onDoubleClick={(e) => {
-                  e.stopPropagation();
-                  if (isAdminMode) onSelect();
-              }}
             >
-                {isAdminMode && (
-                    <div 
-                        {...listeners} 
-                        {...attributes} 
-                        className="cursor-grab text-white opacity-50 hover:opacity-100 transition-opacity"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <GripVertical size={20} />
-                    </div>
-                )}
-                <div onDoubleClick={onSelect}>
+                <div 
+                    {...listeners} 
+                    {...attributes} 
+                    className="cursor-grab text-white opacity-50 hover:opacity-100 transition-opacity"
+                    onClick={(e) => e.stopPropagation()}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      if (isAdminMode) onSelect();
+                    }}
+                >
+                    <GripVertical size={20} />
+                </div>
+                <div onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    if (isAdminMode) onSelect();
+                  }}>
                   <EditableText
                       value={data.text}
                       onChange={(val) => onUpdate({ text: val })}
@@ -112,6 +115,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   const sectionRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [backgroundPosition, setBackgroundPosition] = useState('center');
+  const storage = useStorage();
 
   useEffect(() => {
     if (!data.parallaxEnabled || isAdminMode) {
@@ -181,14 +185,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   };
 
   const handleFileChange = async (file: File) => {
-    if (file) {
-      try {
-        const dataUrl = await fileToDataUrl(file);
-        updateSection(data.id, { imageUrl: dataUrl });
-      } catch (error) {
-        console.error("Failed to read file", error);
-      }
-    }
+    const path = `heroes/${data.id}/${file.name}`;
+    const url = await uploadFile(storage, file, path);
+    updateSection(data.id, { imageUrl: url });
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

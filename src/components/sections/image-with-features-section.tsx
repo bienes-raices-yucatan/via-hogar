@@ -8,7 +8,8 @@ import Image from 'next/image';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
 import { Label } from '../ui/label';
-import { fileToDataUrl } from '@/lib/utils';
+import { uploadFile } from '@/firebase/storage';
+import { useStorage } from '@/firebase';
 
 type IconName = keyof typeof LucideIcons;
 
@@ -22,6 +23,7 @@ interface ImageWithFeaturesSectionProps {
 
 const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const storage = useStorage();
     
     const handleFeatureUpdate = (featureId: string, field: 'title' | 'subtitle', value: string) => {
         const updatedFeatures = data.features.map(f => f.id === featureId ? { ...f, [field]: value } : f);
@@ -41,18 +43,15 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            try {
-                const dataUrl = await fileToDataUrl(file);
-                const mediaType = file.type.startsWith('video') ? 'video' : 'image';
-                updateSection(data.id, {
-                    media: {
-                        type: mediaType,
-                        url: dataUrl,
-                    }
-                });
-            } catch (error) {
-                console.error("Failed to read file", error);
-            }
+            const mediaType = file.type.startsWith('video') ? 'video' : 'image';
+            const path = `features-media/${data.id}/${file.name}`;
+            const url = await uploadFile(storage, file, path);
+            updateSection(data.id, {
+                media: {
+                    type: mediaType,
+                    url: url,
+                }
+            });
         }
     };
 

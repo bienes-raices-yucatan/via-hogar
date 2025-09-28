@@ -3,16 +3,20 @@
 import React, { useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
+import { useAuth } from '@/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 interface FooterProps {
-  onLogin: (success: boolean) => void;
   isAdminMode: boolean;
 }
 
-const Footer: React.FC<FooterProps> = ({ onLogin, isAdminMode }) => {
+const Footer: React.FC<FooterProps> = ({ isAdminMode }) => {
   const [isLoginVisible, setIsLoginVisible] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const auth = useAuth();
 
   const handleAdminClick = () => {
     if (!isAdminMode) {
@@ -20,15 +24,19 @@ const Footer: React.FC<FooterProps> = ({ onLogin, isAdminMode }) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = username === 'Admin' && password === 'Aguilar1';
-    onLogin(success);
-    if (success) {
+    setError('');
+    try {
+      await signInWithEmailAndPassword(auth, username, password);
       setIsLoginVisible(false);
+    } catch (err: any) {
+      setError('Error al iniciar sesión. Comprueba tus credenciales.');
+      console.error(err);
+    } finally {
+      setUsername('');
+      setPassword('');
     }
-    setUsername('');
-    setPassword('');
   };
 
 
@@ -38,8 +46,8 @@ const Footer: React.FC<FooterProps> = ({ onLogin, isAdminMode }) => {
         {isLoginVisible && (
            <form onSubmit={handleSubmit} className="mb-6 p-4 bg-slate-800 rounded-lg flex flex-col sm:flex-row items-center gap-4">
               <Input
-                type="text"
-                placeholder="Usuario"
+                type="email"
+                placeholder="Email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="bg-slate-700 text-white border-slate-600"
@@ -52,6 +60,7 @@ const Footer: React.FC<FooterProps> = ({ onLogin, isAdminMode }) => {
                 className="bg-slate-700 text-white border-slate-600"
               />
               <Button type="submit" className="w-full sm:w-auto">Iniciar Sesión</Button>
+              {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </form>
         )}
         <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left">

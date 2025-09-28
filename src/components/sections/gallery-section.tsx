@@ -9,7 +9,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
 import { Label } from '../ui/label';
-import { fileToDataUrl } from '@/lib/utils';
+import { uploadFile } from '@/firebase/storage';
+import { useStorage } from '@/firebase';
 
 interface GallerySectionProps {
     data: GallerySectionData;
@@ -23,6 +24,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
     const [api, setApi] = useState<CarouselApi>()
     const [current, setCurrent] = useState(0)
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+    const storage = useStorage();
     
     useEffect(() => {
         if (!api) {
@@ -52,15 +54,12 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, imageId: string) => {
         const file = e.target.files?.[0];
         if (file) {
-            try {
-                const dataUrl = await fileToDataUrl(file);
-                const updatedImages = data.images.map(img => 
-                    img.id === imageId ? { ...img, url: dataUrl } : img
-                );
-                updateSection(data.id, { images: updatedImages });
-            } catch (error) {
-                console.error("Failed to read file", error);
-            }
+            const path = `galleries/${data.id}/${imageId}/${file.name}`;
+            const url = await uploadFile(storage, file, path);
+            const updatedImages = data.images.map(img => 
+                img.id === imageId ? { ...img, url: url } : img
+            );
+            updateSection(data.id, { images: updatedImages });
         }
     };
 

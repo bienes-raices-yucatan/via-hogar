@@ -1,10 +1,7 @@
 import { Property } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
-export const initialSiteName = 'Vía Hogar';
-export const initialLogo = '/logo.svg';
-
-export const initialProperties: Property[] = [
+export const initialProperties: Omit<Property, 'createdAt'>[] = [
   {
     id: 'prop1',
     name: 'Villa Moderna con Vista al Mar',
@@ -21,6 +18,7 @@ export const initialProperties: Property[] = [
         buttonText: 'Contáctanos',
         height: '75vh',
         borderRadius: '3rem',
+        parallaxEnabled: true,
         draggableTexts: [
           {
             id: uuidv4(),

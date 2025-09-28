@@ -8,7 +8,8 @@ import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
 import Image from 'next/image';
 import { Label } from '../ui/label';
-import { fileToDataUrl } from '@/lib/utils';
+import { uploadFile } from '@/firebase/storage';
+import { useStorage } from '@/firebase';
 
 type IconName = keyof typeof LucideIcons;
 
@@ -22,6 +23,7 @@ interface AmenitiesSectionProps {
 
 const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+    const storage = useStorage();
 
     const handleAmenityTextChange = (amenityId: string, newText: string) => {
         const updatedAmenities = data.amenities.map(a => a.id === amenityId ? { ...a, text: newText } : a);
@@ -41,15 +43,12 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, amenityId: string) => {
         const file = e.target.files?.[0];
         if (file) {
-            try {
-                const dataUrl = await fileToDataUrl(file);
-                const updatedAmenities = data.amenities.map(a => 
-                    a.id === amenityId ? { ...a, imageUrl: dataUrl } : a
-                );
-                updateSection(data.id, { amenities: updatedAmenities });
-            } catch (error) {
-                console.error("Failed to read file", error);
-            }
+            const path = `amenities/${data.id}/${amenityId}/${file.name}`;
+            const url = await uploadFile(storage, file, path);
+            const updatedAmenities = data.amenities.map(a => 
+                a.id === amenityId ? { ...a, imageUrl: url } : a
+            );
+            updateSection(data.id, { amenities: updatedAmenities });
         }
     };
     

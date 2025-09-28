@@ -6,6 +6,7 @@ export interface Property {
   mainImageUrl: string;
   coordinates: { lat: number; lng: number };
   sections: AnySectionData[];
+  createdAt: any; // Using 'any' for Firestore ServerTimestamp compatibility
 }
 
 export type SectionType = 
@@ -142,3 +143,8 @@ export type EditableElement =
     | { type: 'SECTION_STYLE'; propertyId: string; sectionId: string; field: 'backgroundColor' }
     | { type: 'DRAGGABLE_TEXT'; propertyId: string; sectionId: string; textId: string; }
     | { type: 'STYLED_TEXT'; sectionId: string; field: 'title' | 'subtitle' };
+
+export interface SiteConfig {
+  siteName: string;
+  logoUrl: string;
+}

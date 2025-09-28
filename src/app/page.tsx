@@ -1,11 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from 'react';
-import { Property, AnySectionData, ContactSubmission } from '@/lib/types';
-import { initialProperties, initialSiteName, initialLogo } from '@/lib/data';
+import { useState, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { collection, doc, orderBy, query, setDoc, addDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 
 import Footer from '@/components/layout/footer';
 import PropertyList from '@/components/property-list';
@@ -17,16 +16,30 @@ import EditingToolbar from '@/components/toolbars/editing-toolbar';
 import ConfirmationModal from '@/components/modals/confirmation-modal';
 import Header from '@/components/layout/header';
 
+import { useCollection, useDoc, useFirestore, useUser, useAuth, useMemoFirebase, useStorage } from '@/firebase';
+import { setDocumentNonBlocking, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { uploadFile } from '@/firebase/storage';
+
+import { Property, AnySectionData, ContactSubmission } from '@/lib/types';
+import { initialProperties } from '@/lib/data';
+
 
 export default function Home() {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
-  const [isAdminMode, setIsAdminMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [siteName, setSiteName] = useState('Vía Hogar');
-  const [logoUrl, setLogoUrl] = useState('/logo.svg');
-  const [contactSubmissions, setContactSubmissions] = useState<ContactSubmission[]>([]);
+  const firestore = useFirestore();
+  const auth = useAuth();
+  const storage = useStorage();
+  const { user, isUserLoading } = useUser();
+  const isAdminMode = !!user;
 
+  // Data fetching from Firestore
+  const propertiesQuery = useMemoFirebase(() => query(collection(firestore, 'properties'), orderBy('createdAt', 'asc')), [firestore]);
+  const { data: properties, isLoading: isLoadingProperties } = useCollection<Property>(propertiesQuery);
+  
+  const siteConfigRef = useMemoFirebase(() => doc(firestore, 'config', 'site'), [firestore]);
+  const { data: siteConfig, isLoading: isLoadingSiteConfig } = useDoc(siteConfigRef);
+  
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+  
   // Editing state
   const [isDraggingMode, setIsDraggingMode] = useState(false);
   const [selectedElement, setSelectedElement] = useState<any>(null);
@@ -40,75 +53,22 @@ export default function Home() {
     })
   );
 
+  // Seed initial data if properties collection is empty
   useEffect(() => {
-    const loadData = async () => {
-      const storedProperties = localStorage.getItem('properties');
-      const storedSiteName = localStorage.getItem('siteName');
-      const storedLogoUrl = localStorage.getItem('logoUrl');
-      const storedSubmissions = localStorage.getItem('contactSubmissions');
-
-      if (storedProperties) {
-        setProperties(JSON.parse(storedProperties));
-      } else {
-        setProperties(initialProperties);
-      }
-
-      if (storedSiteName) {
-        setSiteName(storedSiteName);
-      } else {
-        setSiteName(initialSiteName);
-      }
-
-      if (storedLogoUrl) {
-        setLogoUrl(storedLogoUrl);
-      } else {
-        setLogoUrl(initialLogo);
-      }
-      
-      if (storedSubmissions) {
-        setContactSubmissions(JSON.parse(storedSubmissions));
-      }
-
-      setIsLoading(false);
-    };
-
-    loadData();
-  }, []);
+    if (!isLoadingProperties && properties && properties.length === 0) {
+      const batch = writeBatch(firestore);
+      initialProperties.forEach((property) => {
+        const propWithTimestamp = { ...property, createdAt: new Date() };
+        const docRef = doc(firestore, 'properties', property.id);
+        batch.set(docRef, propWithTimestamp);
+      });
+      batch.commit().catch(console.error);
+    }
+  }, [properties, isLoadingProperties, firestore]);
   
-  // Persist data to localStorage whenever it changes
-  useEffect(() => {
-    if(!isLoading) {
-      localStorage.setItem('properties', JSON.stringify(properties));
-    }
-  }, [properties, isLoading]);
 
-  useEffect(() => {
-    if(!isLoading) {
-      localStorage.setItem('siteName', siteName);
-      document.title = siteName;
-    }
-  }, [siteName, isLoading]);
-
-  useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem('logoUrl', logoUrl);
-    }
-  }, [logoUrl, isLoading]);
-
-  useEffect(() => {
-    if(!isLoading) {
-      localStorage.setItem('contactSubmissions', JSON.stringify(contactSubmissions));
-    }
-  }, [contactSubmissions, isLoading]);
-
-  const handleLogin = (success: boolean) => {
-    if (success) {
-      setIsAdminMode(true);
-    }
-  };
-
-  const handleLogout = () => {
-    setIsAdminMode(false);
+  const handleLogout = async () => {
+    await auth.signOut();
     setIsDraggingMode(false);
     setSelectedElement(null);
   };
@@ -118,47 +78,48 @@ export default function Home() {
   };
   
   const handleUpdateProperty = (updatedProperty: Property) => {
-    setProperties(prevProperties => prevProperties.map(p => p.id === updatedProperty.id ? updatedProperty : p));
+    const propertyRef = doc(firestore, 'properties', updatedProperty.id);
+    // Destructure to avoid sending 'id' field which is not in the type def
+    const { id, ...propertyData } = updatedProperty;
+    setDocumentNonBlocking(propertyRef, propertyData, { merge: true });
   };
 
   const handleAddNewProperty = () => {
-    try {
-      const newProperty: Property = {
-        id: uuidv4(),
-        name: "Nueva Propiedad",
-        address: "Dirección de la nueva propiedad",
-        price: 0,
-        mainImageUrl: 'https://picsum.photos/seed/newprop/800/600',
-        coordinates: { lat: 0, lng: 0 },
-        sections: [
-          {
-            id: uuidv4(),
-            type: 'HERO',
-            style: { backgroundColor: '#e0f2fe' },
-            imageUrl: 'https://picsum.photos/seed/newhero/1920/1080',
-            buttonText: 'Contáctanos',
-            parallaxEnabled: true,
-            height: '75vh',
-            borderRadius: '3rem',
-            draggableTexts: [
-              {
-                id: uuidv4(),
-                text: 'Elegancia y confort: Una casa diseñada para quienes buscan lo mejor.',
-                fontSize: 4,
-                color: '#ffffff',
-                fontFamily: 'Playfair Display',
-                position: { x: 50, y: 40 }
-              }
-            ]
-          }
-        ]
-      };
-      
-      setProperties(prevProperties => [...prevProperties, newProperty]);
-      setSelectedPropertyId(newProperty.id);
-    } catch (error) {
-      console.error(error);
-    }
+    const newPropertyId = uuidv4();
+    const newProperty: Omit<Property, 'id'> = {
+      name: "Nueva Propiedad",
+      address: "Dirección de la nueva propiedad",
+      price: 0,
+      mainImageUrl: 'https://picsum.photos/seed/newprop/800/600',
+      coordinates: { lat: 0, lng: 0 },
+      sections: [
+        {
+          id: uuidv4(),
+          type: 'HERO',
+          style: { backgroundColor: '#e0f2fe' },
+          imageUrl: 'https://picsum.photos/seed/newhero/1920/1080',
+          buttonText: 'Contáctanos',
+          parallaxEnabled: true,
+          height: '75vh',
+          borderRadius: '3rem',
+          draggableTexts: [
+            {
+              id: uuidv4(),
+              text: 'Elegancia y confort: Una casa diseñada para quienes buscan lo mejor.',
+              fontSize: 4,
+              color: '#ffffff',
+              fontFamily: 'Playfair Display',
+              position: { x: 50, y: 40 }
+            }
+          ]
+        }
+      ],
+      createdAt: new Date(),
+    };
+    
+    const propertyRef = doc(firestore, 'properties', newPropertyId);
+    setDocumentNonBlocking(propertyRef, newProperty, {});
+    setSelectedPropertyId(newPropertyId);
   };
 
   const handleDeleteProperty = (id: string) => {
@@ -168,7 +129,8 @@ export default function Home() {
 
   const confirmDeleteProperty = () => {
     if (!propertyToDelete) return;
-    setProperties(prevProperties => prevProperties.filter(p => p.id !== propertyToDelete));
+    const propertyRef = doc(firestore, 'properties', propertyToDelete);
+    deleteDocumentNonBlocking(propertyRef);
     if (selectedPropertyId === propertyToDelete) {
       setSelectedPropertyId(null);
     }
@@ -177,6 +139,7 @@ export default function Home() {
   };
 
   const handleAddSection = (sectionType: AnySectionData['type']) => {
+    if (!properties) return;
     const property = properties.find(p => p.id === selectedPropertyId);
     if (!property) return;
 
@@ -223,24 +186,29 @@ export default function Home() {
     handleUpdateProperty(updatedProperty);
   };
   
-  const handleUpdateLogo = (newLogoUrl: string) => {
-    setLogoUrl(newLogoUrl);
+  const handleUpdateLogo = async (file: File) => {
+    const path = `config/logo/${file.name}`;
+    const url = await uploadFile(storage, file, path);
+    updateDocumentNonBlocking(siteConfigRef, { logoUrl: url });
   };
   
+  const handleUpdateSiteName = (newName: string) => {
+    updateDocumentNonBlocking(siteConfigRef, { siteName: newName });
+  }
+
   const handleContactSubmit = (submission: Omit<ContactSubmission, 'id' | 'submittedAt'>) => {
-    const newSubmission: ContactSubmission = {
+    const newSubmission: Omit<ContactSubmission, 'id'> = {
       ...submission,
-      id: uuidv4(),
       submittedAt: new Date().toISOString(),
     };
-    setContactSubmissions(prevSubmissions => [...prevSubmissions, newSubmission]);
+    const submissionsCollection = collection(firestore, `properties/${submission.propertyId}/contactSubmissions`);
+    addDocumentNonBlocking(submissionsCollection, newSubmission);
     alert('¡Gracias por tu interés! Nos pondremos en contacto contigo pronto.');
   };
   
   const handleDragEnd = (event: DragEndEvent) => {
     const {active, over} = event;
-    
-    if (!over) return;
+    if (!over || !properties) return;
     
     const property = properties.find(p => p.id === selectedPropertyId);
     if (!property) return;
@@ -285,7 +253,7 @@ export default function Home() {
   }
 
 
-  if (isLoading) {
+  if (isUserLoading || isLoadingProperties || isLoadingSiteConfig) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Spinner size="lg" />
@@ -293,8 +261,10 @@ export default function Home() {
     );
   }
 
-  const selectedProperty = properties.find(p => p.id === selectedPropertyId);
-
+  const selectedProperty = properties?.find(p => p.id === selectedPropertyId);
+  const siteName = siteConfig?.siteName || "Vía Hogar";
+  const logoUrl = siteConfig?.logoUrl || '/logo.svg';
+  
   return (
     <DndContext
       sensors={sensors}
@@ -304,7 +274,7 @@ export default function Home() {
       <div className={`min-h-screen bg-background font-body text-slate-800 flex flex-col ${isAdminMode ? 'admin-mode' : ''}`}>
         <Header 
             siteName={siteName}
-            setSiteName={setSiteName}
+            setSiteName={handleUpdateSiteName}
             logoUrl={logoUrl}
             setLogoUrl={handleUpdateLogo}
             isAdminMode={isAdminMode}
@@ -333,7 +303,7 @@ export default function Home() {
           ) : (
             <div className="container mx-auto px-4 py-8">
               <PropertyList
-                properties={properties}
+                properties={properties || []}
                 onSelectProperty={handleSelectProperty}
                 onDeleteProperty={handleDeleteProperty}
                 onUpdateProperty={handleUpdateProperty}
@@ -344,7 +314,7 @@ export default function Home() {
           )}
         </main>
         
-        {isAdminMode && selectedElement && (
+        {isAdminMode && selectedElement && properties && (
           <EditingToolbar 
             selectedElement={selectedElement}
             setSelectedElement={setSelectedElement}
@@ -354,7 +324,7 @@ export default function Home() {
           />
         )}
         
-        <Footer onLogin={handleLogin} isAdminMode={isAdminMode} />
+        <Footer isAdminMode={isAdminMode} />
 
         {isAdminMode && selectedProperty && (
           <AdminToolbar 
