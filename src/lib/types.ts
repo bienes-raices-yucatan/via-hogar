@@ -44,6 +44,8 @@ export interface HeroSectionData extends PageSection<'HERO'> {
   buttonText?: string;
   parallaxEnabled?: boolean;
   draggableTexts: DraggableTextData[];
+  height?: string; // e.g., '75vh', '500px'
+  borderRadius?: string; // e.g., '3rem', '0px'
 }
 
 export interface BannerSectionData extends PageSection<'BANNER'> {
@@ -51,8 +53,9 @@ export interface BannerSectionData extends PageSection<'BANNER'> {
   imageKey?: string;
   buttonText?: string;
   parallaxEnabled?: boolean;
-  roundedCorners?: boolean;
   draggableTexts: DraggableTextData[];
+  height?: string;
+  borderRadius?: string;
 }
 
 export interface ImageWithFeaturesSectionData extends PageSection<'IMAGE_WITH_FEATURES'> {

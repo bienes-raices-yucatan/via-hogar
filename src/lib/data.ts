@@ -19,6 +19,8 @@ export const initialProperties: Property[] = [
         style: { backgroundColor: '#e0f2fe' },
         imageUrl: 'https://picsum.photos/seed/hero1/1920/1080',
         buttonText: 'Contáctanos',
+        height: '75vh',
+        borderRadius: '3rem',
         draggableTexts: [
           {
             id: uuidv4(),

@@ -136,6 +136,8 @@ export default function Home() {
             imageUrl: 'https://picsum.photos/seed/newhero/1920/1080',
             buttonText: 'Contáctanos',
             parallaxEnabled: true,
+            height: '75vh',
+            borderRadius: '3rem',
             draggableTexts: [
               {
                 id: uuidv4(),
@@ -206,7 +208,8 @@ export default function Home() {
               imageUrl: 'https://picsum.photos/seed/newbanner/1920/600',
               buttonText: 'Llamada a la acción',
               parallaxEnabled: true,
-              roundedCorners: true,
+              height: '50vh',
+              borderRadius: '3rem',
               draggableTexts: [
                  {
                     id: uuidv4(),

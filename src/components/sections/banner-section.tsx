@@ -10,6 +10,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { saveImage, getImage } from '@/lib/db';
 import { cn } from '@/lib/utils';
 import { useDraggable } from '@dnd-kit/core';
+import { Slider } from '../ui/slider';
+
 
 interface DraggableTextProps {
     data: DraggableTextData;
@@ -186,37 +188,31 @@ const BannerSection: React.FC<BannerSectionProps> = ({
     document.getElementById('section-contact')?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  const containerClasses = cn(
-    "relative w-full h-[50vh] bg-cover bg-center",
-    "group/section",
-    {
-      "mt-[-5rem] rounded-b-[3rem]": isFirstSection,
-      "my-8 rounded-[3rem]": !isFirstSection && data.roundedCorners,
-      "my-8": !isFirstSection && !data.roundedCorners
-    }
-  );
-
-  const overlayClasses = cn(
-    "absolute inset-0 bg-black/30",
-    {
-      "rounded-b-[3rem]": isFirstSection,
-      "rounded-[3rem]": !isFirstSection && data.roundedCorners,
-    }
-  );
+  const containerHeight = data.height || '50vh';
+  const containerBorderRadius = isFirstSection ? `0 0 ${data.borderRadius || '3rem'} ${data.borderRadius || '3rem'}` : (data.borderRadius || '3rem');
 
 
   return (
     <div 
       ref={sectionRef}
-      className={cn(containerClasses, 'draggable-text-container')}
+      className={cn(
+        'relative group/section w-full bg-cover bg-center my-8 draggable-text-container',
+        { 'mt-[-5rem]': isFirstSection }
+      )}
       style={{ 
+        height: containerHeight,
+        borderRadius: containerBorderRadius,
         backgroundImage: `url(${imageUrl})`,
         backgroundPosition: backgroundPosition,
         backgroundAttachment: data.parallaxEnabled && !isAdminMode ? 'fixed' : 'scroll',
         transition: 'background-position 0.1s ease-out',
+        overflow: 'hidden'
       }}
     >
-      <div className={overlayClasses}></div>
+      <div 
+        className="absolute inset-0 bg-black/30"
+        style={{ borderRadius: containerBorderRadius }}
+      ></div>
       
       {data.draggableTexts.map(text => (
         <DraggableText 
@@ -246,8 +242,51 @@ const BannerSection: React.FC<BannerSectionProps> = ({
       </div>
       
       {isAdminMode && (
-        <div className="absolute top-4 right-4 opacity-100 sm:opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg z-30">
-          <input
+         <div className="absolute top-4 right-4 opacity-100 sm:opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col gap-2 items-start bg-black/30 backdrop-blur-sm p-3 rounded-lg z-30 w-52">
+          <div className="w-full space-y-2">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id={`parallax-banner-${data.id}`}
+                checked={!!data.parallaxEnabled}
+                onCheckedChange={(checked) => updateSection(data.id, { parallaxEnabled: checked })}
+              />
+              <Label htmlFor={`parallax-banner-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
+            </div>
+             <div className='space-y-1'>
+                <Label className="text-white text-xs font-semibold">Altura ({parseInt(data.height || '0')}vh)</Label>
+                <Slider
+                    min={20}
+                    max={100}
+                    step={1}
+                    value={[parseInt(data.height || '50')]}
+                    onValueChange={([value]) => updateSection(data.id, { height: `${value}vh` })}
+                />
+            </div>
+             <div className='space-y-1'>
+                <Label className="text-white text-xs font-semibold">Curvatura ({parseInt(data.borderRadius || '0')}rem)</Label>
+                <Slider
+                    min={0}
+                    max={10}
+                    step={0.5}
+                    value={[parseFloat(data.borderRadius || '3')]}
+                    onValueChange={([value]) => updateSection(data.id, { borderRadius: `${value}rem` })}
+                />
+            </div>
+          </div>
+          <div className="w-full flex justify-between items-center mt-2">
+            <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" onClick={handleAddDraggableText} title="Añadir Texto">
+                <PlusCircle />
+            </Button>
+            <Label htmlFor={uploadId} className="cursor-pointer">
+              <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" as="span" title="Cambiar imagen de fondo">
+                <ImageIcon />
+              </Button>
+            </Label>
+            <Button size="icon" variant="destructive" onClick={() => deleteSection(data.id)}>
+              <Trash2 />
+            </Button>
+          </div>
+           <input
               type="file"
               id={uploadId}
               ref={fileInputRef}
@@ -255,33 +294,6 @@ const BannerSection: React.FC<BannerSectionProps> = ({
               className="hidden"
               accept="image/*"
           />
-          <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" onClick={handleAddDraggableText} title="Añadir Texto">
-            <PlusCircle />
-          </Button>
-           <div className="flex items-center space-x-2">
-            <Switch
-              id={`corners-${data.id}`}
-              checked={!!data.roundedCorners}
-              onCheckedChange={(checked) => updateSection(data.id, { roundedCorners: checked })}
-            />
-            <Label htmlFor={`corners-${data.id}`} className="text-white text-xs font-semibold">Curvo</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id={`parallax-banner-${data.id}`}
-              checked={!!data.parallaxEnabled}
-              onCheckedChange={(checked) => updateSection(data.id, { parallaxEnabled: checked })}
-            />
-            <Label htmlFor={`parallax-banner-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
-          </div>
-          <Label htmlFor={uploadId} className="cursor-pointer">
-            <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" as="span" title="Cambiar imagen de fondo">
-              <ImageIcon />
-            </Button>
-          </Label>
-          <Button size="icon" variant="destructive" onClick={() => deleteSection(data.id)}>
-            <Trash2 />
-          </Button>
         </div>
       )}
     </div>

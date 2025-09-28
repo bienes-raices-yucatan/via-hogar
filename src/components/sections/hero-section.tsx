@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { saveImage, getImage } from '@/lib/db';
 import { cn } from '@/lib/utils';
 import { useDraggable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
+import { Slider } from '../ui/slider';
 
 interface DraggableTextProps {
     data: DraggableTextData;
@@ -187,33 +187,31 @@ const HeroSection: React.FC<HeroSectionProps> = ({
     document.getElementById('section-contact')?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  const containerClasses = cn(
-    "relative group/section w-full h-[75vh] md:h-[85vh] bg-cover bg-center",
-    {
-      "mt-[-5rem] rounded-b-[3rem]": isFirstSection,
-    }
-  );
-
-  const overlayClasses = cn(
-    "absolute inset-0 bg-black/30",
-    {
-      "rounded-b-[3rem]": isFirstSection,
-    }
-  );
+  const containerHeight = data.height || '75vh';
+  const containerBorderRadius = isFirstSection ? `0 0 ${data.borderRadius || '3rem'} ${data.borderRadius || '3rem'}` : (data.borderRadius || '3rem');
 
 
   return (
     <div 
       ref={sectionRef}
-      className={cn(containerClasses, 'draggable-text-container')}
+      className={cn(
+        'relative group/section w-full bg-cover bg-center draggable-text-container',
+        { 'mt-[-5rem]': isFirstSection }
+      )}
       style={{ 
+        height: containerHeight,
+        borderRadius: containerBorderRadius,
         backgroundImage: `url(${imageUrl})`,
         backgroundPosition: backgroundPosition,
         backgroundAttachment: data.parallaxEnabled && !isAdminMode ? 'fixed' : 'scroll',
         transition: 'background-position 0.1s ease-out',
+        overflow: 'hidden'
       }}
     >
-      <div className={overlayClasses}></div>
+      <div 
+        className="absolute inset-0 bg-black/30"
+        style={{ borderRadius: containerBorderRadius }}
+      ></div>
       
       {data.draggableTexts.map(text => (
         <DraggableText 
@@ -243,7 +241,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       </div>
       
       {isAdminMode && (
-        <div className="absolute top-20 right-4 opacity-100 sm:opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg z-30">
+        <div className="absolute top-20 right-4 opacity-100 sm:opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col gap-2 items-start bg-black/30 backdrop-blur-sm p-3 rounded-lg z-30 w-52">
           <input
               type="file"
               id={uploadId}
@@ -252,25 +250,49 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               className="hidden"
               accept="image/*"
           />
-           <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" onClick={handleAddDraggableText} title="Añadir Texto">
-              <PlusCircle />
-            </Button>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id={`parallax-${data.id}`}
-              checked={!!data.parallaxEnabled}
-              onCheckedChange={(checked) => updateSection(data.id, { parallaxEnabled: checked })}
-            />
-            <Label htmlFor={`parallax-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
+          <div className="w-full space-y-2">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id={`parallax-${data.id}`}
+                checked={!!data.parallaxEnabled}
+                onCheckedChange={(checked) => updateSection(data.id, { parallaxEnabled: checked })}
+              />
+              <Label htmlFor={`parallax-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
+            </div>
+            <div className='space-y-1'>
+                <Label className="text-white text-xs font-semibold">Altura ({parseInt(data.height || '0')}vh)</Label>
+                <Slider
+                    min={20}
+                    max={100}
+                    step={1}
+                    value={[parseInt(data.height || '75')]}
+                    onValueChange={([value]) => updateSection(data.id, { height: `${value}vh` })}
+                />
+            </div>
+             <div className='space-y-1'>
+                <Label className="text-white text-xs font-semibold">Curvatura ({parseInt(data.borderRadius || '0')}rem)</Label>
+                <Slider
+                    min={0}
+                    max={10}
+                    step={0.5}
+                    value={[parseFloat(data.borderRadius || '3')]}
+                    onValueChange={([value]) => updateSection(data.id, { borderRadius: `${value}rem` })}
+                />
+            </div>
           </div>
-          <Label htmlFor={uploadId} className="cursor-pointer">
-            <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" as="span" title="Cambiar imagen de fondo">
-              <ImageIcon />
+          <div className="w-full flex justify-between items-center mt-2">
+            <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" onClick={handleAddDraggableText} title="Añadir Texto">
+                <PlusCircle />
             </Button>
-          </Label>
-          <Button size="icon" variant="destructive" onClick={() => deleteSection(data.id)}>
-            <Trash2 />
-          </Button>
+            <Label htmlFor={uploadId} className="cursor-pointer">
+              <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" as="span" title="Cambiar imagen de fondo">
+                <ImageIcon />
+              </Button>
+            </Label>
+            <Button size="icon" variant="destructive" onClick={() => deleteSection(data.id)}>
+              <Trash2 />
+            </Button>
+          </div>
         </div>
       )}
     </div>
