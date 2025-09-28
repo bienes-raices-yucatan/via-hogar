@@ -41,20 +41,18 @@ export interface DraggableTextData extends StyledText {
 export interface HeroSectionData extends PageSection<'HERO'> {
   imageUrl?: string;
   imageKey?: string;
-  title?: StyledText;
-  subtitle?: StyledText;
   buttonText?: string;
   parallaxEnabled?: boolean;
+  draggableTexts: DraggableTextData[];
 }
 
 export interface BannerSectionData extends PageSection<'BANNER'> {
   imageUrl?: string;
   imageKey?: string;
-  title?: StyledText;
-  subtitle?: StyledText;
   buttonText?: string;
   parallaxEnabled?: boolean;
   roundedCorners?: boolean;
+  draggableTexts: DraggableTextData[];
 }
 
 export interface ImageWithFeaturesSectionData extends PageSection<'IMAGE_WITH_FEATURES'> {

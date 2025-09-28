@@ -1,6 +1,6 @@
 'use client';
-import { HeroSectionData } from '@/lib/types';
-import { Trash2, Image as ImageIcon } from 'lucide-react';
+import { HeroSectionData, DraggableTextData } from '@/lib/types';
+import { Trash2, Image as ImageIcon, PlusCircle } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
 import EditableText from '../editable-text';
@@ -9,6 +9,64 @@ import { Label } from '../ui/label';
 import { v4 as uuidv4 } from 'uuid';
 import { saveImage, getImage } from '@/lib/db';
 import { cn } from '@/lib/utils';
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
+
+interface DraggableTextProps {
+    data: DraggableTextData;
+    sectionId: string;
+    containerRef: React.RefObject<HTMLDivElement>;
+    isAdminMode: boolean;
+    onSelect: () => void;
+    onUpdate: (updatedText: Partial<DraggableTextData>) => void;
+    onDelete: () => void;
+}
+
+const DraggableText: React.FC<DraggableTextProps> = ({ data, sectionId, isAdminMode, onSelect, onUpdate, onDelete }) => {
+    const { attributes, listeners, setNodeRef, transform } = useDraggable({
+        id: `text-${sectionId}-${data.id}`,
+        disabled: !isAdminMode,
+    });
+
+    const style = {
+        position: 'absolute' as const,
+        left: `${data.position.x}%`,
+        top: `${data.position.y}%`,
+        transform: `translate(-50%, -50%) ${transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : ''}`,
+        color: data.color,
+        fontSize: data.fontSize,
+        fontFamily: data.fontFamily,
+        zIndex: 20
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...(isAdminMode ? listeners : {})}
+            {...(isAdminMode ? attributes : {})}
+            className="group/text relative p-2"
+        >
+            <EditableText
+                value={data.text}
+                onChange={(val) => onUpdate({ text: val })}
+                isAdminMode={isAdminMode}
+                className="font-bold font-headline leading-tight"
+                as="div"
+                onSelect={onSelect}
+            />
+            {isAdminMode && (
+                <button 
+                    onClick={onDelete} 
+                    className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center opacity-0 group-hover/text:opacity-100"
+                >
+                    <Trash2 size={12}/>
+                </button>
+            )}
+        </div>
+    );
+};
+
 
 interface HeroSectionProps {
   data: HeroSectionData;
@@ -79,26 +137,39 @@ const HeroSection: React.FC<HeroSectionProps> = ({
     };
   }, [data.parallaxEnabled, isAdminMode]);
 
-  const handleTextUpdate = (field: 'title' | 'subtitle', value: string) => {
-    const currentData = data[field];
-    if (currentData) {
-      const updatedField = { ...currentData, text: value };
-      updateSection(data.id, { [field]: updatedField });
-    }
+  const handleDraggableTextUpdate = (textId: string, updates: Partial<DraggableTextData>) => {
+    const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
+    updateSection(data.id, { draggableTexts: updatedTexts });
+  };
+  
+  const handleAddDraggableText = () => {
+    const newText: DraggableTextData = {
+        id: uuidv4(),
+        text: 'Nuevo Texto',
+        fontSize: 'clamp(1rem, 2vw, 1.25rem)',
+        color: '#ffffff',
+        fontFamily: 'Roboto',
+        position: { x: 50, y: 50 }
+    };
+    const updatedTexts = [...data.draggableTexts, newText];
+    updateSection(data.id, { draggableTexts: updatedTexts });
+  };
+
+  const handleDeleteDraggableText = (textId: string) => {
+    const updatedTexts = data.draggableTexts.filter(t => t.id !== textId);
+    updateSection(data.id, { draggableTexts: updatedTexts });
   };
   
   const handleButtonTextUpdate = (value: string) => {
     updateSection(data.id, { buttonText: value });
   };
   
-  const createSelectHandler = (field: 'title' | 'subtitle') => () => {
-    if (data[field]) {
-        setSelectedElement({
-            type: 'STYLED_TEXT',
-            sectionId: data.id,
-            field: field
-        });
-    }
+  const createSelectHandler = (textId: string) => () => {
+      setSelectedElement({
+          type: 'DRAGGABLE_TEXT',
+          sectionId: data.id,
+          textId: textId
+      });
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,7 +205,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   return (
     <div 
       ref={sectionRef}
-      className={containerClasses} 
+      className={cn(containerClasses, 'draggable-text-container')}
       style={{ 
         backgroundImage: `url(${imageUrl})`,
         backgroundPosition: backgroundPosition,
@@ -144,34 +215,22 @@ const HeroSection: React.FC<HeroSectionProps> = ({
     >
       <div className={overlayClasses}></div>
       
+      {data.draggableTexts.map(text => (
+        <DraggableText 
+            key={text.id}
+            data={text}
+            sectionId={data.id}
+            containerRef={sectionRef}
+            isAdminMode={isAdminMode}
+            onSelect={createSelectHandler(text.id)}
+            onUpdate={(updates) => handleDraggableTextUpdate(text.id, updates)}
+            onDelete={() => handleDeleteDraggableText(text.id)}
+        />
+      ))}
+
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
-        <div className="max-w-3xl">
-          {data.title && (
-            <div style={{color: data.title.color, fontSize: data.title.fontSize, fontFamily: data.title.fontFamily}}>
-                <EditableText 
-                    value={data.title.text} 
-                    onChange={(val) => handleTextUpdate('title', val)} 
-                    isAdminMode={isAdminMode} 
-                    className="font-bold font-headline leading-tight"
-                    as="h1"
-                    onSelect={createSelectHandler('title')}
-                />
-            </div>
-          )}
-          {data.subtitle && (
-            <div style={{color: data.subtitle.color, fontSize: data.subtitle.fontSize, fontFamily: data.subtitle.fontFamily}} className="mt-4">
-                <EditableText
-                    value={data.subtitle.text}
-                    onChange={(val) => handleTextUpdate('subtitle', val)}
-                    isAdminMode={isAdminMode}
-                    className="font-body"
-                    as="p"
-                    onSelect={createSelectHandler('subtitle')}
-                />
-            </div>
-          )}
           {data.buttonText && (
-            <div className="mt-8">
+            <div className="absolute bottom-12">
               <Button size="lg" onClick={scrollToContact} className="bg-primary hover:bg-amber-600 text-slate-900 text-lg px-8 py-6 rounded-full font-bold">
                   <EditableText
                       value={data.buttonText}
@@ -181,11 +240,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               </Button>
             </div>
           )}
-        </div>
       </div>
       
       {isAdminMode && (
-        <div className="absolute top-20 right-4 opacity-100 sm:opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg z-20">
+        <div className="absolute top-20 right-4 opacity-100 sm:opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg z-30">
           <input
               type="file"
               id={uploadId}
@@ -194,6 +252,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               className="hidden"
               accept="image/*"
           />
+           <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" onClick={handleAddDraggableText} title="Añadir Texto">
+              <PlusCircle />
+            </Button>
           <div className="flex items-center space-x-2">
             <Switch
               id={`parallax-${data.id}`}

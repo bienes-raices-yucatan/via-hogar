@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
-
 import Footer from '@/components/layout/footer';
 import PropertyList from '@/components/property-list';
 import { Button } from '@/components/ui/button';
@@ -109,6 +108,7 @@ export default function Home() {
   const handleLogout = () => {
     setIsAdminMode(false);
     setIsDraggingMode(false);
+    setSelectedElement(null);
   };
   
   const handleSelectProperty = (id: string) => {
@@ -134,10 +134,18 @@ export default function Home() {
             type: 'HERO',
             style: { backgroundColor: '#e0f2fe' },
             imageUrl: 'https://picsum.photos/seed/newhero/1920/1080',
-            title: { text: "Elegancia y confort: Una casa diseñada para quienes buscan lo mejor.", fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: '#ffffff', fontFamily: 'Playfair Display' },
-            subtitle: { text: '', fontSize: 'clamp(1rem, 2vw, 1.25rem)', color: '#e2e8f0', fontFamily: 'Roboto' },
             buttonText: 'Contáctanos',
             parallaxEnabled: true,
+            draggableTexts: [
+              {
+                id: uuidv4(),
+                text: 'Elegancia y confort: Una casa diseñada para quienes buscan lo mejor.',
+                fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+                color: '#ffffff',
+                fontFamily: 'Playfair Display',
+                position: { x: 50, y: 40 }
+              }
+            ]
           }
         ]
       };
@@ -196,11 +204,27 @@ export default function Home() {
               type: 'BANNER',
               style: { backgroundColor: '#000000' },
               imageUrl: 'https://picsum.photos/seed/newbanner/1920/600',
-              title: { text: "Nuevo Banner", fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: '#ffffff', fontFamily: 'Playfair Display' },
-              subtitle: { text: 'Un subtítulo atractivo', fontSize: 'clamp(1rem, 2vw, 1.25rem)', color: '#e2e8f0', fontFamily: 'Roboto' },
               buttonText: 'Llamada a la acción',
               parallaxEnabled: true,
               roundedCorners: true,
+              draggableTexts: [
+                 {
+                    id: uuidv4(),
+                    text: 'Nuevo Banner',
+                    fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+                    color: '#ffffff',
+                    fontFamily: 'Playfair Display',
+                    position: { x: 50, y: 40 }
+                  },
+                  {
+                    id: uuidv4(),
+                    text: 'Un subtítulo atractivo',
+                    fontSize: 'clamp(1rem, 2vw, 1.25rem)',
+                    color: '#e2e8f0',
+                    fontFamily: 'Roboto',
+                    position: { x: 50, y: 60 }
+                  }
+              ]
             };
             break;
         default:
@@ -233,14 +257,56 @@ export default function Home() {
   
   const handleDragEnd = (event: DragEndEvent) => {
     const {active, over} = event;
-    const property = properties.find(p => p.id === selectedPropertyId);
     
-    if (active.id !== over?.id && property) {
-      const oldIndex = property.sections.findIndex(s => s.id === active.id);
-      const newIndex = property.sections.findIndex(s => s.id === over!.id);
-      
-      const updatedSections = arrayMove(property.sections, oldIndex, newIndex);
-      handleUpdateProperty({ ...property, sections: updatedSections });
+    if (!over) return;
+    
+    const property = properties.find(p => p.id === selectedPropertyId);
+    if (!property) return;
+    
+    // Handle Section reordering
+    if (active.id.toString().startsWith('section-') && over.id.toString().startsWith('section-')) {
+        if (active.id !== over.id) {
+          const oldIndex = property.sections.findIndex(s => `section-${s.id}` === active.id);
+          const newIndex = property.sections.findIndex(s => `section-${s.id}` === over.id);
+          
+          const updatedSections = arrayMove(property.sections, oldIndex, newIndex);
+          handleUpdateProperty({ ...property, sections: updatedSections });
+        }
+    }
+    
+    // Handle Draggable Text reordering
+    if (active.id.toString().startsWith('text-')) {
+        const [_, sectionId, textId] = active.id.toString().split('-');
+
+        const { delta, activatorEvent } = event;
+        const target = activatorEvent.target as HTMLElement;
+        const container = target.closest('.draggable-text-container') as HTMLElement;
+        
+        if (!container) return;
+
+        const containerRect = container.getBoundingClientRect();
+
+        const updatedSections = property.sections.map(section => {
+            if (section.id === sectionId && ('draggableTexts' in section)) {
+                const text = section.draggableTexts.find(t => t.id === textId);
+                if (text) {
+                    const newX = text.position.x + (delta.x / containerRect.width) * 100;
+                    const newY = text.position.y + (delta.y / containerRect.height) * 100;
+
+                    return {
+                        ...section,
+                        draggableTexts: section.draggableTexts.map(t => 
+                            t.id === textId 
+                                ? { ...t, position: { x: newX, y: newY } }
+                                : t
+                        )
+                    };
+                }
+            }
+            return section;
+        });
+
+        handleUpdateProperty({ ...property, sections: updatedSections });
     }
   }
 
@@ -256,82 +322,82 @@ export default function Home() {
   const selectedProperty = properties.find(p => p.id === selectedPropertyId);
 
   return (
-    <div className={`min-h-screen bg-background font-body text-slate-800 flex flex-col ${isAdminMode ? 'admin-mode' : ''}`}>
-      <Header 
-          siteName={siteName}
-          setSiteName={setSiteName}
-          logoUrl={logoUrl}
-          setLogoUrl={handleUpdateLogo}
-          isAdminMode={isAdminMode}
-          onLogout={handleLogout}
-        />
-      <main className="flex-grow pt-20">
-        {selectedProperty ? (
-          <div>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={selectedProperty.sections.map(s => s.id)}
-                strategy={verticalListSortingStrategy}
-                disabled={!isDraggingMode}
-              >
-                 <SectionRenderer
-                    property={selectedProperty}
-                    updateProperty={handleUpdateProperty}
-                    isAdminMode={isAdminMode}
-                    isDraggingMode={isDraggingMode}
-                    selectedElement={selectedElement}
-                    setSelectedElement={setSelectedElement}
-                    onContactSubmit={handleContactSubmit}
-                    onNavigateHome={() => setSelectedPropertyId(null)}
-                  />
-              </SortableContext>
-            </DndContext>
-          </div>
-        ) : (
-          <div className="container mx-auto px-4 py-8">
-            <PropertyList
-              properties={properties}
-              onSelectProperty={handleSelectProperty}
-              onDeleteProperty={handleDeleteProperty}
-              onUpdateProperty={handleUpdateProperty}
-              isAdminMode={isAdminMode}
-              onAddNew={handleAddNewProperty}
-            />
-          </div>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <div className={`min-h-screen bg-background font-body text-slate-800 flex flex-col ${isAdminMode ? 'admin-mode' : ''}`}>
+        <Header 
+            siteName={siteName}
+            setSiteName={setSiteName}
+            logoUrl={logoUrl}
+            setLogoUrl={handleUpdateLogo}
+            isAdminMode={isAdminMode}
+            onLogout={handleLogout}
+          />
+        <main className="flex-grow pt-20">
+          {selectedProperty ? (
+            <div>
+                <SortableContext
+                  items={selectedProperty.sections.map(s => `section-${s.id}`)}
+                  strategy={verticalListSortingStrategy}
+                  disabled={!isDraggingMode}
+                >
+                   <SectionRenderer
+                      property={selectedProperty}
+                      updateProperty={handleUpdateProperty}
+                      isAdminMode={isAdminMode}
+                      isDraggingMode={isDraggingMode}
+                      selectedElement={selectedElement}
+                      setSelectedElement={setSelectedElement}
+                      onContactSubmit={handleContactSubmit}
+                      onNavigateHome={() => setSelectedPropertyId(null)}
+                    />
+                </SortableContext>
+            </div>
+          ) : (
+            <div className="container mx-auto px-4 py-8">
+              <PropertyList
+                properties={properties}
+                onSelectProperty={handleSelectProperty}
+                onDeleteProperty={handleDeleteProperty}
+                onUpdateProperty={handleUpdateProperty}
+                isAdminMode={isAdminMode}
+                onAddNew={handleAddNewProperty}
+              />
+            </div>
+          )}
+        </main>
+        
+        {isAdminMode && selectedElement && (
+          <EditingToolbar 
+            selectedElement={selectedElement}
+            setSelectedElement={setSelectedElement}
+            updateProperty={handleUpdateProperty}
+            properties={properties}
+            selectedPropertyId={selectedPropertyId}
+          />
         )}
-      </main>
-      
-      {isAdminMode && selectedElement && (
-        <EditingToolbar 
-          selectedElement={selectedElement}
-          setSelectedElement={setSelectedElement}
-          updateProperty={handleUpdateProperty}
-          properties={properties}
-          selectedPropertyId={selectedPropertyId}
-        />
-      )}
-      
-      <Footer onLogin={handleLogin} isAdminMode={isAdminMode} />
+        
+        <Footer onLogin={handleLogin} isAdminMode={isAdminMode} />
 
-      {isAdminMode && selectedProperty && (
-        <AdminToolbar 
-            onAddSection={handleAddSection} 
-            isDraggingMode={isDraggingMode}
-            onToggleDragMode={() => setIsDraggingMode(prev => !prev)}
-        />
-      )}
+        {isAdminMode && selectedProperty && (
+          <AdminToolbar 
+              onAddSection={handleAddSection} 
+              isDraggingMode={isDraggingMode}
+              onToggleDragMode={() => setIsDraggingMode(prev => !prev)}
+          />
+        )}
 
-      <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={confirmDeleteProperty}
-        title="¿Estás seguro?"
-        description="Esta acción no se puede deshacer. Esto eliminará permanentemente la propiedad."
-      />
-    </div>
+        <ConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={confirmDeleteProperty}
+          title="¿Estás seguro?"
+          description="Esta acción no se puede deshacer. Esto eliminará permanentemente la propiedad."
+        />
+      </div>
+    </DndContext>
   );
 }
