@@ -105,7 +105,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
   return (
     <div 
       ref={sectionRef}
-      className="relative group/section w-full h-[47vh] md:h-[58vh] bg-cover bg-center rounded-b-3xl overflow-hidden" 
+      className="relative group/section w-full h-[58vh] md:h-[68vh] bg-cover bg-center rounded-b-3xl overflow-hidden" 
       style={{ 
         backgroundImage: `url(${imageUrl})`,
         backgroundPosition: backgroundPosition,
@@ -156,7 +156,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
       </div>
       
       {isAdminMode && (
-        <div className="absolute top-4 right-4 opacity-100 sm:opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute top-4 right-4 opacity-100 sm:opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg">
           <input
               type="file"
               id={uploadId}
