@@ -1,0 +1,803 @@
+{
+  "entities": {
+    "Property": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Property",
+      "type": "object",
+      "description": "Represents a real estate property listed on the Vía Hogar portal.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Property entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name or title of the property."
+        },
+        "address": {
+          "type": "string",
+          "description": "Street address of the property."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "Latitude coordinate of the property."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Longitude coordinate of the property."
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the property."
+        },
+        "mainImageUrl": {
+          "type": "string",
+          "description": "URL or reference to the main image of the property."
+        },
+        "sectionIds": {
+          "type": "array",
+          "description": "References to PageSection. (Relationship: Property 1:N PageSection)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "address",
+        "price",
+        "mainImageUrl",
+        "latitude",
+        "longitude",
+        "sectionIds"
+      ]
+    },
+    "PageSection": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PageSection",
+      "type": "object",
+      "description": "Represents a modular section of a property detail page, dynamically assembled by the administrator.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the PageSection entity."
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of the section (e.g., HeroSection, GallerySection, LocationSection)."
+        },
+        "style": {
+          "type": "string",
+          "description": "Styling information for the section (e.g., background color)."
+        },
+        "propertyId": {
+          "type": "string",
+          "description": "Reference to Property. (Relationship: Property 1:N PageSection)"
+        },
+        "sectionData": {
+          "type": "string",
+          "description": "Holds the id to one of the specific Section Data entities (e.g. HeroSectionData, GallerySectionData) "
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "style",
+        "propertyId",
+        "sectionData"
+      ]
+    },
+    "ContactSubmission": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ContactSubmission",
+      "type": "object",
+      "description": "Represents a contact form submission from a user interested in a property.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ContactSubmission entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the person submitting the contact form."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the person submitting the contact form."
+        },
+        "interestedIn": {
+          "type": "string",
+          "description": "Whether the user is a buyer or broker."
+        },
+        "propertyId": {
+          "type": "string",
+          "description": "Reference to Property. (Relationship: Property 1:N ContactSubmission)"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "phone",
+        "interestedIn",
+        "propertyId"
+      ]
+    },
+    "HeroSectionData": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "HeroSectionData",
+      "type": "object",
+      "description": "Data specific to a Hero Section, including the background image and draggable text.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the HeroSectionData entity."
+        },
+        "backgroundImageUrl": {
+          "type": "string",
+          "description": "URL or reference to the background image."
+        },
+        "title": {
+          "type": "string",
+          "description": "Main title text for the hero section."
+        },
+        "floatingTextIds": {
+          "type": "array",
+          "description": "References to DraggableTextData. (Relationship: HeroSectionData 1:N DraggableTextData)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "backgroundImageUrl",
+        "title",
+        "floatingTextIds"
+      ]
+    },
+    "DraggableTextData": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "DraggableTextData",
+      "type": "object",
+      "description": "Data for a draggable text element, including its text content, style, and position.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the DraggableTextData entity."
+        },
+        "text": {
+          "type": "string",
+          "description": "Text content of the draggable element."
+        },
+        "fontSize": {
+          "type": "string",
+          "description": "Font size of the text."
+        },
+        "color": {
+          "type": "string",
+          "description": "Color of the text."
+        },
+        "fontFamily": {
+          "type": "string",
+          "description": "Font family of the text."
+        },
+        "positionX": {
+          "type": "number",
+          "description": "X coordinate of the text's position."
+        },
+        "positionY": {
+          "type": "number",
+          "description": "Y coordinate of the text's position."
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "fontSize",
+        "color",
+        "fontFamily",
+        "positionX",
+        "positionY"
+      ]
+    },
+    "ImageWithFeaturesSectionData": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ImageWithFeaturesSectionData",
+      "type": "object",
+      "description": "Data for the Image with Features section, including a media object and a list of features.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ImageWithFeaturesSectionData entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "Optional title for the section."
+        },
+        "mediaType": {
+          "type": "string",
+          "description": "Type of media: 'image' or 'video'."
+        },
+        "mediaUrl": {
+          "type": "string",
+          "description": "URL or reference to the image or video."
+        },
+        "featureIds": {
+          "type": "array",
+          "description": "References to Feature. (Relationship: ImageWithFeaturesSectionData 1:N Feature)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "mediaType",
+        "mediaUrl",
+        "featureIds"
+      ]
+    },
+    "Feature": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Feature",
+      "type": "object",
+      "description": "Represents a single feature within the Image with Features section.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Feature entity."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL or reference to the image for the feature."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the feature."
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Subtitle or description of the feature."
+        }
+      },
+      "required": [
+        "id",
+        "imageUrl",
+        "title",
+        "subtitle"
+      ]
+    },
+    "GallerySectionData": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "GallerySectionData",
+      "type": "object",
+      "description": "Data for the Gallery Section, containing a list of image URLs.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the GallerySectionData entity."
+        },
+        "imageUrls": {
+          "type": "array",
+          "description": "URLs or references to the images in the gallery.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "imageUrls"
+      ]
+    },
+    "LocationSectionData": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "LocationSectionData",
+      "type": "object",
+      "description": "Data for the Location Section, including coordinates and nearby places.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the LocationSectionData entity."
+        },
+        "nearbyPlaceIds": {
+          "type": "array",
+          "description": "References to NearbyPlace. (Relationship: LocationSectionData 1:N NearbyPlace)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "nearbyPlaceIds"
+      ]
+    },
+    "NearbyPlace": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "NearbyPlace",
+      "type": "object",
+      "description": "Represents a nearby place of interest for the Location Section.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the NearbyPlace entity."
+        },
+        "text": {
+          "type": "string",
+          "description": "Description of the nearby place."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon associated with the nearby place."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Optional image for the nearby place."
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "icon"
+      ]
+    },
+    "AmenitiesSectionData": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AmenitiesSectionData",
+      "type": "object",
+      "description": "Data for the Amenities Section, containing a list of amenities.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AmenitiesSectionData entity."
+        },
+        "amenityIds": {
+          "type": "array",
+          "description": "References to Amenity. (Relationship: AmenitiesSectionData 1:N Amenity)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "amenityIds"
+      ]
+    },
+    "Amenity": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Amenity",
+      "type": "object",
+      "description": "Represents a single amenity for the Amenities Section.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Amenity entity."
+        },
+        "text": {
+          "type": "string",
+          "description": "Description of the amenity."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon associated with the amenity."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Optional image for the amenity."
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "icon"
+      ]
+    },
+    "PricingSectionData": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PricingSectionData",
+      "type": "object",
+      "description": "Data for the Pricing Section, containing a list of tiers.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the PricingSectionData entity."
+        },
+        "tierIds": {
+          "type": "array",
+          "description": "References to Tier. (Relationship: PricingSectionData 1:N Tier)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "tierIds"
+      ]
+    },
+    "Tier": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Tier",
+      "type": "object",
+      "description": "Represents a single pricing tier for the Pricing Section.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Tier entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the tier (e.g., Basic, Premium)."
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the tier."
+        },
+        "frequency": {
+          "type": "string",
+          "description": "Billing frequency (e.g., monthly, yearly)."
+        },
+        "featureIds": {
+          "type": "array",
+          "description": "References to FeatureTier. (Relationship: Tier 1:N FeatureTier)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "buttonText": {
+          "type": "string",
+          "description": "Text for the call-to-action button."
+        },
+        "isFeatured": {
+          "type": "boolean",
+          "description": "Indicates whether the tier is featured."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "price",
+        "frequency",
+        "featureIds",
+        "buttonText",
+        "isFeatured"
+      ]
+    },
+    "FeatureTier": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FeatureTier",
+      "type": "object",
+      "description": "Represents a single feature within a pricing tier.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the FeatureTier entity."
+        },
+        "text": {
+          "type": "string",
+          "description": "Description of the feature."
+        }
+      },
+      "required": [
+        "id",
+        "text"
+      ]
+    },
+    "ContactSectionData": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ContactSectionData",
+      "type": "object",
+      "description": "Data for the Contact Section, similar to HeroSectionData.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ContactSectionData entity."
+        },
+        "backgroundImageUrl": {
+          "type": "string",
+          "description": "URL or reference to the background image."
+        },
+        "title": {
+          "type": "string",
+          "description": "Main title text for the contact section."
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Subtitle text for the contact section."
+        },
+        "floatingTextIds": {
+          "type": "array",
+          "description": "References to DraggableTextData. (Relationship: ContactSectionData 1:N DraggableTextData)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "backgroundImageUrl",
+        "title",
+        "subtitle",
+        "floatingTextIds"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/properties/{propertyId}",
+        "definition": {
+          "entityName": "Property",
+          "schema": {
+            "$ref": "#/backend/entities/Property"
+          },
+          "description": "Stores property details. Each property document contains all information for a property listing, including an array of `sectionIds`.",
+          "params": [
+            {
+              "name": "propertyId",
+              "description": "Unique identifier for the property."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/properties/{propertyId}/pageSections/{pageSectionId}",
+        "definition": {
+          "entityName": "PageSection",
+          "schema": {
+            "$ref": "#/backend/entities/PageSection"
+          },
+          "description": "Stores modular sections of property detail pages. Each document includes `propertyId` for reverse lookup and the `sectionData` field which links to the specific section data.",
+          "params": [
+            {
+              "name": "propertyId",
+              "description": "Unique identifier for the property that owns the page section."
+            },
+            {
+              "name": "pageSectionId",
+              "description": "Unique identifier for the page section."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/properties/{propertyId}/contactSubmissions/{contactSubmissionId}",
+        "definition": {
+          "entityName": "ContactSubmission",
+          "schema": {
+            "$ref": "#/backend/entities/ContactSubmission"
+          },
+          "description": "Stores contact form submissions for each property, nested under the property document. This ensures that submissions are directly associated with their respective property.",
+          "params": [
+            {
+              "name": "propertyId",
+              "description": "Unique identifier for the property the contact submission is related to."
+            },
+            {
+              "name": "contactSubmissionId",
+              "description": "Unique identifier for the contact submission."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/heroSectionData/{heroSectionDataId}",
+        "definition": {
+          "entityName": "HeroSectionData",
+          "schema": {
+            "$ref": "#/backend/entities/HeroSectionData"
+          },
+          "description": "Stores data for Hero Sections, including image URLs, titles, and floating text IDs.",
+          "params": [
+            {
+              "name": "heroSectionDataId",
+              "description": "Unique identifier for the HeroSectionData entity."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/draggableTextData/{draggableTextDataId}",
+        "definition": {
+          "entityName": "DraggableTextData",
+          "schema": {
+            "$ref": "#/backend/entities/DraggableTextData"
+          },
+          "description": "Stores data for draggable text elements within Hero and Contact Sections, including text content, style, and position.",
+          "params": [
+            {
+              "name": "draggableTextDataId",
+              "description": "Unique identifier for the DraggableTextData entity."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/imageWithFeaturesSectionData/{imageWithFeaturesSectionDataId}",
+        "definition": {
+          "entityName": "ImageWithFeaturesSectionData",
+          "schema": {
+            "$ref": "#/backend/entities/ImageWithFeaturesSectionData"
+          },
+          "description": "Stores data for Image with Features Sections, including media URLs and feature IDs.",
+          "params": [
+            {
+              "name": "imageWithFeaturesSectionDataId",
+              "description": "Unique identifier for the ImageWithFeaturesSectionData entity."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/features/{featureId}",
+        "definition": {
+          "entityName": "Feature",
+          "schema": {
+            "$ref": "#/backend/entities/Feature"
+          },
+          "description": "Stores individual features for Image with Features Sections, including image URLs, titles, and subtitles.",
+          "params": [
+            {
+              "name": "featureId",
+              "description": "Unique identifier for the Feature entity."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/gallerySectionData/{gallerySectionDataId}",
+        "definition": {
+          "entityName": "GallerySectionData",
+          "schema": {
+            "$ref": "#/backend/entities/GallerySectionData"
+          },
+          "description": "Stores data for Gallery Sections, including image URLs.",
+          "params": [
+            {
+              "name": "gallerySectionDataId",
+              "description": "Unique identifier for the GallerySectionData entity."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/locationSectionData/{locationSectionDataId}",
+        "definition": {
+          "entityName": "LocationSectionData",
+          "schema": {
+            "$ref": "#/backend/entities/LocationSectionData"
+          },
+          "description": "Stores data for Location Sections, including nearby place IDs.",
+          "params": [
+            {
+              "name": "locationSectionDataId",
+              "description": "Unique identifier for the LocationSectionData entity."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/nearbyPlaces/{nearbyPlaceId}",
+        "definition": {
+          "entityName": "NearbyPlace",
+          "schema": {
+            "$ref": "#/backend/entities/NearbyPlace"
+          },
+          "description": "Stores individual nearby places for Location Sections, including descriptions and icons.",
+          "params": [
+            {
+              "name": "nearbyPlaceId",
+              "description": "Unique identifier for the NearbyPlace entity."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/amenitiesSectionData/{amenitiesSectionDataId}",
+        "definition": {
+          "entityName": "AmenitiesSectionData",
+          "schema": {
+            "$ref": "#/backend/entities/AmenitiesSectionData"
+          },
+          "description": "Stores data for Amenities Sections, including amenity IDs.",
+          "params": [
+            {
+              "name": "amenitiesSectionDataId",
+              "description": "Unique identifier for the AmenitiesSectionData entity."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/amenities/{amenityId}",
+        "definition": {
+          "entityName": "Amenity",
+          "schema": {
+            "$ref": "#/backend/entities/Amenity"
+          },
+          "description": "Stores individual amenities for Amenities Sections, including descriptions and icons.",
+          "params": [
+            {
+              "name": "amenityId",
+              "description": "Unique identifier for the Amenity entity."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/pricingSectionData/{pricingSectionDataId}",
+        "definition": {
+          "entityName": "PricingSectionData",
+          "schema": {
+            "$ref": "#/backend/entities/PricingSectionData"
+          },
+          "description": "Stores data for Pricing Sections, including tier IDs.",
+          "params": [
+            {
+              "name": "pricingSectionDataId",
+              "description": "Unique identifier for the PricingSectionData entity."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tiers/{tierId}",
+        "definition": {
+          "entityName": "Tier",
+          "schema": {
+            "$ref": "#/backend/entities/Tier"
+          },
+          "description": "Stores individual pricing tiers for Pricing Sections, including names, prices, frequencies, and feature IDs.",
+          "params": [
+            {
+              "name": "tierId",
+              "description": "Unique identifier for the Tier entity."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/featureTiers/{featureTierId}",
+        "definition": {
+          "entityName": "FeatureTier",
+          "schema": {
+            "$ref": "#/backend/entities/FeatureTier"
+          },
+          "description": "Stores individual features within pricing tiers, including descriptions.",
+          "params": [
+            {
+              "name": "featureTierId",
+              "description": "Unique identifier for the FeatureTier entity."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/contactSectionData/{contactSectionDataId}",
+        "definition": {
+          "entityName": "ContactSectionData",
+          "schema": {
+            "$ref": "#/backend/entities/ContactSectionData"
+          },
+          "description": "Stores data for Contact Sections, including image URLs, titles, subtitles, and floating text IDs.",
+          "params": [
+            {
+              "name": "contactSectionDataId",
+              "description": "Unique identifier for the ContactSectionData entity."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to optimize for security, scalability, and ease of querying, particularly focusing on the dynamic and modular nature of the 'Vía Hogar' application's property details pages. The key strategy is to separate concerns into different collections, avoiding complex authorization rules and ensuring that list operations are always secure.\n\nAuthorization Independence is achieved through a path-based ownership model for properties and contact submissions, as well as separate data entities for sections and their data. There is no reliance on `get()` calls in security rules. The structure is tailored to the application's content management system (CMS) features, supporting dynamic page building and in-place editing. The use of localStorage is handled at the application level and does not affect the database structure.\n\nThe structure supports QAPs by avoiding the need for filtering in rules; list operations are secure by default because each collection contains only documents that should be accessible under specific conditions. For instance, contact submissions are nested under property documents, ensuring that only authorized users can access submissions related to a specific property.\n"
+  }
+}

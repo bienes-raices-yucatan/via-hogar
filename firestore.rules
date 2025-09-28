@@ -1,0 +1,314 @@
+/**
+ * @fileoverview Firestore Security Rules for Vía Hogar.
+ *
+ * Core Philosophy:
+ * This ruleset prioritizes secure data access by enforcing strict path-based authorization.
+ * All data is organized into top-level collections, with subcollections used to establish
+ * clear ownership and relational context (e.g., contact submissions under properties).
+ * This avoids complex queries and costly `get()` calls within the rules.
+ *
+ * Data Structure:
+ * - /properties/{propertyId}: Stores property details.
+ * - /properties/{propertyId}/pageSections/{pageSectionId}: Stores page sections for each property.
+ * - /properties/{propertyId}/contactSubmissions/{contactSubmissionId}: Stores contact submissions related to each property.
+ * - /{sectionData}/{sectionDataId} (e.g., /heroSectionData/{heroSectionDataId}): Stores data for the various section types.
+ *
+ * Key Security Decisions:
+ * - All write operations are explicitly protected with authorization checks.
+ * - `list` operations are granted for each collection.
+ * - There are no global admin roles.
+ * - Data types and full schema validation are skipped to accelerate prototyping.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Controls access to property documents.
+     * @path /properties/{propertyId}
+     * @allow get, list: Any user can view property details.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /properties/{propertyId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to page sections nested under a property.
+     * @path /properties/{propertyId}/pageSections/{pageSectionId}
+     * @allow get, list: Any user can view page sections for a property.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /properties/{propertyId}/pageSections/{pageSectionId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to contact submissions nested under a property.
+     * @path /properties/{propertyId}/contactSubmissions/{contactSubmissionId}
+     * @allow get, list: Any user can view contact submissions for a property.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /properties/{propertyId}/contactSubmissions/{contactSubmissionId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to hero section data.
+     * @path /heroSectionData/{heroSectionDataId}
+     * @allow get, list: Any user can view hero section data.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /heroSectionData/{heroSectionDataId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to draggable text data.
+     * @path /draggableTextData/{draggableTextDataId}
+     * @allow get, list: Any user can view draggable text data.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /draggableTextData/{draggableTextDataId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to image with features section data.
+     * @path /imageWithFeaturesSectionData/{imageWithFeaturesSectionDataId}
+     * @allow get, list: Any user can view image with features section data.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /imageWithFeaturesSectionData/{imageWithFeaturesSectionDataId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to feature data.
+     * @path /features/{featureId}
+     * @allow get, list: Any user can view feature data.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /features/{featureId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to gallery section data.
+     * @path /gallerySectionData/{gallerySectionDataId}
+     * @allow get, list: Any user can view gallery section data.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /gallerySectionData/{gallerySectionDataId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to location section data.
+     * @path /locationSectionData/{locationSectionDataId}
+     * @allow get, list: Any user can view location section data.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /locationSectionData/{locationSectionDataId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to nearby place data.
+     * @path /nearbyPlaces/{nearbyPlaceId}
+     * @allow get, list: Any user can view nearby place data.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /nearbyPlaces/{nearbyPlaceId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to amenities section data.
+     * @path /amenitiesSectionData/{amenitiesSectionDataId}
+     * @allow get, list: Any user can view amenities section data.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /amenitiesSectionData/{amenitiesSectionDataId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to amenity data.
+     * @path /amenities/{amenityId}
+     * @allow get, list: Any user can view amenity data.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /amenities/{amenityId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to pricing section data.
+     * @path /pricingSectionData/{pricingSectionDataId}
+     * @allow get, list: Any user can view pricing section data.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /pricingSectionData/{pricingSectionDataId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to tier data.
+     * @path /tiers/{tierId}
+     * @allow get, list: Any user can view tier data.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /tiers/{tierId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to feature tier data.
+     * @path /featureTiers/{featureTierId}
+     * @allow get, list: Any user can view feature tier data.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /featureTiers/{featureTierId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to contact section data.
+     * @path /contactSectionData/{contactSectionDataId}
+     * @allow get, list: Any user can view contact section data.
+     * @allow create: Not allowed directly.
+     * @allow update, delete: Not allowed.
+     * @deny create: if false;
+     * @deny update: if false;
+     * @deny delete: if false;
+     * @principle Allows public read access and prohibits modifications
+     */
+    match /contactSectionData/{contactSectionDataId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}
