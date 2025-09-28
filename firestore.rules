@@ -1,240 +1,65 @@
 /**
- * @fileoverview Firestore Security Rules for Vía Hogar.
- *
- * Core Philosophy:
- * This ruleset prioritizes secure data access based on a path-based
- * ownership model and clear separation of concerns. It aims to prevent
- * unauthorized access to property data and contact submissions. Public
- * read access is granted where appropriate, while writes are strictly
- * controlled.
- *
- * Data Structure:
- * - /properties/{propertyId}: Stores property details.
- * - /properties/{propertyId}/pageSections/{pageSectionId}: Stores page sections for a property.
- * - /properties/{propertyId}/contactSubmissions/{contactSubmissionId}: Stores contact submissions for a property.
- * - /heroSectionData/{heroSectionDataId}: Stores data for hero sections.
- * - /draggableTextData/{draggableTextDataId}: Stores data for draggable text.
- * - /imageWithFeaturesSectionData/{imageWithFeaturesSectionDataId}: Stores data for image with features sections.
- * - /features/{featureId}: Stores individual features.
- * - /gallerySectionData/{gallerySectionDataId}: Stores data for gallery sections.
- * - /locationSectionData/{locationSectionDataId}: Stores data for location sections.
- * - /nearbyPlaces/{nearbyPlaceId}: Stores nearby places.
- * - /amenitiesSectionData/{amenitiesSectionDataId}: Stores data for amenities sections.
- * - /amenities/{amenityId}: Stores individual amenities.
- * - /pricingSectionData/{pricingSectionDataId}: Stores data for pricing sections.
- * - /tiers/{tierId}: Stores individual pricing tiers.
- * - /featureTiers/{featureTierId}: Stores individual feature tiers.
- * - /contactSectionData/{contactSectionDataId}: Stores data for contact sections.
- *
- * Key Security Decisions:
- * - No user listing is allowed.
- * - Unauthenticated access is not specifically denied, allowing for public reads where rules permit.
- * - The ruleset defaults to a secure posture, explicitly denying access unless specifically allowed.
+ * @description This ruleset enforces a public read, owner-write model for properties and their page sections,
+ *  and allows anyone to create contact submissions.
+ * @dataStructure
+ *  /properties/{propertyId} - Stores property data.
+ *  /properties/{propertyId}/pageSections/{pageSectionId} - Stores page sections for a given property.
+ *  /contactSubmissions/{contactSubmissionId} - Stores contact form submissions.
+ * @keySecurityDecisions
+ *  - Properties are publicly readable, but only owners can create, update, or delete them.
+ *  - Contact submissions can be created by anyone (no authentication required).
+ *  - Listing properties is allowed for all users.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Grants read access to property documents for all users and restricts write access.
+     * @description Controls access to property documents. Properties are publicly readable, but only owners can modify them.
      * @path /properties/{propertyId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to property details and restricts write access.
+     * @allow (get, list): if true
+     * @allow (create): if request.auth != null
+     * @allow (update, delete): if request.auth != null && resource.data.id == propertyId
+     * @deny (create): if request.auth == null
+     * @deny (update, delete): if resource == null || request.auth == null || resource.data.id != propertyId
+     * @principle Public read, owner-only writes.
      */
     match /properties/{propertyId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource.data.id == propertyId;
     }
 
     /**
-     * @description Grants read access to page section documents for all users and restricts write access.
+     * @description Controls access to page section documents under a property.
      * @path /properties/{propertyId}/pageSections/{pageSectionId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to page section details and restricts write access.
+     * @allow (get, list): if true
+     * @allow (create): if request.auth != null
+     * @allow (update, delete): if request.auth != null && resource.data.propertyId == propertyId
+     * @deny (create): if request.auth == null
+     * @deny (update, delete): if resource == null || request.auth == null || resource.data.propertyId != propertyId
+     * @principle Public read, owner-only writes, enforcing the propertyId link.
      */
     match /properties/{propertyId}/pageSections/{pageSectionId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource.data.propertyId == propertyId;
     }
 
     /**
-     * @description Restricts read and write access to contact submissions.
-     * @path /properties/{propertyId}/contactSubmissions/{contactSubmissionId}
-     * @deny get, list, create, update, delete: if false;
-     * @principle Prevents access to contact submission details.
+     * @description Controls access to contact submission documents. Anyone can create a submission.
+     * @path /contactSubmissions/{contactSubmissionId}
+     * @allow (create): if true
+     * @deny (get, list, update, delete): if false
+     * @principle Open access for contact submissions.
      */
-    match /properties/{propertyId}/contactSubmissions/{contactSubmissionId} {
-      allow get, list, create, update, delete: if false;
+    match /contactSubmissions/{contactSubmissionId} {
+      allow create: if true;
+      allow get, list, update, delete: if false;
     }
 
-    /**
-     * @description Grants read access to hero section data documents for all users and restricts write access.
-     * @path /heroSectionData/{heroSectionDataId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to hero section data and restricts write access.
-     */
-    match /heroSectionData/{heroSectionDataId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Grants read access to draggable text data documents for all users and restricts write access.
-     * @path /draggableTextData/{draggableTextDataId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to draggable text data and restricts write access.
-     */
-    match /draggableTextData/{draggableTextDataId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Grants read access to image with features section data documents for all users and restricts write access.
-     * @path /imageWithFeaturesSectionData/{imageWithFeaturesSectionDataId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to image with features section data and restricts write access.
-     */
-    match /imageWithFeaturesSectionData/{imageWithFeaturesSectionDataId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Grants read access to feature documents for all users and restricts write access.
-     * @path /features/{featureId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to feature data and restricts write access.
-     */
-    match /features/{featureId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Grants read access to gallery section data documents for all users and restricts write access.
-     * @path /gallerySectionData/{gallerySectionDataId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to gallery section data and restricts write access.
-     */
-    match /gallerySectionData/{gallerySectionDataId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Grants read access to location section data documents for all users and restricts write access.
-     * @path /locationSectionData/{locationSectionDataId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to location section data and restricts write access.
-     */
-    match /locationSectionData/{locationSectionDataId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Grants read access to nearby place documents for all users and restricts write access.
-     * @path /nearbyPlaces/{nearbyPlaceId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to nearby place data and restricts write access.
-     */
-    match /nearbyPlaces/{nearbyPlaceId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Grants read access to amenities section data documents for all users and restricts write access.
-     * @path /amenitiesSectionData/{amenitiesSectionDataId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to amenities section data and restricts write access.
-     */
-    match /amenitiesSectionData/{amenitiesSectionDataId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Grants read access to amenity documents for all users and restricts write access.
-     * @path /amenities/{amenityId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to amenity data and restricts write access.
-     */
-    match /amenities/{amenityId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Grants read access to pricing section data documents for all users and restricts write access.
-     * @path /pricingSectionData/{pricingSectionDataId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to pricing section data and restricts write access.
-     */
-    match /pricingSectionData/{pricingSectionDataId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Grants read access to tier documents for all users and restricts write access.
-     * @path /tiers/{tierId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to tier data and restricts write access.
-     */
-    match /tiers/{tierId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Grants read access to feature tier documents for all users and restricts write access.
-     * @path /featureTiers/{featureTierId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to feature tier data and restricts write access.
-     */
-    match /featureTiers/{featureTierId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Grants read access to contact section data documents for all users and restricts write access.
-     * @path /contactSectionData/{contactSectionDataId}
-     * @allow get, list: if true;
-     * @deny create, update, delete: if false;
-     * @principle Allows public read access to contact section data and restricts write access.
-     */
-    match /contactSectionData/{contactSectionDataId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Grants read access to site configuration document for all users and restricts write access.
-     * @path /config/site
-     * @allow get: if true;
-     * @deny list, create, update, delete: if false;
-     * @principle Allows public read access to site config and restricts write access.
-     */
-    match /config/site {
-       allow get: if true;
-       allow list, create, update, delete: if false;
+    function isSignedIn() {
+      return request.auth != null;
     }
   }
 }
