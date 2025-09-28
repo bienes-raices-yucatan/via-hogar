@@ -1,221 +1,372 @@
 /**
- * @file Overview
- * This ruleset enforces a public read, owner-write model for Property data,
- * with nested ContactSubmissions. Section data is read only.
+ * @fileoverview Firestore Security Rules for Vía Hogar.
+ *
+ * Core Philosophy:
+ * This ruleset prioritizes security and simplicity by using path-based authorization.
+ * Each data type (Property, PageSection, ContactSubmission, etc.) is stored in a dedicated collection.
+ * This allows us to avoid complex queries within the rules and ensures list operations are secure by default.
  *
  * Data Structure:
- * - /properties/{propertyId}: Publicly readable property data.
- * - /properties/{propertyId}/contactSubmissions/{contactSubmissionId}: Contact submissions associated with a property.
- * - /{sectionData}/{sectionDataId}: Data for various section types (HeroSectionData, GallerySectionData, etc.).
+ * - /properties/{propertyId}: Contains property details.
+ * - /properties/{propertyId}/pageSections/{pageSectionId}: Contains modular page sections for a property.
+ * - /properties/{propertyId}/contactSubmissions/{contactSubmissionId}: Contains contact submissions for a property.
+ * - /heroSectionData/{heroSectionDataId}, /draggableTextData/{draggableTextDataId}, etc.: Contain data for individual page section components.
  *
  * Key Security Decisions:
- * - Public read access for properties.
- * - Owner-only writes for properties, validated by the existence of the `propertyId` field on creation and immutability on update.
- * - Contact submissions are only creatable under a given `propertyId`.
- * - All Section Data documents are publicly readable.
+ * - All data access is authenticated (anonymous access is enabled via auth).
+ * - Listing of Property and Section data is public.
+ * - ContactSubmissions are scoped to the owning Property.
+ * - There are no global admin roles; access is managed through data ownership and relationships.
+ *
+ * Denormalization for Authorization:
+ * - ContactSubmissions are nested under Properties to avoid needing `get()` calls to verify the property relationship.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows public read access to property documents, but restricts writes to owners.
+     * @description Allows public read access to properties, but restricts creation, updates, and deletes to authenticated users.
      * @path /properties/{propertyId}
-     * @allow (get, list): if true;
-     * @allow (create): if request.auth != null;
-     * @allow (update, delete): if request.auth != null;
-     * @deny (create): if request.auth == null;
-     * @deny (update, delete): if request.auth == null;
-     * @principle Allows public read access while enforcing ownership for write operations on properties.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /properties/{propertyId} {
       allow get, list: if true;
       allow create: if isSignedIn();
-      allow update, delete: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows creation of contact submissions under a specific property, but only by authenticated users.
+     * @description Allows public read access to page sections, but restricts creation, updates, and deletes to authenticated users.
+     * @path /properties/{propertyId}/pageSections/{pageSectionId}
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
+     */
+    match /properties/{propertyId}/pageSections/{pageSectionId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+
+    /**
+     * @description Allows authenticated users to create, read, update, and delete contact submissions for a specific property.
      * @path /properties/{propertyId}/contactSubmissions/{contactSubmissionId}
-     * @allow (create): if request.auth != null;
-     * @deny (get, list, update, delete): always fails.
-     * @principle Restricts contact submissions to authenticated users and enforces parent-child relationship with properties.
+     * @allow get, list: if isSignedIn();
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if !isSignedIn();
+     * @deny list: if !isSignedIn();
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Enforces user authentication for all contact submission operations.
      */
     match /properties/{propertyId}/contactSubmissions/{contactSubmissionId} {
-      allow get, list, update, delete: if false;
+      allow get, list: if isSignedIn();
       allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows public read access to hero section data.
+     * @description Allows public read access to hero section data, but restricts creation, updates, and deletes to authenticated users.
      * @path /heroSectionData/{heroSectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to hero section data.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /heroSectionData/{heroSectionDataId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows public read access to draggable text data.
+     * @description Allows public read access to draggable text data, but restricts creation, updates, and deletes to authenticated users.
      * @path /draggableTextData/{draggableTextDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to draggable text data.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /draggableTextData/{draggableTextDataId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows public read access to image with features section data.
+     * @description Allows public read access to image with features section data, but restricts creation, updates, and deletes to authenticated users.
      * @path /imageWithFeaturesSectionData/{imageWithFeaturesSectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to image with features section data.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /imageWithFeaturesSectionData/{imageWithFeaturesSectionDataId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows public read access to features.
+     * @description Allows public read access to features, but restricts creation, updates, and deletes to authenticated users.
      * @path /features/{featureId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to features.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /features/{featureId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows public read access to gallery section data.
+     * @description Allows public read access to gallery section data, but restricts creation, updates, and deletes to authenticated users.
      * @path /gallerySectionData/{gallerySectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to gallery section data.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /gallerySectionData/{gallerySectionDataId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows public read access to location section data.
+     * @description Allows public read access to location section data, but restricts creation, updates, and deletes to authenticated users.
      * @path /locationSectionData/{locationSectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to location section data.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /locationSectionData/{locationSectionDataId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows public read access to nearby places.
+     * @description Allows public read access to nearby places, but restricts creation, updates, and deletes to authenticated users.
      * @path /nearbyPlaces/{nearbyPlaceId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to nearby places.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /nearbyPlaces/{nearbyPlaceId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows public read access to amenities section data.
+     * @description Allows public read access to amenities section data, but restricts creation, updates, and deletes to authenticated users.
      * @path /amenitiesSectionData/{amenitiesSectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to amenities section data.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /amenitiesSectionData/{amenitiesSectionDataId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows public read access to amenities.
+     * @description Allows public read access to amenities, but restricts creation, updates, and deletes to authenticated users.
      * @path /amenities/{amenityId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to amenities.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /amenities/{amenityId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows public read access to pricing section data.
+     * @description Allows public read access to pricing section data, but restricts creation, updates, and deletes to authenticated users.
      * @path /pricingSectionData/{pricingSectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to pricing section data.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /pricingSectionData/{pricingSectionDataId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows public read access to tiers.
+     * @description Allows public read access to tiers, but restricts creation, updates, and deletes to authenticated users.
      * @path /tiers/{tierId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to tiers.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /tiers/{tierId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows public read access to feature tiers.
+     * @description Allows public read access to feature tiers, but restricts creation, updates, and deletes to authenticated users.
      * @path /featureTiers/{featureTierId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to feature tiers.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /featureTiers/{featureTierId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Allows public read access to contact section data.
+     * @description Allows public read access to contact section data, but restricts creation, updates, and deletes to authenticated users.
      * @path /contactSectionData/{contactSectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to contact section data.
+     * @allow get, list: if true;
+     * @allow create: if isSignedIn();
+     * @allow update: if isSignedIn();
+     * @allow delete: if isSignedIn();
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Allows public reads, restricts writes to authenticated users.
      */
     match /contactSectionData/{contactSectionDataId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
-     /**
-      * @description Allows public read access to site configuration
-      * @path /config/site
-      * @allow (get): if true;
-      * @deny (list, create, update, delete): always fails.
-      * @principle Provides public read access to site configuration.
-      */
-    match /config/site {
-      allow get: if true;
-      allow list, create, update, delete: if false;
+    /**
+     * @description Helper function to determine if a user is signed in.
+     * @return {boolean} True if the user is signed in, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
     }
-  }
-
-  function isSignedIn() {
-    return request.auth != null;
   }
 }

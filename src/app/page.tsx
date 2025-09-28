@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { collection, doc, orderBy, query, setDoc, addDoc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, orderBy, query, writeBatch } from 'firebase/firestore';
 
 import Footer from '@/components/layout/footer';
 import PropertyList from '@/components/property-list';
@@ -20,7 +20,7 @@ import { useCollection, useDoc, useFirestore, useUser, useAuth, useMemoFirebase,
 import { setDocumentNonBlocking, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { uploadFile } from '@/firebase/storage';
 
-import { Property, AnySectionData, ContactSubmission } from '@/lib/types';
+import { Property, AnySectionData, ContactSubmission, SiteConfig } from '@/lib/types';
 import { initialProperties } from '@/lib/data';
 
 
@@ -32,11 +32,11 @@ export default function Home() {
   const isAdminMode = !!user;
 
   // Data fetching from Firestore
-  const propertiesQuery = useMemoFirebase(() => query(collection(firestore, 'properties'), orderBy('createdAt', 'asc')), [firestore]);
+  const propertiesQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'properties'), orderBy('createdAt', 'asc')) : null, [firestore]);
   const { data: properties, isLoading: isLoadingProperties } = useCollection<Property>(propertiesQuery);
   
-  const siteConfigRef = useMemoFirebase(() => doc(firestore, 'config', 'site'), [firestore]);
-  const { data: siteConfig, isLoading: isLoadingSiteConfig } = useDoc(siteConfigRef);
+  const siteConfigRef = useMemoFirebase(() => firestore ? doc(firestore, 'config', 'site') : null, [firestore]);
+  const { data: siteConfig, isLoading: isLoadingSiteConfig } = useDoc<SiteConfig>(siteConfigRef);
   
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   
@@ -55,7 +55,7 @@ export default function Home() {
 
   // Seed initial data if properties collection is empty
   useEffect(() => {
-    if (!isLoadingProperties && properties && properties.length === 0) {
+    if (firestore && !isLoadingProperties && properties && properties.length === 0) {
       const batch = writeBatch(firestore);
       initialProperties.forEach((property) => {
         const propWithTimestamp = { ...property, createdAt: new Date() };
@@ -68,6 +68,7 @@ export default function Home() {
   
 
   const handleLogout = async () => {
+    if (!auth) return;
     await auth.signOut();
     setIsDraggingMode(false);
     setSelectedElement(null);
@@ -78,13 +79,14 @@ export default function Home() {
   };
   
   const handleUpdateProperty = (updatedProperty: Property) => {
+    if (!firestore) return;
     const propertyRef = doc(firestore, 'properties', updatedProperty.id);
-    // Destructure to avoid sending 'id' field which is not in the type def
     const { id, ...propertyData } = updatedProperty;
-    setDocumentNonBlocking(propertyRef, propertyData, { merge: true });
+    updateDocumentNonBlocking(propertyRef, propertyData);
   };
 
   const handleAddNewProperty = () => {
+    if (!firestore) return;
     const newPropertyId = uuidv4();
     const newProperty: Omit<Property, 'id'> = {
       name: "Nueva Propiedad",
@@ -128,7 +130,7 @@ export default function Home() {
   };
 
   const confirmDeleteProperty = () => {
-    if (!propertyToDelete) return;
+    if (!propertyToDelete || !firestore) return;
     const propertyRef = doc(firestore, 'properties', propertyToDelete);
     deleteDocumentNonBlocking(propertyRef);
     if (selectedPropertyId === propertyToDelete) {
@@ -139,7 +141,7 @@ export default function Home() {
   };
 
   const handleAddSection = (sectionType: AnySectionData['type']) => {
-    if (!properties) return;
+    if (!properties || !firestore) return;
     const property = properties.find(p => p.id === selectedPropertyId);
     if (!property) return;
 
@@ -187,19 +189,22 @@ export default function Home() {
   };
   
   const handleUpdateLogo = async (file: File) => {
+    if (!storage || !siteConfigRef) return;
     const path = `config/logo/${file.name}`;
     const url = await uploadFile(storage, file, path);
     updateDocumentNonBlocking(siteConfigRef, { logoUrl: url });
   };
   
   const handleUpdateSiteName = (newName: string) => {
+    if (!siteConfigRef) return;
     updateDocumentNonBlocking(siteConfigRef, { siteName: newName });
   }
 
   const handleContactSubmit = (submission: Omit<ContactSubmission, 'id' | 'submittedAt'>) => {
-    const newSubmission: Omit<ContactSubmission, 'id'> = {
+    if (!firestore) return;
+    const newSubmission = {
       ...submission,
-      submittedAt: new Date().toISOString(),
+      submittedAt: new Date(),
     };
     const submissionsCollection = collection(firestore, `properties/${submission.propertyId}/contactSubmissions`);
     addDocumentNonBlocking(submissionsCollection, newSubmission);
@@ -208,7 +213,7 @@ export default function Home() {
   
   const handleDragEnd = (event: DragEndEvent) => {
     const {active, over} = event;
-    if (!over || !properties) return;
+    if (!over || !properties || !firestore) return;
     
     const property = properties.find(p => p.id === selectedPropertyId);
     if (!property) return;
@@ -252,8 +257,9 @@ export default function Home() {
     }
   }
 
-
-  if (isUserLoading || isLoadingProperties || isLoadingSiteConfig) {
+  const isLoading = isUserLoading || isLoadingProperties || isLoadingSiteConfig;
+  
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Spinner size="lg" />

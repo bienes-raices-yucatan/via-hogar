@@ -134,7 +134,7 @@ export interface ContactSubmission {
   name: string;
   phone: string;
   userType: 'buyer' | 'broker';
-  submittedAt: string;
+  submittedAt: any; // Using 'any' for Firestore ServerTimestamp compatibility
 }
 
 export type EditableElement = 
