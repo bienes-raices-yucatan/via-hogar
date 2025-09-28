@@ -100,10 +100,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
     }
   };
 
+  const uploadId = `hero-image-upload-${data.id}`;
+
   return (
     <div 
       ref={sectionRef}
-      className="relative group/section w-full h-[40vh] md:h-[50vh] bg-cover bg-center rounded-b-3xl overflow-hidden" 
+      className="relative group/section w-full h-[47vh] md:h-[58vh] bg-cover bg-center rounded-b-3xl overflow-hidden" 
       style={{ 
         backgroundImage: `url(${imageUrl})`,
         backgroundPosition: backgroundPosition,
@@ -157,7 +159,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
         <div className="absolute top-4 right-4 opacity-100 sm:opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg" onClick={(e) => e.stopPropagation()}>
           <input
               type="file"
-              id={`hero-image-upload-${data.id}`}
+              id={uploadId}
               ref={fileInputRef}
               onChange={handleFileChange}
               className="hidden"
@@ -171,7 +173,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
             />
             <Label htmlFor={`parallax-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
           </div>
-          <Label htmlFor={`hero-image-upload-${data.id}`} className="cursor-pointer">
+          <Label htmlFor={uploadId} className="cursor-pointer">
             <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" as="span" title="Cambiar imagen de fondo">
               <ImageIcon />
             </Button>
