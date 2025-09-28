@@ -1,44 +1,29 @@
+
 'use client';
 
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import AdminLoginModal from '../modals/admin-login-modal';
-import { useAuth } from '@/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 
-const Footer: React.FC = () => {
+interface FooterProps {
+  onAdminLogin: () => void;
+}
+
+const Footer: React.FC<FooterProps> = ({ onAdminLogin }) => {
   const [isLoginVisible, setIsLoginVisible] = useState(false);
-  const auth = useAuth();
   const { toast } = useToast();
 
-  const handleAdminLogin = async (credentials: {username: string, password: string})=> {
-    const email = credentials.username.includes('@') ? credentials.username : `${credentials.username}@viahogar.com`;
-    try {
-        await signInWithEmailAndPassword(auth, email, credentials.password);
+  const handleAdminLogin = (credentials: {username: string, password: string})=> {
+    if (credentials.username === 'Admin' && credentials.password === 'Aguilar1') {
+        onAdminLogin();
         setIsLoginVisible(false);
-    } catch(error: any) {
-        if (error.code === 'auth/user-not-found') {
-            try {
-                // If user does not exist, try to create it
-                await createUserWithEmailAndPassword(auth, email, credentials.password);
-                setIsLoginVisible(false);
-            } catch (creationError: any) {
-                console.error("User creation failed:", creationError);
-                toast({
-                    variant: "destructive",
-                    title: "Error de creación",
-                    description: "No se pudo crear el usuario administrador.",
-                });
-            }
-        } else {
-            console.error("Login failed:", error);
-            toast({
-                variant: "destructive",
-                title: "Error de inicio de sesión",
-                description: "Usuario o contraseña incorrectos.",
-            });
-        }
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Error de inicio de sesión",
+            description: "Usuario o contraseña incorrectos.",
+        });
     }
   };
   

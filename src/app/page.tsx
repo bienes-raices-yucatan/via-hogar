@@ -18,11 +18,10 @@ import Header from '@/components/layout/header';
 
 import { Property, AnySectionData, ContactSubmission, SiteConfig } from '@/lib/types';
 import { initialProperties, initialSiteConfig } from '@/lib/data';
-import { useFirestore, useCollection, useDoc, updateDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useUser, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useDoc, updateDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useMemoFirebase } from '@/firebase';
 
 export default function Home() {
   const firestore = useFirestore();
-  const { user, isUserLoading } = useUser();
   
   const propertiesRef = useMemoFirebase(() => collection(firestore, 'properties'), [firestore]);
   const { data: properties, isLoading: isLoadingProperties } = useCollection<Property>(propertiesRef);
@@ -68,10 +67,6 @@ export default function Home() {
       seedData();
     }
   }, [properties, siteConfig, isLoadingProperties, isLoadingSiteConfig, firestore, propertiesRef, siteConfigRef, isAdminMode]);
-  
-  useEffect(() => {
-    setIsAdminMode(!!user);
-  }, [user]);
 
   const handleSelectProperty = (id: string) => {
     setSelectedPropertyId(id);
@@ -245,7 +240,7 @@ export default function Home() {
     }
   }
   
-  if (isUserLoading || isLoadingProperties || isLoadingSiteConfig) {
+  if (isLoadingProperties || isLoadingSiteConfig) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Spinner size="lg" />
@@ -268,6 +263,7 @@ export default function Home() {
             logoUrl={siteConfig?.logoUrl || '/logo.svg'}
             setLogoUrl={handleUpdateLogo}
             isAdminMode={isAdminMode}
+            onLogout={() => setIsAdminMode(false)}
           />
         <main className="flex-grow pt-20">
           {selectedProperty ? (
@@ -313,7 +309,7 @@ export default function Home() {
           />
         )}
         
-        <Footer />
+        <Footer onAdminLogin={() => setIsAdminMode(true)} />
 
         {isAdminMode && selectedProperty && (
           <AdminToolbar 
@@ -334,5 +330,3 @@ export default function Home() {
     </DndContext>
   );
 }
-
-    
