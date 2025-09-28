@@ -70,6 +70,7 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
         }
     };
 
+    const uploadId = `media-upload-${data.id}`;
 
     return (
         <div className="py-16 md:py-24 relative group/section" style={{backgroundColor: data.style.backgroundColor}}>
@@ -96,13 +97,13 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
                              <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-4 opacity-0 group-hover/media:opacity-100 transition-opacity">
                                 <input
                                     type="file"
-                                    id={`media-upload-${data.id}`}
+                                    id={uploadId}
                                     ref={fileInputRef}
                                     onChange={handleFileChange}
                                     className="hidden"
                                     accept="image/*,video/*"
                                 />
-                                <Label htmlFor={`media-upload-${data.id}`} className="cursor-pointer">
+                                <Label htmlFor={uploadId} className="cursor-pointer">
                                   <Button size="lg" variant="secondary" as="span">
                                      <ImageIcon className="mr-2"/> Cambiar Multimedia
                                   </Button>
@@ -117,12 +118,10 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
                                 <div key={feature.id} className="flex items-start gap-4 group/feature relative">
                                     {Icon && <div className="bg-primary/10 text-primary p-3 rounded-full"><Icon className="h-6 w-6"/></div>}
                                     <div className="flex-1">
-                                        <h3 className="text-xl font-bold font-headline text-slate-800">
-                                            <EditableText value={feature.title} onChange={(val) => handleFeatureUpdate(feature.id, 'title', val)} isAdminMode={isAdminMode} />
-                                        </h3>
-                                        <p className="text-slate-600 mt-1">
+                                        <EditableText value={feature.title} onChange={(val) => handleFeatureUpdate(feature.id, 'title', val)} isAdminMode={isAdminMode} as="h3" className="text-xl font-bold font-headline text-slate-800"/>
+                                        <div className="text-slate-600 mt-1">
                                             <EditableText value={feature.subtitle} onChange={(val) => handleFeatureUpdate(feature.id, 'subtitle', val)} isAdminMode={isAdminMode} />
-                                        </p>
+                                        </div>
                                     </div>
                                     {isAdminMode && (
                                          <Button size="icon" variant="ghost" className="absolute top-0 right-0 h-6 w-6 text-destructive opacity-0 group-hover/feature:opacity-100" onClick={() => handleDeleteFeature(feature.id)}>
