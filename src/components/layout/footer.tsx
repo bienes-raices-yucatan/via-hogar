@@ -5,6 +5,8 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { useAuth } from '@/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 interface FooterProps {
   isAdminMode: boolean;
@@ -24,19 +26,29 @@ const Footer: React.FC<FooterProps> = ({ isAdminMode }) => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    try {
-      await signInWithEmailAndPassword(auth, username, password);
-      setIsLoginVisible(false);
-    } catch (err: any) {
-      setError('Error al iniciar sesión. Comprueba tus credenciales.');
-      console.error(err);
-    } finally {
-      setUsername('');
-      setPassword('');
-    }
+
+    signInWithEmailAndPassword(auth, username, password)
+      .then(() => {
+        setIsLoginVisible(false);
+        setUsername('');
+        setPassword('');
+      })
+      .catch((err: any) => {
+        // Create and emit a contextual error for debugging security rules.
+        const permissionError = new FirestorePermissionError({
+          path: `users (email: ${username})`, // Fictional path for context
+          operation: 'write', // Mimicking a login write/auth event
+          requestResourceData: { email: username, action: 'signIn' },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        
+        // Also, set a user-facing error message.
+        setError('Error al iniciar sesión. Comprueba tus credenciales o permisos.');
+        console.error(err); // Keep original console error for local debug if needed.
+      });
   };
 
 
