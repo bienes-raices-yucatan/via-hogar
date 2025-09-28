@@ -13,8 +13,8 @@ interface AdminLoginModalProps {
 }
 
 const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose, onLogin }) => {
-  const [username, setUsername] = useState('admin@viahogar.com');
-  const [password, setPassword] = useState('password');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('aguilar1');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +35,7 @@ const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose, onLo
               </Label>
               <Input
                 id="username"
-                type="email"
+                type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="col-span-3"

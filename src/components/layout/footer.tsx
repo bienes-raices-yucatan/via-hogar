@@ -14,7 +14,9 @@ const Footer: React.FC = () => {
 
   const handleAdminLogin = async (credentials: {username: string, password: string})=> {
     try {
-        await signInWithEmailAndPassword(auth, credentials.username, credentials.password);
+        // Firebase Auth requires an email format. We'll append a dummy domain if it's not an email.
+        const email = credentials.username.includes('@') ? credentials.username : `${credentials.username}@viahogar.com`;
+        await signInWithEmailAndPassword(auth, email, credentials.password);
         setIsLoginVisible(false);
     } catch(error: any) {
         console.error("Login failed:", error);
