@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
@@ -89,11 +90,11 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection
                                         />
                                         <div className="absolute -top-2 -right-2 opacity-0 group-hover/amenity:opacity-100 flex flex-col gap-1">
                                             <Label htmlFor={uploadId} className="cursor-pointer">
-                                                <Button as="span" size="icon" variant="ghost" className="h-6 w-6 text-slate-600 hover:bg-slate-200" title="Cambiar imagen">
+                                                <div className="h-6 w-6 text-slate-600 hover:bg-slate-200 rounded-md flex items-center justify-center" title="Cambiar imagen">
                                                     <ImageIcon size={16} />
-                                                </Button>
+                                                </div>
                                             </Label>
-                                            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteAmenity(amenity.id)}>
+                                            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:bg-destructive/10" onClick={(e) => {e.stopPropagation(); handleDeleteAmenity(amenity.id)}}>
                                                 <Trash2 size={16} />
                                             </Button>
                                         </div>

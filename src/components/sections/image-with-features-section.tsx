@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
@@ -108,7 +109,7 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
                                         </div>
                                     </div>
                                     {isAdminMode && (
-                                         <Button size="icon" variant="ghost" className="absolute top-0 right-0 h-6 w-6 text-destructive opacity-0 group-hover/feature:opacity-100" onClick={() => handleDeleteFeature(feature.id)}>
+                                         <Button size="icon" variant="ghost" className="absolute top-0 right-0 h-6 w-6 text-destructive opacity-0 group-hover/feature:opacity-100" onClick={(e) => { e.stopPropagation(); handleDeleteFeature(feature.id)}}>
                                             <Trash2 size={16} />
                                          </Button>
                                     )}

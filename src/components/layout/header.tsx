@@ -46,16 +46,18 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <header className="fixed top-0 left-0 right-0 z-40 p-4 sm:p-6 flex justify-between items-center text-white bg-gradient-to-b from-black/50 to-transparent">
       <div className="flex items-center gap-2 sm:gap-4">
-        <Label htmlFor="logo-upload" className={isAdminMode ? 'cursor-pointer' : ''}>
-          <div 
-            className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden group"
-            title={isAdminMode ? "Hacer clic para cambiar logo" : ""}
-          >
-            <Image src={logoUrl} alt="Logo" layout="fill" objectFit="cover" />
-             {isAdminMode && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"></div>}
-          </div>
-        </Label>
-        {isAdminMode && <input id="logo-upload" type="file" ref={logoFileInputRef} onChange={handleLogoFileChange} className="hidden" accept="image/*" />}
+        <div className="group">
+            <Label htmlFor="logo-upload" className={isAdminMode ? 'cursor-pointer' : ''}>
+              <div 
+                className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden"
+                title={isAdminMode ? "Hacer clic para cambiar logo" : ""}
+              >
+                <Image src={logoUrl} alt="Logo" layout="fill" objectFit="cover" />
+                 {isAdminMode && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"></div>}
+              </div>
+            </Label>
+            {isAdminMode && <input id="logo-upload" type="file" ref={logoFileInputRef} onChange={handleLogoFileChange} className="hidden" accept="image/*" />}
+        </div>
 
         <EditableText
           value={siteName}

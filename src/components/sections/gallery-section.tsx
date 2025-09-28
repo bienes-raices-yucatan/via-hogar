@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { GallerySectionData } from '@/lib/types';
@@ -111,9 +112,9 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
                                                     />
                                                     <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity bg-black/30 p-1 rounded-md">
                                                         <Label htmlFor={uploadId} className="cursor-pointer">
-                                                            <Button as="span" size="icon" variant="ghost" className="text-white hover:bg-white/20 h-7 w-7" title="Change image"><ImageIcon size={16}/></Button>
+                                                            <div className="h-7 w-7 flex items-center justify-center text-white hover:bg-white/20 rounded-md" title="Change image"><ImageIcon size={16}/></div>
                                                         </Label>
-                                                        <Button size="icon" variant="destructive" className="bg-transparent hover:bg-red-500/50 h-7 w-7" onClick={() => handleDeleteImage(image.id)}><Trash2 size={16}/></Button>
+                                                        <Button size="icon" variant="destructive" className="bg-transparent hover:bg-red-500/50 h-7 w-7" onClick={(e) => { e.stopPropagation(); handleDeleteImage(image.id);}}><Trash2 size={16}/></Button>
                                                     </div>
                                                 </>
                                             )}

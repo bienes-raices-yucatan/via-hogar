@@ -1,3 +1,4 @@
+
 'use client';
 import { HeroSectionData, DraggableTextData } from '@/lib/types';
 import { Trash2, Image as ImageIcon, PlusCircle, GripVertical } from 'lucide-react';
@@ -297,11 +298,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 <PlusCircle />
             </Button>
             <Label htmlFor={uploadId} className="cursor-pointer">
-              <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" as="span" title="Cambiar imagen de fondo">
+              <div className="h-10 w-10 flex items-center justify-center text-white hover:bg-white/20 rounded-md" title="Cambiar imagen de fondo">
                 <ImageIcon />
-              </Button>
+              </div>
             </Label>
-            <Button size="icon" variant="destructive" onClick={() => deleteSection(data.id)}>
+            <Button size="icon" variant="destructive" onClick={(e) => { e.stopPropagation(); deleteSection(data.id);}}>
               <Trash2 />
             </Button>
           </div>
