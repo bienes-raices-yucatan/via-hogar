@@ -8,6 +8,7 @@ import Image from 'next/image';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
 import { saveImage, getImage } from '@/lib/db';
+import { Label } from '../ui/label';
 
 type IconName = keyof typeof LucideIcons;
 
@@ -27,19 +28,15 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
             if (data.media.imageKey) {
                 const blob = await getImage(data.media.imageKey);
                 if (blob) {
-                    setMediaUrl(URL.createObjectURL(blob));
+                    const localUrl = URL.createObjectURL(blob);
+                    setMediaUrl(localUrl);
+                    return () => URL.revokeObjectURL(localUrl);
                 }
             } else if (data.media.url) {
                 setMediaUrl(data.media.url);
             }
         };
         loadMedia();
-
-        return () => {
-            if (mediaUrl && mediaUrl.startsWith('blob:')) {
-                URL.revokeObjectURL(mediaUrl);
-            }
-        };
     }, [data.media.imageKey, data.media.url]);
 
     const handleFeatureUpdate = (featureId: string, field: 'title' | 'subtitle', value: string) => {
@@ -55,10 +52,6 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
     const handleDeleteFeature = (featureId: string) => {
         const updatedFeatures = data.features.filter(f => f.id !== featureId);
         updateSection(data.id, { features: updatedFeatures });
-    };
-
-    const handleMediaButtonClick = () => {
-        fileInputRef.current?.click();
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,14 +96,17 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
                              <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-4 opacity-0 group-hover/media:opacity-100 transition-opacity">
                                 <input
                                     type="file"
+                                    id={`media-upload-${data.id}`}
                                     ref={fileInputRef}
                                     onChange={handleFileChange}
                                     className="hidden"
                                     accept="image/*,video/*"
                                 />
-                                <Button size="lg" variant="secondary" onClick={handleMediaButtonClick}>
-                                   <ImageIcon className="mr-2"/> Cambiar Multimedia
-                                </Button>
+                                <Label htmlFor={`media-upload-${data.id}`} className="cursor-pointer">
+                                  <Button size="lg" variant="secondary" as="span">
+                                     <ImageIcon className="mr-2"/> Cambiar Multimedia
+                                  </Button>
+                                </Label>
                             </div>
                         )}
                     </div>

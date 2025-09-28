@@ -8,7 +8,6 @@ import { Switch } from '../ui/switch';
 import { Label } from '../ui/label';
 import { v4 as uuidv4 } from 'uuid';
 import { saveImage, getImage } from '@/lib/db';
-import Image from 'next/image';
 
 interface HeroSectionProps {
   data: HeroSectionData;
@@ -29,19 +28,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
         if (data.imageKey) {
             const blob = await getImage(data.imageKey);
             if (blob) {
-                setImageUrl(URL.createObjectURL(blob));
+                const localUrl = URL.createObjectURL(blob);
+                setImageUrl(localUrl);
+                return () => URL.revokeObjectURL(localUrl);
             }
         } else {
             setImageUrl(data.imageUrl);
         }
     };
     loadImage();
-
-    return () => {
-        if (imageUrl && imageUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(imageUrl);
-        }
-    };
   }, [data.imageKey, data.imageUrl]);
 
   useEffect(() => {
@@ -96,16 +91,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
     }
   };
 
-  const handleImageButtonClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
         const key = `hero-${data.id}-${uuidv4()}`;
         await saveImage(key, file);
-        updateSection(data.id, { imageKey: key });
+        updateSection(data.id, { imageKey: key, imageUrl: undefined });
     }
   };
 
@@ -113,13 +104,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
     <div 
       ref={sectionRef}
       className="relative group/section w-full h-[40vh] md:h-[50vh] bg-cover bg-center rounded-b-3xl overflow-hidden" 
-      onClick={isAdminMode ? handleImageButtonClick : undefined}
       style={{ 
         backgroundImage: `url(${imageUrl})`,
         backgroundPosition: backgroundPosition,
         backgroundAttachment: data.parallaxEnabled && !isAdminMode ? 'fixed' : 'scroll',
         transition: 'background-position 0.1s ease-out',
-        cursor: isAdminMode ? 'pointer' : 'default',
       }}
     >
       <div className="absolute inset-0 bg-black/40"></div>
@@ -165,9 +154,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
       </div>
       
       {isAdminMode && (
-        <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute top-4 right-4 opacity-100 sm:opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg" onClick={(e) => e.stopPropagation()}>
           <input
               type="file"
+              id={`hero-image-upload-${data.id}`}
               ref={fileInputRef}
               onChange={handleFileChange}
               className="hidden"
@@ -181,9 +171,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ data, updateSection, deleteSe
             />
             <Label htmlFor={`parallax-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
           </div>
-           <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" onClick={handleImageButtonClick} title="Cambiar imagen de fondo">
+          <Label htmlFor={`hero-image-upload-${data.id}`} className="cursor-pointer">
+            <Button size="icon" variant="ghost" className="text-white hover:bg-white/20 pointer-events-none" as="span" title="Cambiar imagen de fondo">
               <ImageIcon />
             </Button>
+          </Label>
           <Button size="icon" variant="destructive" onClick={() => deleteSection(data.id)}>
             <Trash2 />
           </Button>

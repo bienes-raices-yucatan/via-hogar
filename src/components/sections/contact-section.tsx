@@ -36,19 +36,15 @@ const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onCon
         if (data.imageKey) {
             const blob = await getImage(data.imageKey);
             if (blob) {
-                setImageUrl(URL.createObjectURL(blob));
+                const localUrl = URL.createObjectURL(blob);
+                setImageUrl(localUrl);
+                return () => URL.revokeObjectURL(localUrl);
             }
         } else if (data.imageUrl) {
             setImageUrl(data.imageUrl);
         }
     };
     loadImage();
-
-    return () => {
-        if (imageUrl && imageUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(imageUrl);
-        }
-    };
   }, [data.imageKey, data.imageUrl]);
 
   useEffect(() => {
@@ -99,10 +95,6 @@ const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onCon
     updateSection(data.id, { buttonText: value });
   };
 
-  const handleImageButtonClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -111,6 +103,8 @@ const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onCon
         updateSection(data.id, { imageKey: key, imageUrl: undefined });
     }
   };
+
+  const uploadId = `contact-upload-${data.id}`;
 
   return (
     <div 
@@ -171,6 +165,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onCon
             <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity flex flex-col sm:flex-row gap-2 items-center bg-black/20 backdrop-blur-sm p-2 rounded-lg">
               <input
                   type="file"
+                  id={uploadId}
                   ref={fileInputRef}
                   onChange={handleFileChange}
                   className="hidden"
@@ -184,9 +179,11 @@ const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onCon
                 />
                 <Label htmlFor={`parallax-contact-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
               </div>
-              <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" onClick={handleImageButtonClick} title="Cambiar imagen de fondo">
-                <ImageIcon />
-              </Button>
+              <Label htmlFor={uploadId} className="cursor-pointer">
+                <Button size="icon" variant="ghost" as="span" className="text-white hover:bg-white/20 pointer-events-none" title="Cambiar imagen de fondo">
+                  <ImageIcon />
+                </Button>
+              </Label>
               <Button size="icon" variant="destructive" onClick={() => deleteSection(data.id)}>
                   <Trash2 />
               </Button>
