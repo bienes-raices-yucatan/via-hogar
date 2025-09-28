@@ -18,12 +18,6 @@ interface SectionRendererProps {
   selectedElement: any;
   setSelectedElement: (element: any) => void;
   onContactSubmit: (submission: Omit<ContactSubmission, 'id' | 'submittedAt'>) => void;
-  // Header props
-  siteName: string;
-  setSiteName: (name: string) => void;
-  logoUrl: string;
-  setLogoUrl: (file: File) => void;
-  onLogout: () => void;
   onNavigateHome: () => void;
 }
 

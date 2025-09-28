@@ -16,13 +16,6 @@ interface HeroSectionProps {
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
   setSelectedElement: (element: any) => void;
-  // Header props
-  siteName: string;
-  setSiteName: (name: string) => void;
-  logoUrl: string;
-  setLogoUrl: (file: File) => void;
-  onLogout: () => void;
-  onNavigateHome: () => void;
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({ 
@@ -31,15 +24,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   deleteSection, 
   isAdminMode, 
   setSelectedElement,
-  siteName,
-  setSiteName,
-  logoUrl,
-  setLogoUrl,
-  onLogout
 }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const logoFileInputRef = useRef<HTMLInputElement>(null);
   const [backgroundPosition, setBackgroundPosition] = useState('center');
   const [imageUrl, setImageUrl] = useState(data.imageUrl);
 
@@ -119,27 +106,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         updateSection(data.id, { imageKey: key, imageUrl: undefined });
     }
   };
-
-  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setLogoUrl(e.target.files[0]);
-    }
-  };
-
+  
   const uploadId = `hero-image-upload-${data.id}`;
 
-  const scrollToSection = (sectionId: string) => {
-    const sectionElement = document.getElementById(sectionId);
-    if (sectionElement) {
-      sectionElement.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
+  const scrollToContact = () => {
+    document.getElementById('section-contact')?.scrollIntoView({ behavior: 'smooth' });
+  }
 
   return (
     <div 
       ref={sectionRef}
-      className="relative group/section w-full h-[58vh] md:h-[65vh] bg-cover bg-center rounded-[3rem]" 
+      className="relative group/section w-full h-[75vh] md:h-[85vh] bg-cover bg-center rounded-b-[3rem]" 
       style={{ 
         backgroundImage: `url(${imageUrl})`,
         backgroundPosition: backgroundPosition,
@@ -147,41 +124,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         transition: 'background-position 0.1s ease-out',
       }}
     >
-      <div className="absolute inset-0 bg-black/30 rounded-[3rem]"></div>
+      <div className="absolute inset-0 bg-black/30 rounded-b-[3rem]"></div>
       
-      {/* Integrated Header */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-6 flex justify-between items-center text-white">
-        <div className="flex items-center gap-4">
-          <Label htmlFor="logo-upload" className={isAdminMode ? 'cursor-pointer' : ''}>
-            <div 
-              className="relative w-10 h-10 rounded-full overflow-hidden"
-              title={isAdminMode ? "Hacer clic para cambiar logo" : ""}
-            >
-              <Image src={logoUrl} alt="Logo" layout="fill" objectFit="cover" />
-            </div>
-          </Label>
-          {isAdminMode && <input id="logo-upload" type="file" ref={logoFileInputRef} onChange={handleLogoFileChange} className="hidden" accept="image/*" />}
-
-          <EditableText
-            value={siteName}
-            onChange={setSiteName}
-            isAdminMode={isAdminMode}
-            className="text-2xl font-headline font-bold"
-            as="h1"
-          />
-        </div>
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-          <button onClick={() => scrollToSection('section-features')} className="hover:text-amber-300 transition-colors">Características</button>
-          <button onClick={() => scrollToSection('section-location')} className="hover:text-amber-300 transition-colors">Ubicación</button>
-          <button onClick={() => scrollToSection('section-contact')} className="hover:text-amber-300 transition-colors">Contacto</button>
-          {isAdminMode && (
-            <Button variant="outline" size="sm" onClick={onLogout} className="bg-transparent text-white border-white hover:bg-white hover:text-black">
-              Salir
-            </Button>
-          )}
-        </nav>
-      </div>
-
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
         <div className="max-w-3xl">
           {data.title && (
@@ -210,7 +154,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           )}
           {data.buttonText && (
             <div className="mt-8">
-              <Button size="lg" onClick={() => scrollToSection('section-contact')} className="bg-primary hover:bg-amber-600 text-slate-900 text-lg px-8 py-6 rounded-full font-bold">
+              <Button size="lg" onClick={scrollToContact} className="bg-primary hover:bg-amber-600 text-slate-900 text-lg px-8 py-6 rounded-full font-bold">
                   <EditableText
                       value={data.buttonText}
                       onChange={handleButtonTextUpdate}

@@ -14,6 +14,7 @@ import SectionRenderer from '@/components/sections';
 import AdminToolbar from '@/components/toolbars/admin-toolbar';
 import EditingToolbar from '@/components/toolbars/editing-toolbar';
 import ConfirmationModal from '@/components/modals/confirmation-modal';
+import Header from '@/components/layout/header';
 
 
 export default function Home() {
@@ -232,7 +233,15 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen bg-background font-body text-slate-800 flex flex-col ${isAdminMode ? 'admin-mode' : ''}`}>
-        <main className="flex-grow">
+      <Header 
+          siteName={siteName}
+          setSiteName={setSiteName}
+          logoUrl={logoUrl}
+          setLogoUrl={handleUpdateLogo}
+          isAdminMode={isAdminMode}
+          onLogout={handleLogout}
+        />
+      <main className="flex-grow">
         {selectedProperty ? (
           <div>
             <SectionRenderer
@@ -243,11 +252,6 @@ export default function Home() {
               selectedElement={selectedElement}
               setSelectedElement={setSelectedElement}
               onContactSubmit={handleContactSubmit}
-              siteName={siteName}
-              setSiteName={setSiteName}
-              logoUrl={logoUrl}
-              setLogoUrl={handleUpdateLogo}
-              onLogout={handleLogout}
               onNavigateHome={() => setSelectedPropertyId(null)}
             />
           </div>
