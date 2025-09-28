@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { X } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
+import { Textarea } from '../ui/textarea';
 
 interface EditingToolbarProps {
   selectedElement: any;
@@ -98,10 +99,19 @@ const EditingToolbar: React.FC<EditingToolbarProps> = ({
                     {...listeners}
                     {...attributes}
                 >
-                    <CardTitle className="text-base">Editar Estilo de Texto</CardTitle>
+                    <CardTitle className="text-base">Editar Texto</CardTitle>
                     <button onClick={() => setSelectedElement(null)} className="p-1 rounded-full hover:bg-slate-200"><X size={16}/></button>
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
+                     <div>
+                        <Label>Texto</Label>
+                        <Textarea 
+                          value={elementData.text}
+                          onChange={e => handleUpdate({ text: e.target.value })}
+                          placeholder="Escribe aquí..."
+                          className="min-h-[60px]"
+                        />
+                    </div>
                     <div>
                         <Label>Color</Label>
                         <Input type="color" value={elementData.color} onChange={e => handleUpdate({ color: e.target.value })} className="w-full h-8 p-0" />
