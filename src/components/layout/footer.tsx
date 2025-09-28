@@ -30,24 +30,28 @@ const Footer: React.FC<FooterProps> = ({ isAdminMode }) => {
     e.preventDefault();
     setError('');
 
+    // CRITICAL: The .catch block is essential for the contextual error handling system.
+    // It captures the error and re-emits it in a structured format.
     signInWithEmailAndPassword(auth, username, password)
-      .then(() => {
+      .then((userCredential) => {
+        // Successful login
         setIsLoginVisible(false);
         setUsername('');
         setPassword('');
       })
-      .catch((err: any) => {
-        // Create and emit a contextual error for debugging security rules.
+      .catch((err) => {
+        // This is the correct place to create and emit the contextual error.
         const permissionError = new FirestorePermissionError({
-          path: `users (email: ${username})`, // Fictional path for context
-          operation: 'write', // Mimicking a login write/auth event
-          requestResourceData: { email: username, action: 'signIn' },
+          path: `users (auth with email: ${username})`, // A descriptive path for auth operations
+          operation: 'write', // 'write' is a stand-in for a sign-in/auth attempt
+          requestResourceData: { email: username, action: 'signInWithEmailAndPassword' },
         });
+
+        // Emit the structured error for the global error listener to catch.
         errorEmitter.emit('permission-error', permissionError);
         
-        // Also, set a user-facing error message.
-        setError('Error al iniciar sesión. Comprueba tus credenciales o permisos.');
-        console.error(err); // Keep original console error for local debug if needed.
+        // This sets a user-facing message, but the magic happens in the emitter.
+        setError('Error al iniciar sesión. Verifica tus credenciales o permisos.');
       });
   };
 
