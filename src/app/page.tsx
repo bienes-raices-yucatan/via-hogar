@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Property, AnySectionData, ContactSubmission } from '@/lib/types';
 import { initialProperties, initialSiteName, initialLogo } from '@/lib/data';
-import * as db from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -43,11 +42,9 @@ export default function Home() {
 
   useEffect(() => {
     const loadData = async () => {
-      await db.initDB();
-      
       const storedProperties = localStorage.getItem('properties');
       const storedSiteName = localStorage.getItem('siteName');
-      const storedLogoKey = localStorage.getItem('logoKey');
+      const storedLogoUrl = localStorage.getItem('logoUrl');
       const storedSubmissions = localStorage.getItem('contactSubmissions');
 
       if (storedProperties) {
@@ -62,13 +59,12 @@ export default function Home() {
         setSiteName(initialSiteName);
       }
 
-      if (storedLogoKey) {
-        const logo = await db.getImage(storedLogoKey);
-        if (logo) setLogoUrl(URL.createObjectURL(logo));
+      if (storedLogoUrl) {
+        setLogoUrl(storedLogoUrl);
       } else {
         setLogoUrl(initialLogo);
       }
-
+      
       if (storedSubmissions) {
         setContactSubmissions(JSON.parse(storedSubmissions));
       }
@@ -92,6 +88,12 @@ export default function Home() {
       document.title = siteName;
     }
   }, [siteName, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      localStorage.setItem('logoUrl', logoUrl);
+    }
+  }, [logoUrl, isLoading]);
 
   useEffect(() => {
     if(!isLoading) {
@@ -221,15 +223,8 @@ export default function Home() {
     handleUpdateProperty(updatedProperty);
   };
   
-  const handleUpdateLogo = async (file: File) => {
-    try {
-        const key = `logo-${uuidv4()}`;
-        await db.saveImage(key, file);
-        localStorage.setItem('logoKey', key);
-        setLogoUrl(URL.createObjectURL(file));
-    } catch (error) {
-        console.error("Failed to update logo:", error);
-    }
+  const handleUpdateLogo = (newLogoUrl: string) => {
+    setLogoUrl(newLogoUrl);
   };
   
   const handleContactSubmit = (submission: Omit<ContactSubmission, 'id' | 'submittedAt'>) => {

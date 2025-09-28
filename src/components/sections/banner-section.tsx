@@ -7,8 +7,7 @@ import EditableText from '../editable-text';
 import { Switch } from '../ui/switch';
 import { Label } from '../ui/label';
 import { v4 as uuidv4 } from 'uuid';
-import { saveImage, getImage } from '@/lib/db';
-import { cn } from '@/lib/utils';
+import { cn, fileToDataUrl } from '@/lib/utils';
 import { useDraggable } from '@dnd-kit/core';
 import { Slider } from '../ui/slider';
 
@@ -113,24 +112,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   const sectionRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [backgroundPosition, setBackgroundPosition] = useState('center');
-  const [imageUrl, setImageUrl] = useState(data.imageUrl);
   
-  useEffect(() => {
-    const loadImage = async () => {
-        if (data.imageKey) {
-            const blob = await getImage(data.imageKey);
-            if (blob) {
-                const localUrl = URL.createObjectURL(blob);
-                setImageUrl(localUrl);
-                return () => URL.revokeObjectURL(localUrl);
-            }
-        } else {
-            setImageUrl(data.imageUrl);
-        }
-    };
-    loadImage();
-  }, [data.imageKey, data.imageUrl]);
-
   useEffect(() => {
     if (!data.parallaxEnabled || isAdminMode) {
       setBackgroundPosition('center');
@@ -198,12 +180,14 @@ const BannerSection: React.FC<BannerSectionProps> = ({
       });
   };
 
-
   const handleFileChange = async (file: File) => {
     if (file) {
-        const key = `banner-${data.id}-${uuidv4()}`;
-        await saveImage(key, file);
-        updateSection(data.id, { imageKey: key, imageUrl: undefined });
+        try {
+            const dataUrl = await fileToDataUrl(file);
+            updateSection(data.id, { imageUrl: dataUrl });
+        } catch (error) {
+            console.error("Failed to read file", error);
+        }
     }
   };
 
@@ -231,7 +215,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
       style={{ 
         height: containerHeight,
         borderRadius: containerBorderRadius,
-        backgroundImage: `url(${imageUrl})`,
+        backgroundImage: `url(${data.imageUrl})`,
         backgroundPosition: backgroundPosition,
         backgroundAttachment: data.parallaxEnabled && !isAdminMode ? 'fixed' : 'scroll',
         transition: 'background-position 0.1s ease-out',

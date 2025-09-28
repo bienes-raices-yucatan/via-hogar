@@ -1,5 +1,5 @@
 'use client';
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { AmenitiesSectionData } from '@/lib/types';
 import { Button } from '../ui/button';
@@ -7,8 +7,8 @@ import { Trash2, PlusCircle, Image as ImageIcon } from 'lucide-react';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
 import Image from 'next/image';
-import { saveImage, getImage } from '@/lib/db';
 import { Label } from '../ui/label';
+import { fileToDataUrl } from '@/lib/utils';
 
 type IconName = keyof typeof LucideIcons;
 
@@ -22,33 +22,6 @@ interface AmenitiesSectionProps {
 
 const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
-    const [imageUrls, setImageUrls] = useState<{[key: string]: string}>({});
-
-    useEffect(() => {
-        const loadImageUrls = async () => {
-            const urls: {[key: string]: string} = {};
-            const revocations: (()=>void)[] = [];
-            for (const amenity of data.amenities) {
-                if (amenity.imageKey) {
-                    const blob = await getImage(amenity.imageKey);
-                    if (blob) {
-                        const url = URL.createObjectURL(blob);
-                        urls[amenity.id] = url;
-                        revocations.push(() => URL.revokeObjectURL(url));
-                    }
-                } else if (amenity.imageUrl) {
-                    urls[amenity.id] = amenity.imageUrl;
-                }
-            }
-            setImageUrls(urls);
-            
-            return () => {
-                revocations.forEach(r => r());
-            }
-        };
-        loadImageUrls();
-    }, [data.amenities]);
-
 
     const handleAmenityTextChange = (amenityId: string, newText: string) => {
         const updatedAmenities = data.amenities.map(a => a.id === amenityId ? { ...a, text: newText } : a);
@@ -68,13 +41,15 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, amenityId: string) => {
         const file = e.target.files?.[0];
         if (file) {
-            const key = `amenity-${amenityId}-${uuidv4()}`;
-            await saveImage(key, file);
-            
-            const updatedAmenities = data.amenities.map(a => 
-                a.id === amenityId ? { ...a, imageKey: key, imageUrl: undefined } : a
-            );
-            updateSection(data.id, { amenities: updatedAmenities });
+            try {
+                const dataUrl = await fileToDataUrl(file);
+                const updatedAmenities = data.amenities.map(a => 
+                    a.id === amenityId ? { ...a, imageUrl: dataUrl } : a
+                );
+                updateSection(data.id, { amenities: updatedAmenities });
+            } catch (error) {
+                console.error("Failed to read file", error);
+            }
         }
     };
     
@@ -93,13 +68,12 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
                     {data.amenities.map(amenity => {
                         const Icon = amenity.icon ? LucideIcons[amenity.icon as IconName] as React.ElementType : null;
-                        const amenityImageUrl = imageUrls[amenity.id];
                         const uploadId = `amenity-upload-${amenity.id}`;
                         return (
                             <div key={amenity.id} className="text-center p-4 rounded-lg transition-colors group/amenity relative">
-                                {amenityImageUrl ? (
+                                {amenity.imageUrl ? (
                                     <div className="relative w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden">
-                                        <Image src={amenityImageUrl} alt={amenity.text} layout="fill" objectFit="cover" />
+                                        <Image src={amenity.imageUrl} alt={amenity.text} layout="fill" objectFit="cover" />
                                     </div>
                                 ) : (
                                     Icon && <Icon className="mx-auto h-10 w-10 text-primary mb-3" />

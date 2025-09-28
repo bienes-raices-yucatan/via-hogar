@@ -4,12 +4,14 @@ import Image from 'next/image';
 import { Button } from '../ui/button';
 import EditableText from '../editable-text';
 import { Label } from '../ui/label';
+import { fileToDataUrl } from '@/lib/utils';
+
 
 interface HeaderProps {
   siteName: string;
   setSiteName: (name: string) => void;
   logoUrl: string;
-  setLogoUrl: (file: File) => void;
+  setLogoUrl: (newUrl: string) => void;
   isAdminMode: boolean;
   onLogout: () => void;
 }
@@ -24,9 +26,14 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const logoFileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setLogoUrl(e.target.files[0]);
+      try {
+        const dataUrl = await fileToDataUrl(e.target.files[0]);
+        setLogoUrl(dataUrl);
+      } catch (error) {
+        console.error("Failed to read file", error);
+      }
     }
   };
   

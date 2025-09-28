@@ -2,14 +2,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GallerySectionData } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Trash2, PlusCircle, Pencil, Image as ImageIcon } from 'lucide-react';
+import { Trash2, PlusCircle, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
-import { saveImage, getImage } from '@/lib/db';
 import { Label } from '../ui/label';
+import { fileToDataUrl } from '@/lib/utils';
 
 interface GallerySectionProps {
     data: GallerySectionData;
@@ -23,35 +23,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
     const [api, setApi] = useState<CarouselApi>()
     const [current, setCurrent] = useState(0)
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
-    const [imageUrls, setImageUrls] = useState<{[key: string]: string}>({});
-
-
-    useEffect(() => {
-        const loadImageUrls = async () => {
-            const urls: {[key: string]: string} = {};
-            const revocations: (()=>void)[] = [];
-            for (const image of data.images) {
-                if (image.imageKey) {
-                    const blob = await getImage(image.imageKey);
-                    if (blob) {
-                        const url = URL.createObjectURL(blob);
-                        urls[image.id] = url;
-                        revocations.push(() => URL.revokeObjectURL(url));
-                    }
-                } else if (image.url) {
-                    urls[image.id] = image.url;
-                }
-            }
-            setImageUrls(urls);
-            
-            return () => {
-                revocations.forEach(r => r());
-            }
-        };
-        loadImageUrls();
-    }, [data.images]);
-
-
+    
     useEffect(() => {
         if (!api) {
             return
@@ -80,13 +52,15 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, imageId: string) => {
         const file = e.target.files?.[0];
         if (file) {
-            const key = `gallery-${data.id}-${imageId}-${uuidv4()}`;
-            await saveImage(key, file);
-            
-            const updatedImages = data.images.map(img => 
-                img.id === imageId ? { ...img, imageKey: key, url: undefined } : img
-            );
-            updateSection(data.id, { images: updatedImages });
+            try {
+                const dataUrl = await fileToDataUrl(file);
+                const updatedImages = data.images.map(img => 
+                    img.id === imageId ? { ...img, url: dataUrl } : img
+                );
+                updateSection(data.id, { images: updatedImages });
+            } catch (error) {
+                console.error("Failed to read file", error);
+            }
         }
     };
 
@@ -118,13 +92,12 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
                 >
                     <CarouselContent>
                         {data.images.map((image, index) => {
-                            const currentImageUrl = imageUrls[image.id] || image.url;
                             const uploadId = `gallery-upload-${image.id}`;
                             return (
                                 <CarouselItem key={image.id} className="basis-1/2 md:basis-1/4">
                                     <div className="p-1">
                                         <div className={`relative rounded-lg overflow-hidden shadow-lg group/image aspect-w-4 aspect-h-3 transition-transform duration-500 ease-in-out ${index === current ? 'scale-110' : 'scale-90 opacity-60'}`}>
-                                            {currentImageUrl && <Image src={currentImageUrl} alt={image.title} layout="fill" objectFit="cover" className="transform group-hover/image:scale-105 transition-transform duration-300" />}
+                                            {image.url && <Image src={image.url} alt={image.title} layout="fill" objectFit="cover" className="transform group-hover/image:scale-105 transition-transform duration-300" />}
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"/>
                                             <div className="absolute bottom-0 left-0 p-4">
                                                 <EditableText value={image.title} onChange={(newTitle) => handleImageTitleChange(image.id, newTitle)} isAdminMode={isAdminMode} className="text-white font-bold text-lg" />

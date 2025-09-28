@@ -40,7 +40,6 @@ export interface DraggableTextData extends StyledText {
 
 export interface HeroSectionData extends PageSection<'HERO'> {
   imageUrl?: string;
-  imageKey?: string;
   buttonText?: string;
   parallaxEnabled?: boolean;
   draggableTexts: DraggableTextData[];
@@ -50,7 +49,6 @@ export interface HeroSectionData extends PageSection<'HERO'> {
 
 export interface BannerSectionData extends PageSection<'BANNER'> {
   imageUrl?: string;
-  imageKey?: string;
   buttonText?: string;
   parallaxEnabled?: boolean;
   draggableTexts: DraggableTextData[];
@@ -63,7 +61,6 @@ export interface ImageWithFeaturesSectionData extends PageSection<'IMAGE_WITH_FE
   media: {
     type: 'image' | 'video';
     url?: string;
-    imageKey?: string;
   };
   features: {
     id: string;
@@ -79,7 +76,6 @@ export interface GallerySectionData extends PageSection<'GALLERY'> {
     id: string;
     url?: string;
     title: string;
-    imageKey?: string;
   }[];
 }
 
@@ -104,7 +100,6 @@ export interface AmenitiesSectionData extends PageSection<'AMENITIES'> {
     icon?: string;
     text: string;
     imageUrl?: string;
-    imageKey?: string;
   }[];
 }
 

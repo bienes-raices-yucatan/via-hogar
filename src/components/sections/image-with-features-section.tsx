@@ -1,14 +1,14 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { ImageWithFeaturesSectionData } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Trash2, PlusCircle, Image as ImageIcon, Video } from 'lucide-react';
+import { Trash2, PlusCircle, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
-import { saveImage, getImage } from '@/lib/db';
 import { Label } from '../ui/label';
+import { fileToDataUrl } from '@/lib/utils';
 
 type IconName = keyof typeof LucideIcons;
 
@@ -22,24 +22,7 @@ interface ImageWithFeaturesSectionProps {
 
 const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [mediaUrl, setMediaUrl] = useState(data.media.url);
-
-    useEffect(() => {
-        const loadMedia = async () => {
-            if (data.media.imageKey) {
-                const blob = await getImage(data.media.imageKey);
-                if (blob) {
-                    const localUrl = URL.createObjectURL(blob);
-                    setMediaUrl(localUrl);
-                    return () => URL.revokeObjectURL(localUrl);
-                }
-            } else if (data.media.url) {
-                setMediaUrl(data.media.url);
-            }
-        };
-        loadMedia();
-    }, [data.media.imageKey, data.media.url]);
-
+    
     const handleFeatureUpdate = (featureId: string, field: 'title' | 'subtitle', value: string) => {
         const updatedFeatures = data.features.map(f => f.id === featureId ? { ...f, [field]: value } : f);
         updateSection(data.id, { features: updatedFeatures });
@@ -58,16 +41,18 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const key = `media-${data.id}-${uuidv4()}`;
-            await saveImage(key, file);
-            const mediaType = file.type.startsWith('video') ? 'video' : 'image';
-            updateSection(data.id, {
-                media: {
-                    type: mediaType,
-                    url: undefined, // Clear static URL
-                    imageKey: key,
-                }
-            });
+            try {
+                const dataUrl = await fileToDataUrl(file);
+                const mediaType = file.type.startsWith('video') ? 'video' : 'image';
+                updateSection(data.id, {
+                    media: {
+                        type: mediaType,
+                        url: dataUrl,
+                    }
+                });
+            } catch (error) {
+                console.error("Failed to read file", error);
+            }
         }
     };
 
@@ -78,15 +63,15 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
             <div className="container mx-auto px-4">
                 <div className="grid md:grid-cols-2 gap-12 items-center">
                     <div className="relative group/media w-full h-[500px] md:h-[600px] rounded-lg overflow-hidden shadow-xl">
-                        {data.media.type === 'image' && mediaUrl ? (
-                            <Image src={mediaUrl} alt={data.title || 'Property Feature'} layout="fill" objectFit="cover" />
-                        ) : mediaUrl ? (
+                        {data.media.type === 'image' && data.media.url ? (
+                            <Image src={data.media.url} alt={data.title || 'Property Feature'} layout="fill" objectFit="cover" />
+                        ) : data.media.url ? (
                             <video
-                                key={mediaUrl} // Important for re-rendering video
+                                key={data.media.url} // Important for re-rendering video
                                 controls
                                 className="w-full h-full object-cover"
                             >
-                                <source src={mediaUrl} />
+                                <source src={data.media.url} />
                                 Tu navegador no soporta la etiqueta de video.
                             </video>
                         ) : (
