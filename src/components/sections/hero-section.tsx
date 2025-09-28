@@ -90,6 +90,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [backgroundPosition, setBackgroundPosition] = useState('center');
   const [imageUrl, setImageUrl] = useState(data.imageUrl);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   useEffect(() => {
     const loadImage = async () => {
@@ -172,14 +173,18 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       });
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileChange = async (file: File) => {
     if (file) {
         const key = `hero-${data.id}-${uuidv4()}`;
         await saveImage(key, file);
         updateSection(data.id, { imageKey: key, imageUrl: undefined });
     }
   };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFileChange(file);
+  }
   
   const uploadId = `hero-image-upload-${data.id}`;
 
@@ -189,6 +194,32 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 
   const containerHeight = data.height || '75vh';
   const containerBorderRadius = isFirstSection ? `0 0 ${data.borderRadius || '3rem'} ${data.borderRadius || '3rem'}` : (data.borderRadius || '3rem');
+
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isAdminMode) setIsDraggingOver(true);
+  };
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isAdminMode) setIsDraggingOver(false);
+  };
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAdminMode) return;
+    setIsDraggingOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+        handleFileChange(file);
+    }
+  };
 
 
   return (
@@ -208,11 +239,24 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         transition: 'background-position 0.1s ease-out',
         overflow: 'hidden'
       }}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
       <div 
         className="absolute inset-0 bg-black/30"
         style={{ borderRadius: containerBorderRadius }}
       ></div>
+
+      {isAdminMode && isDraggingOver && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/50 border-4 border-dashed border-white rounded-lg">
+          <div className="text-center text-white">
+            <ImageIcon size={48} className="mx-auto mb-2" />
+            <p className="text-lg font-semibold">Suelta tu imagen aquí</p>
+          </div>
+        </div>
+      )}
       
       {data.draggableTexts && data.draggableTexts.map(text => (
         <DraggableText 
@@ -247,7 +291,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               type="file"
               id={uploadId}
               ref={fileInputRef}
-              onChange={handleFileChange}
+              onChange={handleFileInputChange}
               className="hidden"
               accept="image/*"
           />
