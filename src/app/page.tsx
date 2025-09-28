@@ -1,10 +1,8 @@
 'use client';
-
 import { useState, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { collection, doc, orderBy, query, writeBatch } from 'firebase/firestore';
 
 import Footer from '@/components/layout/footer';
 import PropertyList from '@/components/property-list';
@@ -16,35 +14,23 @@ import EditingToolbar from '@/components/toolbars/editing-toolbar';
 import ConfirmationModal from '@/components/modals/confirmation-modal';
 import Header from '@/components/layout/header';
 
-import { useCollection, useDoc, useFirestore, useUser, useAuth, useMemoFirebase, useStorage } from '@/firebase';
-import { setDocumentNonBlocking, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { uploadFile } from '@/firebase/storage';
-
-import { Property, AnySectionData, ContactSubmission, SiteConfig } from '@/lib/types';
+import { Property, AnySectionData, ContactSubmission } from '@/lib/types';
 import { initialProperties } from '@/lib/data';
-
+import { db } from '@/lib/db';
 
 export default function Home() {
-  const firestore = useFirestore();
-  const auth = useAuth();
-  const storage = useStorage();
-  const { user, isUserLoading } = useUser();
-  const isAdminMode = !!user;
-
-  // Data fetching from Firestore
-  const propertiesQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'properties'), orderBy('createdAt', 'asc')) : null, [firestore]);
-  const { data: properties, isLoading: isLoadingProperties } = useCollection<Property>(propertiesQuery);
-  
-  const siteConfigRef = useMemoFirebase(() => firestore ? doc(firestore, 'config', 'site') : null, [firestore]);
-  const { data: siteConfig, isLoading: isLoadingSiteConfig } = useDoc<SiteConfig>(siteConfigRef);
-  
+  const [properties, setProperties] = useState<Property[]>([]);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Editing state
   const [isDraggingMode, setIsDraggingMode] = useState(false);
   const [selectedElement, setSelectedElement] = useState<any>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null);
+  const [siteName, setSiteName] = useState('Vía Hogar');
+  const [logoUrl, setLogoUrl] = useState('/logo.svg');
   
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -53,23 +39,40 @@ export default function Home() {
     })
   );
 
-  // Seed initial data if properties collection is empty
   useEffect(() => {
-    if (firestore && !isLoadingProperties && properties && properties.length === 0) {
-      const batch = writeBatch(firestore);
-      initialProperties.forEach((property) => {
-        const propWithTimestamp = { ...property, createdAt: new Date() };
-        const docRef = doc(firestore, 'properties', property.id);
-        batch.set(docRef, propWithTimestamp);
-      });
-      batch.commit().catch(console.error);
-    }
-  }, [properties, isLoadingProperties, firestore]);
-  
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        let props = await db.properties.toArray();
+        if (props.length === 0) {
+          await db.properties.bulkAdd(initialProperties);
+          props = await db.properties.toArray();
+        }
+        setProperties(props);
 
-  const handleLogout = async () => {
-    if (!auth) return;
-    await auth.signOut();
+        const savedSiteName = await db.getItem('siteName');
+        if (savedSiteName) setSiteName(savedSiteName);
+
+        const savedLogoUrl = await db.getItem('logoUrl');
+        if (savedLogoUrl) setLogoUrl(savedLogoUrl);
+
+      } catch (error) {
+        console.error("Failed to load data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const handleAdminLogin = (success: boolean) => {
+    if (success) {
+      setIsAdminMode(true);
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAdminMode(false);
     setIsDraggingMode(false);
     setSelectedElement(null);
   };
@@ -78,17 +81,18 @@ export default function Home() {
     setSelectedPropertyId(id);
   };
   
-  const handleUpdateProperty = (updatedProperty: Property) => {
-    if (!firestore) return;
-    const propertyRef = doc(firestore, 'properties', updatedProperty.id);
-    const { id, ...propertyData } = updatedProperty;
-    updateDocumentNonBlocking(propertyRef, propertyData);
+  const handleUpdateProperty = async (updatedProperty: Property) => {
+    try {
+      await db.properties.put(updatedProperty);
+      setProperties(prev => prev.map(p => p.id === updatedProperty.id ? updatedProperty : p));
+    } catch (error) {
+      console.error("Failed to update property:", error);
+    }
   };
 
-  const handleAddNewProperty = () => {
-    if (!firestore) return;
-    const newPropertyId = uuidv4();
-    const newProperty: Omit<Property, 'id'> = {
+  const handleAddNewProperty = async () => {
+    const newProperty: Property = {
+      id: uuidv4(),
       name: "Nueva Propiedad",
       address: "Dirección de la nueva propiedad",
       price: 0,
@@ -119,9 +123,13 @@ export default function Home() {
       createdAt: new Date(),
     };
     
-    const propertyRef = doc(firestore, 'properties', newPropertyId);
-    setDocumentNonBlocking(propertyRef, newProperty, {});
-    setSelectedPropertyId(newPropertyId);
+    try {
+        await db.properties.add(newProperty);
+        setProperties(prev => [...prev, newProperty]);
+        setSelectedPropertyId(newProperty.id);
+    } catch (error) {
+        console.error("Failed to add new property:", error);
+    }
   };
 
   const handleDeleteProperty = (id: string) => {
@@ -129,19 +137,22 @@ export default function Home() {
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDeleteProperty = () => {
-    if (!propertyToDelete || !firestore) return;
-    const propertyRef = doc(firestore, 'properties', propertyToDelete);
-    deleteDocumentNonBlocking(propertyRef);
-    if (selectedPropertyId === propertyToDelete) {
-      setSelectedPropertyId(null);
+  const confirmDeleteProperty = async () => {
+    if (!propertyToDelete) return;
+    try {
+      await db.properties.delete(propertyToDelete);
+      setProperties(prev => prev.filter(p => p.id !== propertyToDelete));
+      if (selectedPropertyId === propertyToDelete) {
+        setSelectedPropertyId(null);
+      }
+      setPropertyToDelete(null);
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error("Failed to delete property:", error);
     }
-    setPropertyToDelete(null);
-    setIsDeleteModalOpen(false);
   };
 
   const handleAddSection = (sectionType: AnySectionData['type']) => {
-    if (!properties || !firestore) return;
     const property = properties.find(p => p.id === selectedPropertyId);
     if (!property) return;
 
@@ -189,31 +200,25 @@ export default function Home() {
   };
   
   const handleUpdateLogo = async (file: File) => {
-    if (!storage || !siteConfigRef) return;
-    const path = `config/logo/${file.name}`;
-    const url = await uploadFile(storage, file, path);
-    updateDocumentNonBlocking(siteConfigRef, { logoUrl: url });
+    const dataUrl = await fileToDataUrl(file);
+    setLogoUrl(dataUrl);
+    await db.setItem('logoUrl', dataUrl);
   };
   
-  const handleUpdateSiteName = (newName: string) => {
-    if (!siteConfigRef) return;
-    updateDocumentNonBlocking(siteConfigRef, { siteName: newName });
+  const handleUpdateSiteName = async (newName: string) => {
+    setSiteName(newName);
+    await db.setItem('siteName', newName);
   }
 
   const handleContactSubmit = (submission: Omit<ContactSubmission, 'id' | 'submittedAt'>) => {
-    if (!firestore) return;
-    const newSubmission = {
-      ...submission,
-      submittedAt: new Date(),
-    };
-    const submissionsCollection = collection(firestore, `properties/${submission.propertyId}/contactSubmissions`);
-    addDocumentNonBlocking(submissionsCollection, newSubmission);
+    // In a real app, this would submit to a backend.
+    console.log('Contact submission:', submission);
     alert('¡Gracias por tu interés! Nos pondremos en contacto contigo pronto.');
   };
   
   const handleDragEnd = (event: DragEndEvent) => {
     const {active, over} = event;
-    if (!over || !properties || !firestore) return;
+    if (!over) return;
     
     const property = properties.find(p => p.id === selectedPropertyId);
     if (!property) return;
@@ -256,8 +261,6 @@ export default function Home() {
         handleUpdateProperty({ ...property, sections: updatedSections });
     }
   }
-
-  const isLoading = isUserLoading || isLoadingProperties || isLoadingSiteConfig;
   
   if (isLoading) {
     return (
@@ -267,9 +270,7 @@ export default function Home() {
     );
   }
 
-  const selectedProperty = properties?.find(p => p.id === selectedPropertyId);
-  const siteName = siteConfig?.siteName || "Vía Hogar";
-  const logoUrl = siteConfig?.logoUrl || '/logo.svg';
+  const selectedProperty = properties.find(p => p.id === selectedPropertyId);
   
   return (
     <DndContext
@@ -309,7 +310,7 @@ export default function Home() {
           ) : (
             <div className="container mx-auto px-4 py-8">
               <PropertyList
-                properties={properties || []}
+                properties={properties}
                 onSelectProperty={handleSelectProperty}
                 onDeleteProperty={handleDeleteProperty}
                 onUpdateProperty={handleUpdateProperty}
@@ -320,7 +321,7 @@ export default function Home() {
           )}
         </main>
         
-        {isAdminMode && selectedElement && properties && (
+        {isAdminMode && selectedElement && (
           <EditingToolbar 
             selectedElement={selectedElement}
             setSelectedElement={setSelectedElement}
@@ -330,7 +331,7 @@ export default function Home() {
           />
         )}
         
-        <Footer isAdminMode={isAdminMode} />
+        <Footer onAdminLogin={handleAdminLogin} />
 
         {isAdminMode && selectedProperty && (
           <AdminToolbar 
@@ -351,3 +352,15 @@ export default function Home() {
     </DndContext>
   );
 }
+
+// Helper function to convert file to data URL
+const fileToDataUrl = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
+    

@@ -1,6 +1,6 @@
 'use client';
 import { BannerSectionData, DraggableTextData } from '@/lib/types';
-import { Trash2, Image as ImageIcon, PlusCircle, GripVertical, AlignCenterHorizontal, ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from 'lucide-react';
+import { Trash2, Image as ImageIcon, PlusCircle, GripVertical } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
 import EditableText from '../editable-text';
@@ -10,8 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { cn } from '@/lib/utils';
 import { useDraggable } from '@dnd-kit/core';
 import { Slider } from '../ui/slider';
-import { uploadFile } from '@/firebase/storage';
-import { useStorage } from '@/firebase';
+import { db } from '@/lib/db';
 
 interface DraggableTextProps {
     data: DraggableTextData;
@@ -114,7 +113,6 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   const sectionRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [backgroundPosition, setBackgroundPosition] = useState('center');
-  const storage = useStorage();
   
   useEffect(() => {
     if (!data.parallaxEnabled || isAdminMode) {
@@ -184,9 +182,9 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   };
 
   const handleFileChange = async (file: File) => {
-    const path = `banners/${data.id}/${file.name}`;
-    const url = await uploadFile(storage, file, path);
-    updateSection(data.id, { imageUrl: url });
+    const dataUrl = await fileToDataUrl(file);
+    updateSection(data.id, { imageUrl: dataUrl });
+    await db.setItem(`section-bg-${data.id}`, dataUrl);
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -310,4 +308,15 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   );
 };
 
+const fileToDataUrl = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 export default BannerSection;
+
+    

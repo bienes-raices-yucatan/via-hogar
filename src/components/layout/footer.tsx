@@ -3,85 +3,22 @@
 import React, { useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { useAuth } from '@/firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import AdminLoginModal from '../modals/admin-login-modal';
 
 interface FooterProps {
-  isAdminMode: boolean;
+  onAdminLogin: (success: boolean) => void;
 }
 
-const Footer: React.FC<FooterProps> = ({ isAdminMode }) => {
+const Footer: React.FC<FooterProps> = ({ onAdminLogin }) => {
   const [isLoginVisible, setIsLoginVisible] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-
-  const auth = useAuth();
 
   const handleAdminClick = () => {
-    if (!isAdminMode) {
-      setIsLoginVisible(!isLoginVisible);
-    }
+    setIsLoginVisible(true);
   };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (!auth) {
-      setError('Servicio de autenticación no disponible.');
-      return;
-    }
-
-    signInWithEmailAndPassword(auth, username, password)
-      .then((userCredential) => {
-        setIsLoginVisible(false);
-        setUsername('');
-        setPassword('');
-      })
-      .catch((err) => {
-        // This is the correct place to create and emit the contextual error.
-        // It provides detailed information for debugging security rule issues.
-        const permissionError = new FirestorePermissionError({
-          path: `Authentication attempt for ${username}`, // A descriptive path for auth operations
-          operation: 'write', // 'write' is a stand-in for a sign-in/auth attempt
-          requestResourceData: { email: username, action: 'signInWithEmailAndPassword' },
-        });
-
-        // Emit the structured error for the global error listener to catch and display.
-        errorEmitter.emit('permission-error', permissionError);
-        
-        // This sets a user-facing message, but the developer-facing error is now rich with context.
-        setError('Error al iniciar sesión. Verifica tus credenciales o permisos.');
-      });
-  };
-
-
+  
   return (
     <footer className="bg-slate-900 text-slate-300">
       <div className="container mx-auto px-4 py-8">
-        {isLoginVisible && (
-           <form onSubmit={handleSubmit} className="mb-6 p-4 bg-slate-800 rounded-lg flex flex-col sm:flex-row items-center gap-4">
-              <Input
-                type="email"
-                placeholder="Email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="bg-slate-700 text-white border-slate-600"
-              />
-              <Input
-                type="password"
-                placeholder="Contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-slate-700 text-white border-slate-600"
-              />
-              <Button type="submit" className="w-full sm:w-auto">Iniciar Sesión</Button>
-              {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-          </form>
-        )}
         <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left">
           <div className="mb-4 md:mb-0">
             <h3 className="text-xl font-bold font-headline text-white">Vía Hogar</h3>
@@ -98,8 +35,15 @@ const Footer: React.FC<FooterProps> = ({ isAdminMode }) => {
           </div>
         </div>
       </div>
+      <AdminLoginModal
+        isOpen={isLoginVisible}
+        onClose={() => setIsLoginVisible(false)}
+        onLogin={onAdminLogin}
+      />
     </footer>
   );
 };
 
 export default Footer;
+
+    
