@@ -301,5 +301,3 @@ const BannerSection: React.FC<BannerSectionProps> = ({
 };
 
 export default BannerSection;
-
-    
