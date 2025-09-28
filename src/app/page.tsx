@@ -177,7 +177,7 @@ export default function Home() {
             newSection = { id: sectionId, type: 'CONTACT', style: {backgroundColor: '#e0f2fe'}, imageUrl: 'https://picsum.photos/seed/newcontact/1920/1080', title: {text: '¿Interesado?', fontSize: '36px', color: '#1E293B', fontFamily: 'Montserrat'}, subtitle: {text: 'Ponte en contacto con nosotros.', fontSize: '18px', color: '#475569', fontFamily: 'Roboto'}, buttonText: 'Enviar Mensaje', parallaxEnabled: false };
             break;
         case 'PRICING':
-            newSection = { id: sectionId, type: 'PRICING', style: {backgroundColor: '#F9FAFA'}, title: 'Planes de Precios', tiers: [{id: uuidv4(), name: 'Básico', price: '$100', frequency: '/mes', features: ['Característica 1', 'Característica 2'], buttonText: 'Seleccionar', isFeatured: false }] };
+            newSection = { id: sectionId, type: 'PRICING', style: {backgroundColor: '#f8fafc'}, icon: 'Home', title: 'Precio de la propiedad', price: '5,500,000 MDP', originalPrice: '6,500,000 MDP', subtitle: 'Lista para escriturar y con entrega inmediata.', buttonText: 'ME INTERESA' };
             break;
         default:
             return;
@@ -219,7 +219,7 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen bg-background font-body text-slate-800 flex flex-col ${isAdminMode ? 'admin-mode' : ''}`}>
-      <main className="flex-grow">
+        <main className="flex-grow">
         {selectedProperty ? (
           <div>
             <SectionRenderer
@@ -264,7 +264,13 @@ export default function Home() {
       
       <Footer onLogin={handleLogin} isAdminMode={isAdminMode} />
 
-      {isAdminMode && selectedProperty && <AdminToolbar isDraggingMode={isDraggingMode} onToggleDragMode={() => setIsDraggingMode(!isDraggingMode)} onAddSection={handleAddSection} />}
+      {isAdminMode && selectedProperty && (
+        <AdminToolbar 
+            onAddSection={handleAddSection} 
+            isDraggingMode={isDraggingMode}
+            onToggleDragMode={() => setIsDraggingMode(prev => !prev)}
+        />
+      )}
 
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
@@ -276,5 +282,3 @@ export default function Home() {
     </div>
   );
 }
-
-    

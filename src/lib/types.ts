@@ -97,16 +97,12 @@ export interface AmenitiesSectionData extends PageSection<'AMENITIES'> {
 }
 
 export interface PricingSectionData extends PageSection<'PRICING'> {
-  title?: string;
-  tiers: {
-    id: string;
-    name: string;
-    price: string;
-    frequency: string;
-    features: string[];
-    buttonText: string;
-    isFeatured: boolean;
-  }[];
+  icon: string;
+  title: string;
+  subtitle: string;
+  price: string;
+  originalPrice?: string;
+  buttonText: string;
 }
 
 export interface ContactSectionData extends PageSection<'CONTACT'> {
