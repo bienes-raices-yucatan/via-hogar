@@ -1,57 +1,75 @@
 /**
- * @file Overview
- * This ruleset enforces a public read, owner-write model for Property data,
- * with nested ContactSubmissions. Section data is read only.
+ * @fileoverview Firestore Security Rules for Vía Hogar Portal
+ *
+ * Core Philosophy:
+ * This ruleset prioritizes secure data access based on a path-based ownership model,
+ * emphasizing authorization independence and structural segregation for optimal security and performance.
+ * No `get()` calls are used in rules to avoid performance bottlenecks.
  *
  * Data Structure:
- * - /properties/{propertyId}: Publicly readable property data.
- * - /properties/{propertyId}/contactSubmissions/{contactSubmissionId}: Contact submissions associated with a property.
- * - /{sectionData}/{sectionDataId}: Data for various section types (HeroSectionData, GallerySectionData, etc.).
+ * - Properties: Top-level collection containing property details.
+ * - PageSections: Subcollection under each property, representing modular page sections.
+ * - ContactSubmissions: Subcollection under each property, storing contact form submissions.
+ * - [SectionData]: Top-level collections for various section data entities (HeroSectionData, GallerySectionData, etc.).
+ * - [RelatedData]: Top-level collections for entities related to Sections (DraggableTextData, Features, NearbyPlaces, Amenities, Tiers, FeatureTiers).
  *
  * Key Security Decisions:
- * - Public read access for properties.
- * - Owner-only writes for properties, validated by the existence of the `propertyId` field on creation and immutability on update.
- * - Contact submissions are only creatable under a given `propertyId`.
- * - All Section Data documents are publicly readable.
+ * - Contact submissions are nested under their respective property documents.
+ * - List operations are secured by default, with collections containing only accessible documents.
+ * - Write access to Property and its subcollections is not explicitly defined, defaulting to `false`, which blocks all write access.
+ *
+ * Denormalization for Authorization:
+ * - The `contactSubmissions` subcollection under `/properties/{propertyId}` implicitly links submissions to properties, enabling authorization based on the parent property.
+ *
+ * Structural Segregation:
+ * - Different section data types (HeroSectionData, GallerySectionData, etc.) are stored in separate top-level collections to simplify querying and avoid complex type-checking in rules.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows public read access to property documents, but restricts writes to owners.
+     * @description Secures Property documents.
      * @path /properties/{propertyId}
-     * @allow (get, list): if true;
-     * @allow (create): if request.auth != null;
-     * @allow (update, delete): if request.auth != null;
-     * @deny (create): if request.auth == null;
-     * @deny (update, delete): if request.auth == null;
-     * @principle Allows public read access while enforcing ownership for write operations on properties.
+     * @allow (get, list): Public access to property data.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to property listings.
      */
     match /properties/{propertyId} {
       allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn();
+      allow create, update, delete: if false;
     }
 
     /**
-     * @description Allows creation of contact submissions under a specific property, but only by authenticated users.
+     * @description Secures PageSection documents nested under a Property.
+     * @path /properties/{propertyId}/pageSections/{pageSectionId}
+     * @allow (get, list): Public access to page section data.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to page sections.
+     */
+    match /properties/{propertyId}/pageSections/{pageSectionId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+
+    /**
+     * @description Secures ContactSubmission documents nested under a Property.
      * @path /properties/{propertyId}/contactSubmissions/{contactSubmissionId}
-     * @allow (create): if request.auth != null;
-     * @deny (get, list, update, delete): always fails.
-     * @principle Restricts contact submissions to authenticated users and enforces parent-child relationship with properties.
+     * @allow (get, list): Public read access to contact submissions.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Restricts contact submissions to be read-only.
      */
     match /properties/{propertyId}/contactSubmissions/{contactSubmissionId} {
-      allow get, list, update, delete: if false;
-      allow create: if isSignedIn();
+      allow get, list: if true;
+      allow create, update, delete: if false;
     }
 
     /**
-     * @description Allows public read access to hero section data.
+     * @description Secures HeroSectionData documents.
      * @path /heroSectionData/{heroSectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to hero section data.
+     * @allow (get, list): Public read access to HeroSectionData.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to hero section data.
      */
     match /heroSectionData/{heroSectionDataId} {
       allow get, list: if true;
@@ -59,11 +77,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to draggable text data.
+     * @description Secures DraggableTextData documents.
      * @path /draggableTextData/{draggableTextDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to draggable text data.
+     * @allow (get, list): Public read access to DraggableTextData.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to draggable text data.
      */
     match /draggableTextData/{draggableTextDataId} {
       allow get, list: if true;
@@ -71,11 +89,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to image with features section data.
+     * @description Secures ImageWithFeaturesSectionData documents.
      * @path /imageWithFeaturesSectionData/{imageWithFeaturesSectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to image with features section data.
+     * @allow (get, list): Public read access to ImageWithFeaturesSectionData.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to image with features section data.
      */
     match /imageWithFeaturesSectionData/{imageWithFeaturesSectionDataId} {
       allow get, list: if true;
@@ -83,11 +101,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to features.
+     * @description Secures Feature documents.
      * @path /features/{featureId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to features.
+     * @allow (get, list): Public read access to Feature.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to feature data.
      */
     match /features/{featureId} {
       allow get, list: if true;
@@ -95,11 +113,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to gallery section data.
+     * @description Secures GallerySectionData documents.
      * @path /gallerySectionData/{gallerySectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to gallery section data.
+     * @allow (get, list): Public read access to GallerySectionData.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to gallery section data.
      */
     match /gallerySectionData/{gallerySectionDataId} {
       allow get, list: if true;
@@ -107,11 +125,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to location section data.
+     * @description Secures LocationSectionData documents.
      * @path /locationSectionData/{locationSectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to location section data.
+     * @allow (get, list): Public read access to LocationSectionData.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to location section data.
      */
     match /locationSectionData/{locationSectionDataId} {
       allow get, list: if true;
@@ -119,11 +137,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to nearby places.
+     * @description Secures NearbyPlace documents.
      * @path /nearbyPlaces/{nearbyPlaceId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to nearby places.
+     * @allow (get, list): Public read access to NearbyPlace.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to nearby place data.
      */
     match /nearbyPlaces/{nearbyPlaceId} {
       allow get, list: if true;
@@ -131,11 +149,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to amenities section data.
+     * @description Secures AmenitiesSectionData documents.
      * @path /amenitiesSectionData/{amenitiesSectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to amenities section data.
+     * @allow (get, list): Public read access to AmenitiesSectionData.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to amenities section data.
      */
     match /amenitiesSectionData/{amenitiesSectionDataId} {
       allow get, list: if true;
@@ -143,11 +161,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to amenities.
+     * @description Secures Amenity documents.
      * @path /amenities/{amenityId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to amenities.
+     * @allow (get, list): Public read access to Amenity.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to amenity data.
      */
     match /amenities/{amenityId} {
       allow get, list: if true;
@@ -155,11 +173,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to pricing section data.
+     * @description Secures PricingSectionData documents.
      * @path /pricingSectionData/{pricingSectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to pricing section data.
+     * @allow (get, list): Public read access to PricingSectionData.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to pricing section data.
      */
     match /pricingSectionData/{pricingSectionDataId} {
       allow get, list: if true;
@@ -167,11 +185,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to tiers.
+     * @description Secures Tier documents.
      * @path /tiers/{tierId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to tiers.
+     * @allow (get, list): Public read access to Tier.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to tier data.
      */
     match /tiers/{tierId} {
       allow get, list: if true;
@@ -179,11 +197,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to feature tiers.
+     * @description Secures FeatureTier documents.
      * @path /featureTiers/{featureTierId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to feature tiers.
+     * @allow (get, list): Public read access to FeatureTier.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to feature tier data.
      */
     match /featureTiers/{featureTierId} {
       allow get, list: if true;
@@ -191,31 +209,15 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to contact section data.
+     * @description Secures ContactSectionData documents.
      * @path /contactSectionData/{contactSectionDataId}
-     * @allow (get, list): if true;
-     * @deny (create, update, delete): always fails.
-     * @principle Provides public read access to contact section data.
+     * @allow (get, list): Public read access to ContactSectionData.
+     * @deny (create, update, delete): No write access allowed.
+     * @principle Enforces read-only access to contact section data.
      */
     match /contactSectionData/{contactSectionDataId} {
       allow get, list: if true;
       allow create, update, delete: if false;
     }
-
-     /**
-      * @description Allows public read access to site configuration
-      * @path /config/site
-      * @allow (get): if true;
-      * @deny (list, create, update, delete): always fails.
-      * @principle Provides public read access to site configuration.
-      */
-    match /config/site {
-      allow get: if true;
-      allow list, create, update, delete: if false;
-    }
-  }
-
-  function isSignedIn() {
-    return request.auth != null;
   }
 }

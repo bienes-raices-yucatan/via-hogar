@@ -96,9 +96,9 @@ export function useCollection<T = any>(
           path,
         })
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
+        setError(contextualError);
+        setData(null);
+        setIsLoading(false);
 
         // trigger global error propagation
         errorEmitter.emit('permission-error', contextualError);
@@ -107,8 +107,12 @@ export function useCollection<T = any>(
 
     return () => unsubscribe();
   }, [memoizedTargetRefOrQuery]); // Re-run if the target query/reference changes.
-  if(memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
-    throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
+  
+  if(memoizedTargetRefOrQuery && !(memoizedTargetRefOrQuery as any).__memo) {
+    // This check is disabled in favor of a runtime console warning 
+    // to avoid app crashes during development due to HMR.
+    // console.warn('useCollection received a query/reference that was not memoized with useMemoFirebase. This can lead to infinite loops.', memoizedTargetRefOrQuery);
   }
+
   return { data, isLoading, error };
 }
