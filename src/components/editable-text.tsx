@@ -43,7 +43,7 @@ const EditableText: React.FC<EditableTextProps> = ({
 
   const handleClick = (e: React.MouseEvent) => {
     if (isAdminMode) {
-      e.stopPropagation(); // Prevent clicks from bubbling up to parent elements
+      // e.stopPropagation(); // This was the root cause of the upload issue. It prevents clicks from bubbling up.
       if (onSelect) {
         onSelect();
       }
@@ -80,7 +80,7 @@ const EditableText: React.FC<EditableTextProps> = ({
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           className={`${className} w-full p-0 m-0 bg-amber-100 border-none focus:ring-2 focus:ring-primary rounded-sm resize-none overflow-hidden`}
-          onClick={(e) => e.stopPropagation()} // Prevent closing toolbar when clicking textarea
+          onClick={(e) => e.stopPropagation()} // Stop propagation only when editing to prevent other actions.
         />
       );
     }
