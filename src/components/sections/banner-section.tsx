@@ -17,6 +17,7 @@ interface BannerSectionProps {
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
   setSelectedElement: (element: any) => void;
+  isDraggingMode: boolean;
 }
 
 const BannerSection: React.FC<BannerSectionProps> = ({ 
@@ -116,9 +117,10 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   }
 
   const containerClasses = cn(
-    "relative group/section w-full h-[50vh] bg-cover bg-center",
+    "relative w-full h-[50vh] bg-cover bg-center",
+    "group/section",
     {
-      "rounded-b-[3rem]": isFirstSection,
+      "mt-[-5rem] rounded-b-[3rem]": isFirstSection,
       "my-8 rounded-[3rem]": !isFirstSection && data.roundedCorners,
       "my-8": !isFirstSection && !data.roundedCorners
     }

@@ -19,6 +19,7 @@ interface ContactSectionProps {
   updateSection: (sectionId: string, updatedData: Partial<ContactSectionData>) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
+  isDraggingMode: boolean;
 }
 
 const ContactSection: React.FC<ContactSectionProps> = ({ data, propertyId, onContactSubmit, updateSection, deleteSection, isAdminMode }) => {

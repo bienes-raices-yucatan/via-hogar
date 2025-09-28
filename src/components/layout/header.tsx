@@ -38,7 +38,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-30 p-4 sm:p-6 flex justify-between items-center text-white bg-gradient-to-b from-black/50 to-transparent">
+    <header className="fixed top-0 left-0 right-0 z-40 p-4 sm:p-6 flex justify-between items-center text-white bg-gradient-to-b from-black/50 to-transparent">
       <div className="flex items-center gap-2 sm:gap-4">
         <Label htmlFor="logo-upload" className={isAdminMode ? 'cursor-pointer' : ''}>
           <div 

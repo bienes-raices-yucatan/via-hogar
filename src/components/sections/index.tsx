@@ -1,6 +1,10 @@
 'use client';
 
 import { Property, AnySectionData, ContactSubmission } from '@/lib/types';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import HeroSection from './hero-section';
 import BannerSection from './banner-section';
 import GallerySection from './gallery-section';
@@ -21,8 +25,46 @@ interface SectionRendererProps {
   onNavigateHome: () => void;
 }
 
+const SortableSectionWrapper = ({ id, isDraggingMode, children }: { id: string, isDraggingMode: boolean, children: React.ReactNode }) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({id: id, disabled: !isDraggingMode});
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 10 : undefined,
+        boxShadow: isDragging ? '0 25px 50px -12px rgb(0 0 0 / 0.25)' : undefined,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} className="relative group/section-wrapper">
+             {children}
+             {isDraggingMode && (
+                <div 
+                    {...listeners} 
+                    {...attributes}
+                    className={cn(
+                        "absolute top-1/2 -translate-y-1/2 p-2 cursor-grab",
+                        "left-2 text-slate-400 hover:text-slate-800",
+                        "transition-opacity opacity-20 group-hover/section-wrapper:opacity-100"
+                    )}
+                >
+                    <GripVertical />
+                </div>
+            )}
+        </div>
+    );
+};
+
+
 const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
-  const { property, updateProperty, onContactSubmit, ...componentProps } = props;
+  const { property, updateProperty, onContactSubmit, isDraggingMode, ...componentProps } = props;
 
   const updateSection = (sectionId: string, updatedData: Partial<AnySectionData>) => {
     const updatedSections = property.sections.map((section) =>
@@ -46,6 +88,7 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
           updateSection,
           deleteSection,
           isFirstSection,
+          isDraggingMode
         };
         
         let sectionId = '';
@@ -63,28 +106,30 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
 
         const sectionWrapper = (content: React.ReactNode) => (
             <div id={sectionId} key={section.id}>
+              <SortableSectionWrapper id={section.id} isDraggingMode={isDraggingMode}>
                 {content}
+              </SortableSectionWrapper>
             </div>
         );
 
 
         switch (section.type) {
           case 'HERO':
-            return <HeroSection key={section.id} {...commonProps} />;
+            return sectionWrapper(<HeroSection key={section.id} {...commonProps} />);
           case 'BANNER':
-            return <BannerSection key={section.id} {...commonProps} />;
+            return sectionWrapper(<BannerSection key={section.id} {...commonProps} />);
           case 'IMAGE_WITH_FEATURES':
             return sectionWrapper(<ImageWithFeaturesSection key={section.id} {...commonProps} />);
           case 'GALLERY':
-            return <GallerySection key={section.id} {...commonProps} />;
+            return sectionWrapper(<GallerySection key={section.id} {...commonProps} />);
           case 'AMENITIES':
-             return <AmenitiesSection key={section.id} {...commonProps} />;
+             return sectionWrapper(<AmenitiesSection key={section.id} {...commonProps} />);
           case 'LOCATION':
             return sectionWrapper(<LocationSection key={section.id} {...commonProps} />);
           case 'CONTACT':
             return sectionWrapper(<ContactSection key={section.id} {...commonProps} propertyId={property.id} onContactSubmit={onContactSubmit} />);
           case 'PRICING':
-            return <PricingSection key={section.id} {...commonProps} />;
+            return sectionWrapper(<PricingSection key={section.id} {...commonProps} />);
           default:
             return <div key={section.id}>Unknown section type: {(section as any).type}</div>;
         }

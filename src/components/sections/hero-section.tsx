@@ -17,6 +17,7 @@ interface HeroSectionProps {
   isAdminMode: boolean;
   setSelectedElement: (element: any) => void;
   isFirstSection: boolean;
+  isDraggingMode: boolean;
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({ 
@@ -118,7 +119,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   const containerClasses = cn(
     "relative group/section w-full h-[75vh] md:h-[85vh] bg-cover bg-center",
     {
-      "rounded-b-[3rem]": isFirstSection,
+      "mt-[-5rem] rounded-b-[3rem]": isFirstSection,
     }
   );
 

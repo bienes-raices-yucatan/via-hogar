@@ -15,6 +15,7 @@ interface LocationSectionProps {
     updateSection: (sectionId: string, updatedData: Partial<LocationSectionData>) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
+    isDraggingMode: boolean;
 }
 
 const LocationSection: React.FC<LocationSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {

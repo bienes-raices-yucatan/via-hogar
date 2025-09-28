@@ -14,6 +14,7 @@ interface PricingSectionProps {
     updateSection: (sectionId: string, updatedData: Partial<PricingSectionData>) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
+    isDraggingMode: boolean;
 }
 
 const PricingSection: React.FC<PricingSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {

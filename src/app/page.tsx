@@ -5,6 +5,9 @@ import { Property, AnySectionData, ContactSubmission } from '@/lib/types';
 import { initialProperties, initialSiteName, initialLogo } from '@/lib/data';
 import * as db from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+
 
 import Footer from '@/components/layout/footer';
 import PropertyList from '@/components/property-list';
@@ -32,6 +35,13 @@ export default function Home() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null);
   
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   useEffect(() => {
     const loadData = async () => {
       await db.initDB();
@@ -220,6 +230,20 @@ export default function Home() {
     };
     setContactSubmissions(prevSubmissions => [...prevSubmissions, newSubmission]);
   };
+  
+  const handleDragEnd = (event: DragEndEvent) => {
+    const {active, over} = event;
+    const property = properties.find(p => p.id === selectedPropertyId);
+    
+    if (active.id !== over?.id && property) {
+      const oldIndex = property.sections.findIndex(s => s.id === active.id);
+      const newIndex = property.sections.findIndex(s => s.id === over!.id);
+      
+      const updatedSections = arrayMove(property.sections, oldIndex, newIndex);
+      handleUpdateProperty({ ...property, sections: updatedSections });
+    }
+  }
+
 
   if (isLoading) {
     return (
@@ -241,19 +265,31 @@ export default function Home() {
           isAdminMode={isAdminMode}
           onLogout={handleLogout}
         />
-      <main className="flex-grow">
+      <main className="flex-grow pt-20">
         {selectedProperty ? (
           <div>
-            <SectionRenderer
-              property={selectedProperty}
-              updateProperty={handleUpdateProperty}
-              isAdminMode={isAdminMode}
-              isDraggingMode={isDraggingMode}
-              selectedElement={selectedElement}
-              setSelectedElement={setSelectedElement}
-              onContactSubmit={handleContactSubmit}
-              onNavigateHome={() => setSelectedPropertyId(null)}
-            />
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={selectedProperty.sections.map(s => s.id)}
+                strategy={verticalListSortingStrategy}
+                disabled={!isDraggingMode}
+              >
+                 <SectionRenderer
+                    property={selectedProperty}
+                    updateProperty={handleUpdateProperty}
+                    isAdminMode={isAdminMode}
+                    isDraggingMode={isDraggingMode}
+                    selectedElement={selectedElement}
+                    setSelectedElement={setSelectedElement}
+                    onContactSubmit={handleContactSubmit}
+                    onNavigateHome={() => setSelectedPropertyId(null)}
+                  />
+              </SortableContext>
+            </DndContext>
           </div>
         ) : (
           <div className="container mx-auto px-4 py-8">

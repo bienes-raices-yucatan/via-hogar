@@ -17,6 +17,7 @@ interface ImageWithFeaturesSectionProps {
     updateSection: (sectionId: string, updatedData: Partial<ImageWithFeaturesSectionData>) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
+    isDraggingMode: boolean;
 }
 
 const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
