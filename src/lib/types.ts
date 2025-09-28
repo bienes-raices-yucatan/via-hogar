@@ -120,6 +120,7 @@ export interface PricingSectionData extends PageSection<'PRICING'> {
 
 export interface ContactSectionData extends PageSection<'CONTACT'> {
   title?: StyledText;
+  subtitle?: StyledText;
   buttonText?: string;
 }
 

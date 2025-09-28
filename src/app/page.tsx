@@ -171,7 +171,24 @@ export default function Home() {
             newSection = { id: sectionId, type: 'LOCATION', style: {backgroundColor: '#ffffff'}, coordinates: property.coordinates, nearbyPlaces: [] };
             break;
         case 'CONTACT':
-            newSection = { id: sectionId, type: 'CONTACT', style: {backgroundColor: '#ffffff'}, title: {text: '¿Te interesa la casa para ti o eres vendedor inmobiliario?', fontSize: 2, color: '#1E293B', fontFamily: 'Montserrat'}, buttonText: 'Enviar' };
+            newSection = {
+              id: sectionId,
+              type: 'CONTACT',
+              style: { backgroundColor: '#ffffff' },
+              title: {
+                text: 'Completa y envía el formulario para contactarte.',
+                fontSize: 2,
+                color: '#1E293B',
+                fontFamily: 'Montserrat',
+              },
+              subtitle: {
+                text: 'Resolveremos tus dudas y podrás agendar una visita.',
+                fontSize: 1.1,
+                color: '#475569',
+                fontFamily: 'Roboto',
+              },
+              buttonText: 'Enviar',
+            };
             break;
         case 'PRICING':
             newSection = { id: sectionId, type: 'PRICING', style: {backgroundColor: '#f8fafc'}, icon: 'Home', title: 'Precio de la propiedad', price: '5,500,000 MDP', originalPrice: '6,500,000 MDP', subtitle: 'Lista para escriturar y con entrega inmediata.', buttonText: 'ME INTERESA' };
