@@ -118,12 +118,8 @@ export interface PricingSectionData extends PageSection<'PRICING'> {
 }
 
 export interface ContactSectionData extends PageSection<'CONTACT'> {
-  imageUrl?: string;
-  imageKey?: string;
   title?: StyledText;
-  subtitle?: StyledText;
   buttonText?: string;
-  parallaxEnabled?: boolean;
 }
 
 export type AnySectionData =
