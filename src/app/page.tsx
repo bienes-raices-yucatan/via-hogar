@@ -6,14 +6,12 @@ import { initialProperties, initialSiteName, initialLogo } from '@/lib/data';
 import * as db from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 
-import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import PropertyList from '@/components/property-list';
 import { Button } from '@/components/ui/button';
 import Spinner from '@/components/spinner';
 import SectionRenderer from '@/components/sections';
 import AdminToolbar from '@/components/toolbars/admin-toolbar';
-import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -27,8 +25,6 @@ export default function Home() {
   // Editing state
   const [isDraggingMode, setIsDraggingMode] = useState(false);
   
-  const { toast } = useToast();
-
   useEffect(() => {
     const loadData = async () => {
       await db.initDB();
@@ -90,16 +86,12 @@ export default function Home() {
   const handleLogin = (success: boolean) => {
     if (success) {
       setIsAdminMode(true);
-      toast({ title: "Modo Administrador Activado" });
-    } else {
-      toast({ title: "Error", description: "Usuario o contraseña incorrectos.", variant: "destructive" });
     }
   };
 
   const handleLogout = () => {
     setIsAdminMode(false);
     setIsDraggingMode(false);
-    toast({ title: "Has salido del modo administrador." });
   };
   
   const handleSelectProperty = (id: string) => {
@@ -137,7 +129,6 @@ export default function Home() {
       setSelectedPropertyId(newProperty.id);
     } catch (error) {
       console.error(error);
-      toast({ title: "Error", description: "No se pudo crear la propiedad.", variant: "destructive" });
     }
   };
 
@@ -175,7 +166,6 @@ export default function Home() {
             newSection = { id: sectionId, type: 'PRICING', style: {backgroundColor: '#F9FAFA'}, title: 'Planes de Precios', tiers: [{id: uuidv4(), name: 'Básico', price: '$100', frequency: '/mes', features: ['Característica 1', 'Característica 2'], buttonText: 'Seleccionar', isFeatured: false }] };
             break;
         default:
-             toast({ title: "Error", description: "Tipo de sección no válido.", variant: "destructive" });
             return;
     }
     
@@ -191,7 +181,6 @@ export default function Home() {
         setLogoUrl(URL.createObjectURL(file));
     } catch (error) {
         console.error("Failed to update logo:", error);
-        toast({ title: "Error", description: "No se pudo actualizar el logo.", variant: "destructive" });
     }
   };
   
@@ -202,7 +191,6 @@ export default function Home() {
       submittedAt: new Date().toISOString(),
     };
     setContactSubmissions(prevSubmissions => [...prevSubmissions, newSubmission]);
-    toast({ title: "Mensaje Enviado", description: "Gracias por tu interés. Nos pondremos en contacto contigo pronto." });
   };
 
   if (isLoading) {
@@ -217,29 +205,9 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen bg-background font-body text-slate-800 flex flex-col ${isAdminMode ? 'admin-mode' : ''}`}>
-      <Header
-        siteName={siteName}
-        setSiteName={setSiteName}
-        logoUrl={logoUrl}
-        setLogoUrl={handleUpdateLogo}
-        isAdminMode={isAdminMode}
-        onLogout={handleLogout}
-        onNavigateHome={() => setSelectedPropertyId(null)}
-      />
-
       <main className="flex-grow">
         {selectedProperty ? (
           <div>
-            {isAdminMode && (
-              <div className="container mx-auto px-4 py-4 flex justify-between items-center sticky top-[65px] bg-background/80 backdrop-blur-sm z-30">
-                <Button variant="outline" onClick={() => setSelectedPropertyId(null)}>
-                  &larr; Volver al Listado
-                </Button>
-                <div>
-                  {/* TODO: Implementar un selector de secciones no modal */}
-                </div>
-              </div>
-            )}
             <SectionRenderer
               property={selectedProperty}
               updateProperty={handleUpdateProperty}
@@ -247,6 +215,12 @@ export default function Home() {
               isDraggingMode={isDraggingMode}
               setSelectedElement={() => {}}
               onContactSubmit={handleContactSubmit}
+              siteName={siteName}
+              setSiteName={setSiteName}
+              logoUrl={logoUrl}
+              setLogoUrl={handleUpdateLogo}
+              onLogout={handleLogout}
+              onNavigateHome={() => setSelectedPropertyId(null)}
             />
           </div>
         ) : (
@@ -265,7 +239,7 @@ export default function Home() {
       
       <Footer onLogin={handleLogin} isAdminMode={isAdminMode} />
 
-      {isAdminMode && <AdminToolbar isDraggingMode={isDraggingMode} onToggleDragMode={() => setIsDraggingMode(!isDraggingMode)} />}
+      {isAdminMode && selectedProperty && <AdminToolbar isDraggingMode={isDraggingMode} onToggleDragMode={() => setIsDraggingMode(!isDraggingMode)} onAddSection={handleAddSection} />}
     </div>
   );
 }
