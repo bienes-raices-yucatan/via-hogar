@@ -18,10 +18,13 @@ import Header from '@/components/layout/header';
 
 import { Property, AnySectionData, ContactSubmission, SiteConfig } from '@/lib/types';
 import { initialProperties, initialSiteConfig } from '@/lib/data';
-import { useFirestore, useCollection, useDoc, updateDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useDoc, updateDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking, useMemoFirebase, useAuth, useUser } from '@/firebase';
+import { signInAnonymously } from 'firebase/auth';
 
 export default function Home() {
   const firestore = useFirestore();
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
   
   const propertiesRef = useMemoFirebase(() => collection(firestore, 'properties'), [firestore]);
   const { data: properties, isLoading: isLoadingProperties } = useCollection<Property>(propertiesRef);
@@ -48,9 +51,22 @@ export default function Home() {
   // Effect to seed initial data if collections are empty
   useEffect(() => {
     const seedData = async () => {
-      if (!isAdminMode) return;
-  
-      if (properties && properties.length === 0 && propertiesRef) {
+      // Ensure we have an authenticated user, even if anonymous
+      if (isUserLoading || !auth) return;
+      if (!user) {
+        try {
+          await signInAnonymously(auth);
+        } catch (error) {
+          console.error("Error signing in anonymously:", error);
+          return;
+        }
+      }
+
+      const shouldSeedProperties = properties && properties.length === 0;
+      const shouldSeedSiteConfig = siteConfig === null;
+
+      if (shouldSeedProperties && propertiesRef) {
+        console.log("Seeding initial properties...");
         const batch = writeBatch(firestore);
         initialProperties.forEach(propData => {
           const propRef = doc(propertiesRef);
@@ -58,15 +74,17 @@ export default function Home() {
         });
         await batch.commit();
       }
-      if (siteConfig === null && siteConfigRef) {
+      
+      if (shouldSeedSiteConfig && siteConfigRef) {
+        console.log("Seeding initial site config...");
         await setDocumentNonBlocking(siteConfigRef, initialSiteConfig);
       }
     };
 
-    if (!isLoadingProperties && !isLoadingSiteConfig) {
+    if (!isLoadingProperties && !isLoadingSiteConfig && !isUserLoading) {
       seedData();
     }
-  }, [properties, siteConfig, isLoadingProperties, isLoadingSiteConfig, firestore, propertiesRef, siteConfigRef, isAdminMode]);
+  }, [properties, siteConfig, isLoadingProperties, isLoadingSiteConfig, firestore, propertiesRef, siteConfigRef, auth, user, isUserLoading]);
 
   const handleSelectProperty = (id: string) => {
     setSelectedPropertyId(id);
@@ -240,7 +258,7 @@ export default function Home() {
     }
   }
   
-  if (isLoadingProperties || isLoadingSiteConfig) {
+  if (isLoadingProperties || isLoadingSiteConfig || isUserLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Spinner size="lg" />
@@ -330,3 +348,5 @@ export default function Home() {
     </DndContext>
   );
 }
+
+    
