@@ -214,7 +214,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         style={{ borderRadius: containerBorderRadius }}
       ></div>
       
-      {data.draggableTexts.map(text => (
+      {data.draggableTexts && data.draggableTexts.map(text => (
         <DraggableText 
             key={text.id}
             data={text}
