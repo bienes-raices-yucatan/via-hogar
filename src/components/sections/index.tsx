@@ -105,7 +105,7 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
         }
 
         const sectionWrapper = (content: React.ReactNode) => (
-            <div id={sectionHtmlId}>
+            <div key={section.id} id={sectionHtmlId}>
               <SortableSectionWrapper id={`section-${section.id}`} isDraggingMode={isDraggingMode}>
                 {content}
               </SortableSectionWrapper>
