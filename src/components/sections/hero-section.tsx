@@ -1,6 +1,6 @@
 'use client';
 import { HeroSectionData, DraggableTextData } from '@/lib/types';
-import { Trash2, Image as ImageIcon, PlusCircle } from 'lucide-react';
+import { Trash2, Image as ImageIcon, PlusCircle, GripVertical } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
 import EditableText from '../editable-text';
@@ -43,9 +43,18 @@ const DraggableText: React.FC<DraggableTextProps> = ({ data, sectionId, isAdminM
         <div
             ref={setNodeRef}
             style={style}
-            className="group/text relative p-2"
+            className="group/text relative flex items-center gap-2 p-2"
         >
-            <div {...(isAdminMode ? listeners : {})} {...(isAdminMode ? attributes : {})}>
+            {isAdminMode && (
+                <div 
+                    {...listeners} 
+                    {...attributes} 
+                    className="cursor-grab text-white opacity-50 group-hover/text:opacity-100 transition-opacity"
+                >
+                    <GripVertical size={20} />
+                </div>
+            )}
+            <div>
                 <EditableText
                     value={data.text}
                     onChange={(val) => onUpdate({ text: val })}
@@ -151,11 +160,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         fontFamily: 'Roboto',
         position: { x: 50, y: 50 }
     };
-    const updatedTexts = [...data.draggableTexts, newText];
+    const updatedTexts = [...(data.draggableTexts || []), newText];
     updateSection(data.id, { draggableTexts: updatedTexts });
   };
 
   const handleDeleteDraggableText = (textId: string) => {
+    if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.filter(t => t.id !== textId);
     updateSection(data.id, { draggableTexts: updatedTexts });
   };

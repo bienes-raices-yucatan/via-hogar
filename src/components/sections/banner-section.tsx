@@ -1,6 +1,6 @@
 'use client';
 import { BannerSectionData, DraggableTextData } from '@/lib/types';
-import { Trash2, Image as ImageIcon, PlusCircle } from 'lucide-react';
+import { Trash2, Image as ImageIcon, PlusCircle, GripVertical } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
 import EditableText from '../editable-text';
@@ -44,9 +44,18 @@ const DraggableText: React.FC<DraggableTextProps> = ({ data, sectionId, isAdminM
         <div
             ref={setNodeRef}
             style={style}
-            className="group/text relative p-2"
+            className="group/text relative flex items-center gap-2 p-2"
         >
-            <div {...(isAdminMode ? listeners : {})} {...(isAdminMode ? attributes : {})}>
+            {isAdminMode && (
+                <div 
+                    {...listeners} 
+                    {...attributes} 
+                    className="cursor-grab text-white opacity-50 group-hover/text:opacity-100 transition-opacity"
+                >
+                    <GripVertical size={20} />
+                </div>
+            )}
+            <div>
                 <EditableText
                     value={data.text}
                     onChange={(val) => onUpdate({ text: val })}
@@ -201,8 +210,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
       ref={sectionRef}
       data-section-id={data.id}
       className={cn(
-        'relative group/section w-full bg-cover bg-center draggable-text-container',
-        { 'mt-[-5rem]': isFirstSection }
+        'relative group/section w-full bg-cover bg-center draggable-text-container'
       )}
       style={{ 
         height: containerHeight,
