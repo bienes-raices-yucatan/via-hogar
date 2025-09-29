@@ -7,6 +7,74 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Icon } from './icon';
 import { saveImage } from '@/lib/storage';
+import { useImageLoader } from '@/hooks/use-image-loader';
+import { Skeleton } from './ui/skeleton';
+
+interface PropertyCardProps {
+  prop: Property;
+  onSelectProperty: (id: string) => void;
+  onDeleteProperty: (id: string) => void;
+  onImageUploadClick: (e: React.MouseEvent, propertyId: string) => void;
+  isAdminMode: boolean;
+}
+
+const PropertyCard: React.FC<PropertyCardProps> = ({ prop, onSelectProperty, onDeleteProperty, onImageUploadClick, isAdminMode }) => {
+    const { imageUrl, isLoading } = useImageLoader(prop.mainImageUrl);
+
+    return (
+        <Card className="overflow-hidden group">
+          <CardHeader className="p-0 relative group/image">
+            {isLoading ? (
+                <Skeleton className="w-full h-48" />
+            ) : imageUrl ? (
+                <Image
+                    src={imageUrl}
+                    alt={prop.name}
+                    width={600}
+                    height={400}
+                    className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
+                />
+            ) : (
+                <div className="w-full h-48 bg-muted flex items-center justify-center text-muted-foreground">
+                    Sin imagen
+                </div>
+            )}
+            {isAdminMode && (
+              <div className="absolute top-2 right-2 z-10 flex flex-col gap-2 opacity-0 group-hover/image:opacity-100 transition-opacity">
+                  <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteProperty(prop.id);
+                      }}
+                  >
+                      <Icon name="trash" />
+                  </Button>
+                  <Button
+                      variant="secondary"
+                      size="icon"
+                      onClick={(e) => onImageUploadClick(e, prop.id)}
+                  >
+                      <Icon name="pencil" />
+                  </Button>
+              </div>
+            )}
+          </CardHeader>
+          <CardContent className="p-4">
+            <CardTitle className="text-xl mb-2">{prop.name}</CardTitle>
+            <p className="text-muted-foreground text-sm mb-2">{prop.address}</p>
+            <p className="text-lg font-semibold text-primary">{prop.price}</p>
+          </CardContent>
+          <CardFooter className="p-4 bg-muted/50">
+            <Button onClick={() => onSelectProperty(prop.id)} className="w-full">
+              Ver Detalles
+            </Button>
+          </CardFooter>
+        </Card>
+    );
+};
+
 
 interface PropertyListProps {
   properties: Property[];
@@ -93,48 +161,14 @@ export const PropertyList: React.FC<PropertyListProps> = ({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {properties.map((prop) => (
-            <Card key={prop.id} className="overflow-hidden group">
-              <CardHeader className="p-0 relative group/image">
-                 <Image
-                    src={prop.mainImageUrl}
-                    alt={prop.name}
-                    width={600}
-                    height={400}
-                    className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
-                />
-                {isAdminMode && (
-                  <div className="absolute top-2 right-2 z-10 flex flex-col gap-2 opacity-0 group-hover/image:opacity-100 transition-opacity">
-                      <Button
-                          variant="destructive"
-                          size="icon"
-                          onClick={(e) => {
-                              e.stopPropagation();
-                              onDeleteProperty(prop.id);
-                          }}
-                      >
-                          <Icon name="trash" />
-                      </Button>
-                      <Button
-                          variant="secondary"
-                          size="icon"
-                          onClick={(e) => handleImageUploadClick(e, prop.id)}
-                      >
-                          <Icon name="pencil" />
-                      </Button>
-                  </div>
-                )}
-              </CardHeader>
-              <CardContent className="p-4">
-                <CardTitle className="text-xl mb-2">{prop.name}</CardTitle>
-                <p className="text-muted-foreground text-sm mb-2">{prop.address}</p>
-                <p className="text-lg font-semibold text-primary">{prop.price}</p>
-              </CardContent>
-              <CardFooter className="p-4 bg-muted/50">
-                <Button onClick={() => onSelectProperty(prop.id)} className="w-full">
-                  Ver Detalles
-                </Button>
-              </CardFooter>
-            </Card>
+            <PropertyCard
+              key={prop.id}
+              prop={prop}
+              onSelectProperty={onSelectProperty}
+              onDeleteProperty={onDeleteProperty}
+              onImageUploadClick={handleImageUploadClick}
+              isAdminMode={isAdminMode}
+            />
           ))}
         </div>
       )}

@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/icon';
 import { saveImage } from '@/lib/storage';
 import { cn } from '@/lib/utils';
+import { useImageLoader } from '@/hooks/use-image-loader';
+import { Skeleton } from '../ui/skeleton';
 
 interface ImageWithFeaturesSectionProps {
   data: ImageWithFeaturesSectionData;
@@ -71,19 +73,31 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
 
   const MediaComponent = () => {
     const isSelected = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'media';
+    const { imageUrl, isLoading } = useImageLoader(data.media.url);
     
-    const mediaContainer = (
+    const mediaContent = () => {
+        if (isLoading) return <Skeleton className="w-full h-full" />;
+
+        if (!imageUrl) return <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">Sin medio</div>;
+
+        if (data.media.type === 'video') {
+            return <video src={imageUrl} controls className="w-full h-full object-cover" />;
+        }
+        
+        return <Image src={imageUrl} alt={data.title?.text || 'Property Image'} fill className="object-cover" />;
+    };
+    
+    const aspectClass = data.media.type === 'video' ? 'aspect-video' : 'aspect-[4/5]';
+
+    return (
         <div className={cn(
-            "relative aspect-video w-full rounded-lg overflow-hidden shadow-lg group/media",
-             isAdminMode && "cursor-pointer",
-             isSelected && "ring-2 ring-primary ring-offset-2"
+            "relative w-full rounded-lg overflow-hidden shadow-lg group/media",
+            aspectClass,
+            isAdminMode && "cursor-pointer",
+            isSelected && "ring-2 ring-primary ring-offset-2"
         )}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'media' })}>
-            {data.media.type === 'video' ? (
-                <video src={data.media.url} controls className="w-full h-full object-cover" />
-            ) : (
-                <Image src={data.media.url} alt={data.title?.text || 'Property Image'} fill className="object-cover" />
-            )}
+            {mediaContent()}
              {isAdminMode && (
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/media:opacity-100 flex items-center justify-center transition-opacity">
                     <Button onClick={() => fileInputRef.current?.click()}>
@@ -94,35 +108,6 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
              )}
         </div>
     );
-
-    if (data.media.type === 'video') {
-        return mediaContainer;
-    }
-    // Default to image
-    return (
-      <div 
-        className={cn(
-            "relative aspect-[4/5] w-full rounded-lg overflow-hidden shadow-lg group/media",
-            isAdminMode && "cursor-pointer",
-            isSelected && "ring-2 ring-primary ring-offset-2"
-        )}
-        onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'media' })}>
-            <Image
-                src={data.media.url}
-                alt={data.title?.text || 'Property Image'}
-                fill
-                className="object-cover"
-            />
-             {isAdminMode && (
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/media:opacity-100 flex items-center justify-center transition-opacity">
-                    <Button onClick={() => fileInputRef.current?.click()}>
-                        <Icon name="pencil" className="mr-2" />
-                        Cambiar
-                    </Button>
-                </div>
-             )}
-      </div>
-    )
   }
 
   return (

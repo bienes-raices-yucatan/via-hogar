@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils';
 import { saveImage } from '@/lib/storage';
 import { Button } from '../ui/button';
 import { Icon } from '../icon';
+import { useImageLoader } from '@/hooks/use-image-loader';
+import { Skeleton } from '../ui/skeleton';
 
 interface HeroSectionProps {
   data: HeroSectionData;
@@ -31,6 +33,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onSelectElement,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { imageUrl, isLoading } = useImageLoader(data.backgroundImageUrl);
 
   const handleTitleUpdate = (newTitle: any) => {
     onUpdate({ ...data, title: { ...data.title, ...newTitle } });
@@ -66,16 +69,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 Cambiar Fondo
             </Button>
         )}
-        <div
-            className={cn(
-                "absolute inset-0 bg-cover bg-center",
-                isAdminMode && "group-hover:brightness-50 transition-all",
-                selectedElement?.sectionId === data.id && selectedElement.elementKey === 'backgroundImageUrl' && "brightness-50"
-            )}
-            style={{ 
-                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url(${data.backgroundImageUrl})`,
-            }}
-        />
+        {isLoading ? (
+            <Skeleton className="absolute inset-0" />
+        ) : (
+            <div
+                className={cn(
+                    "absolute inset-0 bg-cover bg-center",
+                    isAdminMode && "group-hover:brightness-50 transition-all",
+                    selectedElement?.sectionId === data.id && selectedElement.elementKey === 'backgroundImageUrl' && "brightness-50"
+                )}
+                style={{ 
+                    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url(${imageUrl})`,
+                }}
+            />
+        )}
         <div className={cn("relative z-10 h-full w-full", isDraggingMode && 'cursor-move')}>
             <DraggableEditableText
                 id={data.title.id}

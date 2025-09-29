@@ -16,6 +16,43 @@ import {
 import { SectionToolbar } from '../section-toolbar';
 import { EditableText } from '../editable-text';
 import { deleteImage, saveImage } from '@/lib/storage';
+import { useImageLoader } from '@/hooks/use-image-loader';
+import { Skeleton } from '../ui/skeleton';
+
+
+const GalleryCarouselItem: React.FC<{ image: GalleryImage; isAdminMode: boolean; onDelete: (id: string) => void; }> = ({ image, isAdminMode, onDelete }) => {
+    const { imageUrl, isLoading } = useImageLoader(image.url);
+
+    return (
+        <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+            <div className="p-1">
+            <div className="relative aspect-[3/2] overflow-hidden rounded-lg group/image">
+                {isLoading ? <Skeleton className="w-full h-full" /> : 
+                 imageUrl ? (
+                    <Image
+                        src={imageUrl}
+                        alt={image.title}
+                        fill
+                        className="object-cover"
+                    />
+                 ) : <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">Error</div>}
+                
+                {isAdminMode && (
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center">
+                    <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => onDelete(image.id)}
+                    >
+                        <Icon name="trash" />
+                    </Button>
+                </div>
+                )}
+            </div>
+            </div>
+        </CarouselItem>
+    );
+}
 
 interface GallerySectionProps {
   data: GallerySectionData;
@@ -135,29 +172,12 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
           >
             <CarouselContent>
               {data.images.map((image) => (
-                <CarouselItem key={image.id} className="md:basis-1/2 lg:basis-1/3">
-                  <div className="p-1">
-                    <div className="relative aspect-[3/2] overflow-hidden rounded-lg group/image">
-                      <Image
-                        src={image.url}
-                        alt={image.title}
-                        fill
-                        className="object-cover"
-                      />
-                      {isAdminMode && (
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center">
-                            <Button
-                                variant="destructive"
-                                size="icon"
-                                onClick={() => handleDeleteImage(image.id)}
-                            >
-                                <Icon name="trash" />
-                            </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CarouselItem>
+                <GalleryCarouselItem
+                    key={image.id}
+                    image={image}
+                    isAdminMode={isAdminMode}
+                    onDelete={handleDeleteImage}
+                />
               ))}
             </CarouselContent>
             <CarouselPrevious />

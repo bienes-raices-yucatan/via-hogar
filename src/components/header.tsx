@@ -4,7 +4,8 @@ import React, { useRef } from 'react';
 import Image from 'next/image';
 import { Icon } from './icon';
 import { Button } from './ui/button';
-import { saveImage, getImageBlob } from '@/lib/storage';
+import { useImageLoader } from '@/hooks/use-image-loader';
+import { Skeleton } from './ui/skeleton';
 
 interface HeaderProps {
     isAdminMode: boolean;
@@ -25,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
     onNavigateHome 
 }) => {
     const logoInputRef = useRef<HTMLInputElement>(null);
+    const { imageUrl: logoUrl, isLoading: isLogoLoading } = useImageLoader(customLogo);
 
     const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -33,7 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
         const reader = new FileReader();
         reader.onload = async (e) => {
             const dataUrl = e.target?.result as string;
-            // For logo, we can save it directly to localStorage as it's small
+            // For logo, we can save it directly to localStorage as it's small and frequently accessed
             onLogoUpload(dataUrl);
         };
         reader.readAsDataURL(file);
@@ -45,8 +47,10 @@ export const Header: React.FC<HeaderProps> = ({
                 className="flex items-center gap-2 cursor-pointer group relative"
                 onClick={onNavigateHome}
             >
-                {customLogo ? (
-                    <Image src={customLogo} alt="Custom Logo" width={32} height={32} className="object-contain h-8 w-8" />
+                {isLogoLoading ? (
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                ) : logoUrl ? (
+                    <Image src={logoUrl} alt="Custom Logo" width={32} height={32} className="object-contain h-8 w-8" />
                 ) : (
                     <Icon name="logo" className="w-8 h-8 text-primary" />
                 )}

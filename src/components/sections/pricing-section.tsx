@@ -10,6 +10,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Icon } from '@/components/icon';
 import { cn } from '@/lib/utils';
 import { saveImage } from '@/lib/storage';
+import { useImageLoader } from '@/hooks/use-image-loader';
+import { Skeleton } from '../ui/skeleton';
 
 interface PricingSectionProps {
   data: PricingSectionData;
@@ -30,6 +32,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
 }) => {
   const { tier } = data;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { imageUrl, isLoading } = useImageLoader(data.backgroundImageUrl);
 
   const handleTierUpdate = (updatedTier: Partial<PricingTier>) => {
     onUpdate({ ...data, tier: { ...data.tier, ...updatedTier } });
@@ -52,9 +55,10 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
   return (
     <section 
         className="py-12 md:py-20 relative group bg-cover bg-center"
-        style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${data.backgroundImageUrl})` }}
+        style={!isLoading && imageUrl ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${imageUrl})` } : {}}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'backgroundImageUrl' })}
     >
+        {isLoading && <Skeleton className="absolute inset-0" />}
       <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
       <div className="container mx-auto px-4 flex items-center justify-center">
         {isAdminMode && (
