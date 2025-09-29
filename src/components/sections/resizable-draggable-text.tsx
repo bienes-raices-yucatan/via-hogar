@@ -33,50 +33,48 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
         disabled: !isAdminMode || !isSelected,
     });
     const nodeRef = useRef<HTMLDivElement>(null);
-    const resizerRef = useRef<string | null>(null);
+    
+    // Store initial state on resize start
+    const resizeStartRef = useRef<{
+        width: number;
+        height: number;
+        startX: number;
+        startY: number;
+        direction: string;
+    } | null>(null);
 
     const handleResize = useCallback((e: MouseEvent) => {
-        if (!resizerRef.current || !nodeRef.current || !containerRef.current) return;
+        if (!resizeStartRef.current || !containerRef.current) return;
 
-        const containerRect = containerRef.current.getBoundingClientRect();
-        let { width = 300, height = 50, position } = data;
-        let newX = position.x;
-        let newY = position.y;
+        const { startX, startY, width: initialWidth, height: initialHeight, direction } = resizeStartRef.current;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
 
-        const dx = e.clientX - (containerRect.left + (position.x / 100 * containerRect.width));
-        const dy = e.clientY - (containerRect.top + (position.y / 100 * containerRect.height));
+        let newWidth = initialWidth;
+        let newHeight = initialHeight;
 
-        const right = (position.x / 100 * containerRect.width) + width;
-        const bottom = (position.y / 100 * containerRect.height) + height;
-
-        if (resizerRef.current.includes('right')) {
-            width = e.clientX - (containerRect.left + (position.x / 100 * containerRect.width)) + (width/2) ;
+        if (direction.includes('right')) {
+            newWidth = initialWidth + dx;
         }
-        if (resizerRef.current.includes('left')) {
-            const oldRight = right;
-            width = oldRight - e.clientX + containerRect.left;
-            newX = (e.clientX - containerRect.left) / containerRect.width * 100;
+        if (direction.includes('left')) {
+            newWidth = initialWidth - dx;
         }
-
-        if (resizerRef.current.includes('bottom')) {
-            height = e.clientY - (containerRect.top + (position.y / 100 * containerRect.height)) + (height/2);
+        if (direction.includes('bottom')) {
+            newHeight = initialHeight + dy;
         }
-        if (resizerRef.current.includes('top')) {
-            const oldBottom = bottom;
-            height = oldBottom - e.clientY + containerRect.top;
-            newY = (e.clientY - containerRect.top) / containerRect.height * 100;
+        if (direction.includes('top')) {
+            newHeight = initialHeight - dy;
         }
 
         onUpdate({
-            width: Math.max(50, width),
-            height: Math.max(20, height),
-            // position: { x: newX, y: newY }
+            width: Math.max(50, newWidth),
+            height: Math.max(20, newHeight),
         });
 
-    }, [data, onUpdate, containerRef]);
+    }, [onUpdate, containerRef]);
 
     const stopResizing = useCallback(() => {
-        resizerRef.current = null;
+        resizeStartRef.current = null;
         window.removeEventListener('mousemove', handleResize);
         window.removeEventListener('mouseup', stopResizing);
         document.body.style.cursor = 'default';
@@ -91,7 +89,16 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
 
     const handleResizerMouseDown = (e: React.MouseEvent<HTMLDivElement>, direction: string) => {
         e.stopPropagation();
-        resizerRef.current = direction;
+        e.preventDefault();
+
+        resizeStartRef.current = {
+            width: data.width || 300,
+            height: data.height || 50,
+            startX: e.clientX,
+            startY: e.clientY,
+            direction: direction,
+        };
+
         window.addEventListener('mousemove', handleResize);
         window.addEventListener('mouseup', stopResizing);
         document.body.style.cursor = `${direction}-resize`;
@@ -163,16 +170,16 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
                             key={dir}
                             onMouseDown={(e) => handleResizerMouseDown(e, dir)}
                             className={cn(
-                                'absolute bg-white border-2 border-primary rounded-full w-3 h-3',
+                                'absolute bg-white border-2 border-primary rounded-full w-3 h-3 z-20',
                                 {
                                     'top-0 left-0 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize': dir === 'top-left',
                                     'top-0 right-0 translate-x-1/2 -translate-y-1/2 cursor-nesw-resize': dir === 'top-right',
                                     'bottom-0 left-0 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize': dir === 'bottom-left',
                                     'bottom-0 right-0 translate-x-1/2 translate-y-1/2 cursor-nwse-resize': dir === 'bottom-right',
-                                    'top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-ns-resize': dir === 'top',
-                                    'bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 cursor-ns-resize': dir === 'bottom',
-                                    'top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize': dir === 'left',
-                                    'top-1/2 right-0 translate-x-1/2 -translate-y-1/2 cursor-ew-resize': dir === 'right',
+                                    'top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-ns-resize w-10 h-2 rounded': dir === 'top',
+                                    'bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 cursor-ns-resize w-10 h-2 rounded': dir === 'bottom',
+                                    'top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize w-2 h-10 rounded': dir === 'left',
+                                    'top-1/2 right-0 translate-x-1/2 -translate-y-1/2 cursor-ew-resize w-2 h-10 rounded': dir === 'right',
                                 }
                             )}
                         />
