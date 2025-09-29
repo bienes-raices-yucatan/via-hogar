@@ -22,9 +22,9 @@ const sectionOptions: { type: AnySectionData['type']; label: string; description
   { type: 'hero', label: 'Héroe', description: 'Banner principal con imagen y título.', icon: 'sparkles' },
   { type: 'imageWithFeatures', label: 'Imagen y Características', description: 'Una imagen destacada con puntos clave.', icon: 'check' },
   { type: 'gallery', label: 'Galería', description: 'Múltiples imágenes en un carrusel o cuadrícula.', icon: 'area' },
-  { type: 'amenities', label: 'Amenidades', description: 'Lista de amenidades con iconos.', icon: 'list' as any }, // Assuming you'll add 'list' icon
+  { type: 'amenities', label: 'Amenidades', description: 'Lista de amenidades con iconos.', icon: 'list' },
   { type: 'location', label: 'Ubicación', description: 'Mapa y puntos de interés cercanos.', icon: 'map-pin' },
-  { type: 'pricing', label: 'Precios', description: 'Tabla o tarjetas de precios.', icon: 'bath' }, // Replace with a more appropriate icon like 'dollar-sign'
+  { type: 'pricing', label: 'Precios', description: 'Tabla o tarjetas de precios.', icon: 'bath' }, // Using 'bath' as a stand-in for pricing
   { type: 'contact', label: 'Contacto', description: 'Formulario o llamada a la acción de contacto.', icon: 'whatsapp' },
 ];
 

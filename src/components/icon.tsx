@@ -9,7 +9,7 @@ interface IconProps extends React.SVGProps<SVGSVGElement> {
 }
 
 export const Icon: React.FC<IconProps> = ({ name, className = 'w-6 h-6', strokeWidth = 1.5, ...props }) => {
-  const icons: { [key in IconName | 'list']: React.ReactElement } = {
+  const icons: { [key in IconName]: React.ReactElement } = {
     bed: <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125V6.375c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v.001c0 .621.504 1.125 1.125 1.125z" />,
     bath: <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.5 1.5M4.5 11.25l.75 .75M18.75 11.25l-.75 .75m-6 3.75h.008v.008h-.008v-.008zm0-3.75h.008v.008h-.008v-.008z" />,
     area: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m4.5 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />,
@@ -55,7 +55,7 @@ export const Icon: React.FC<IconProps> = ({ name, className = 'w-6 h-6', strokeW
     list: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
   };
 
-  const iconSvg = icons[name as IconName | 'list'];
+  const iconSvg = icons[name as IconName];
   if (!iconSvg) {
     console.warn(`Icon "${name}" not found.`);
     return null; // or a default fallback icon
