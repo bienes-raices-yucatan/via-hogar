@@ -169,7 +169,6 @@ const BannerSection: React.FC<BannerSectionProps> = ({
             isDraggingMode={isDraggingMode}
             onSelect={createSelectHandler(text.id)}
             onUpdate={(updates) => handleDraggableTextUpdate(text.id, updates)}
-            onLocalUpdate={(updates) => { /* No-op, managed by parent */ }}
             onDelete={() => handleDeleteDraggableText(text.id)}
             isSelected={selectedElement?.type === 'DRAGGABLE_TEXT' && selectedElement?.textId === text.id}
             containerRef={sectionRef}
@@ -243,3 +242,5 @@ const BannerSection: React.FC<BannerSectionProps> = ({
 };
 
 export default BannerSection;
+
+    

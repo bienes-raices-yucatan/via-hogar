@@ -1,3 +1,4 @@
+
 import { FirebaseStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 /**
@@ -21,3 +22,5 @@ export async function uploadFile(storage: FirebaseStorage, file: File, path: str
     throw error;
   }
 }
+
+    

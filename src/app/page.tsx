@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -34,7 +35,8 @@ export default function Home() {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
   
-  const [localProperties, setLocalProperties] = useState<Property[] | null>(null);
+  // localProperties now just reflects the data from Firestore
+  const localProperties = properties;
 
   const [isDraggingMode, setIsDraggingMode] = useState(false);
   const [selectedElement, setSelectedElement] = useState<any>(null);
@@ -47,12 +49,6 @@ export default function Home() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-  
-  useEffect(() => {
-    if (properties) {
-      setLocalProperties(properties);
-    }
-  }, [properties]);
 
   useEffect(() => {
     const seedData = async () => {
@@ -92,9 +88,10 @@ export default function Home() {
   };
   
   const handleUpdateProperty = (updatedProperty: Property) => {
-    setLocalProperties(prev => prev ? prev.map(p => p.id === updatedProperty.id ? updatedProperty : p) : null);
     if (!firestore) return;
     const propRef = doc(firestore, 'properties', updatedProperty.id);
+    // This is the ONLY place we write to Firestore.
+    // The useCollection hook will automatically update the local state.
     updateDocumentNonBlocking(propRef, updatedProperty);
   };
 
@@ -109,7 +106,6 @@ export default function Home() {
     
     handleUpdateProperty(updatedProperty);
   };
-
 
   const handleAddNewProperty = async () => {
     if (!propertiesRef) return;
@@ -249,37 +245,8 @@ export default function Home() {
   };
   
    const handleDragMove = (event: DragMoveEvent) => {
-    const { active, delta } = event;
-    if (!localProperties) return;
-
-    const property = localProperties.find(p => p.id === selectedPropertyId);
-    if (!property) return;
-    
-    if (active.id.toString().startsWith('text-')) {
-        const [_, sectionId, textId] = active.id.toString().split('-');
-
-        const updatedSections = property.sections.map(section => {
-            if (section.id === sectionId && 'draggableTexts' in section && section.draggableTexts) {
-                const updatedTexts = section.draggableTexts.map(text => {
-                    if (text.id === textId) {
-                      const container = document.querySelector(`.draggable-text-container[data-section-id="${section.id}"]`);
-                      if (container) {
-                          const containerRect = container.getBoundingClientRect();
-                          const newX = text.position.x + (delta.x / containerRect.width) * 100;
-                          const newY = text.position.y + (delta.y / containerRect.height) * 100;
-                          return { ...text, position: { x: newX, y: newY } };
-                      }
-                    }
-                    return text;
-                });
-                return { ...section, draggableTexts: updatedTexts };
-            }
-            return section;
-        });
-        
-        // Local update for smooth dragging
-        setLocalProperties(prev => prev ? prev.map(p => p.id === property.id ? { ...p, sections: updatedSections as AnySectionData[]} : p) : null);
-    }
+    // Drag move for texts is complex to do without a local state override.
+    // For now, we only update on drag end. A smoother implementation would require temporary state.
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -298,10 +265,29 @@ export default function Home() {
           handleUpdateProperty({ ...property, sections: updatedSections });
         }
     } else if (active.id.toString().startsWith('text-')) {
-        const finalPropertyState = localProperties.find(p => p.id === selectedPropertyId);
-        if (finalPropertyState) {
-          handleUpdateProperty(finalPropertyState);
-        }
+      const { delta } = event;
+      const [_, sectionId, textId] = active.id.toString().split('-');
+
+      const updatedSections = property.sections.map(section => {
+          if (section.id === sectionId && 'draggableTexts' in section && section.draggableTexts) {
+              const updatedTexts = section.draggableTexts.map(text => {
+                  if (text.id === textId) {
+                    const container = document.querySelector(`.draggable-text-container[data-section-id="${section.id}"]`);
+                    if (container) {
+                        const containerRect = container.getBoundingClientRect();
+                        const newX = text.position.x + (delta.x / containerRect.width) * 100;
+                        const newY = text.position.y + (delta.y / containerRect.height) * 100;
+                        return { ...text, position: { x: newX, y: newY } };
+                    }
+                  }
+                  return text;
+              });
+              return { ...section, draggableTexts: updatedTexts };
+          }
+          return section;
+      });
+
+      handleUpdateProperty({ ...property, sections: updatedSections as AnySectionData[] });
     }
   }
   
@@ -397,3 +383,5 @@ export default function Home() {
     </DndContext>
   );
 }
+
+    

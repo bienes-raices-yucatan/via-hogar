@@ -33,8 +33,13 @@ const Header: React.FC<HeaderProps> = ({
     const file = e.target.files?.[0];
     if (file && storage) {
       const filePath = `site/logo/${file.name}`;
-      const newUrl = await uploadFile(storage, file, filePath);
-      setLogoUrl(newUrl);
+      try {
+        const newUrl = await uploadFile(storage, file, filePath);
+        setLogoUrl(newUrl);
+      } catch (error) {
+        console.error("Error al subir el logo:", error);
+        // Opcional: mostrar un toast de error al usuario
+      }
     }
   };
   
@@ -96,3 +101,5 @@ const Header: React.FC<HeaderProps> = ({
 };
 
 export default Header;
+
+    

@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
@@ -24,10 +25,14 @@ interface AmenitiesSectionProps {
 const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, property, updateProperty, deleteSection, isAdminMode }) => {
     const storage = useStorage();
 
+    const handleUpdate = (updates: Partial<AmenitiesSectionData>) => {
+        const updatedSections = property.sections.map(s => s.id === data.id ? {...s, ...updates} : s);
+        updateProperty({ ...property, sections: updatedSections });
+    }
+
     const handleAmenityTextChange = (amenityId: string, newText: string) => {
         const updatedAmenities = data.amenities.map(a => a.id === amenityId ? { ...a, text: newText } : a);
-        const updatedSections = property.sections.map(s => s.id === data.id ? {...s, amenities: updatedAmenities} : s);
-        updateProperty({ ...property, sections: updatedSections });
+        handleUpdate({ amenities: updatedAmenities });
     };
 
     const handleAmenityImageChange = async (amenityId: string, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,28 +41,20 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, property, upd
             const filePath = `sections/${data.id}/amenities/${amenityId}/${file.name}`;
             const newUrl = await uploadFile(storage, file, filePath);
             const updatedAmenities = data.amenities.map(a => a.id === amenityId ? { ...a, imageUrl: newUrl } : a);
-            const updatedSections = property.sections.map(s => s.id === data.id ? {...s, amenities: updatedAmenities} : s);
-            updateProperty({ ...property, sections: updatedSections });
+            handleUpdate({ amenities: updatedAmenities });
         }
     };
 
     const handleAddAmenity = () => {
         const newAmenity = { id: uuidv4(), icon: 'PlusCircle' as IconName, text: 'Nueva Comodidad' };
         const updatedAmenities = [...data.amenities, newAmenity];
-        const updatedSections = property.sections.map(s => s.id === data.id ? {...s, amenities: updatedAmenities} : s);
-        updateProperty({ ...property, sections: updatedSections });
+        handleUpdate({ amenities: updatedAmenities });
     };
 
     const handleDeleteAmenity = (amenityId: string) => {
         const updatedAmenities = data.amenities.filter(a => a.id !== amenityId);
-        const updatedSections = property.sections.map(s => s.id === data.id ? {...s, amenities: updatedAmenities} : s);
-        updateProperty({ ...property, sections: updatedSections });
+        handleUpdate({ amenities: updatedAmenities });
     };
-    
-    const handleUpdate = (updates: Partial<AmenitiesSectionData>) => {
-        const updatedSections = property.sections.map(s => s.id === data.id ? {...s, ...updates} : s);
-        updateProperty({ ...property, sections: updatedSections });
-    }
 
     return (
         <div className="py-16 md:py-24 relative group/section" style={{backgroundColor: data.style.backgroundColor}}>
@@ -130,3 +127,5 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, property, upd
 };
 
 export default AmenitiesSection;
+
+    

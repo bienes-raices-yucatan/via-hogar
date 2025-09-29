@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { GallerySectionData, Property } from '@/lib/types';
@@ -134,3 +135,5 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, property, updateP
 };
 
 export default GallerySection;
+
+    
