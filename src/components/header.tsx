@@ -29,11 +29,15 @@ export const Header: React.FC<HeaderProps> = ({
                 <Icon name="logo" className="w-8 h-8 text-primary" />
                 <h1 className="text-xl font-bold text-foreground">{siteName}</h1>
             </div>
-            <div>
-                <Button onClick={() => setIsAdminMode(!isAdminMode)}>
-                    {isAdminMode ? 'Salir del Modo Admin' : 'Modo Admin'}
-                </Button>
-            </div>
+            {isAdminMode && (
+                <div>
+                    <Button onClick={() => setIsAdminMode(false)}>
+                        Salir del Modo Admin
+                    </Button>
+                </div>
+            )}
         </header>
     );
 };
+
+    
