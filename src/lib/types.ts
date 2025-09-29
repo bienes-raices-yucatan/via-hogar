@@ -1,7 +1,7 @@
 
 
 // A type for the icon names available in the Icon component
-export type IconName = 'bed' | 'bath' | 'area' | 'map-pin' | 'school' | 'store' | 'bus' | 'sparkles' | 'x-mark' | 'chevron-down' | 'plus' | 'pencil' | 'trash' | 'nearby' | 'logo' | 'drag-handle' | 'chevron-left' | 'chevron-right' | 'copyright' | 'solar-panel' | 'parking' | 'laundry' | 'pool' | 'generic-feature' | 'street-view' | 'gym' | 'park' | 'whatsapp' | 'arrows-move' | 'check' | 'list';
+export type IconName = 'bed' | 'bath' | 'area' | 'map-pin' | 'school' | 'store' | 'bus' | 'sparkles' | 'x-mark' | 'chevron-down' | 'plus' | 'pencil' | 'trash' | 'nearby' | 'logo' | 'drag-handle' | 'chevron-left' | 'chevron-right' | 'copyright' | 'solar-panel' | 'parking' | 'laundry' | 'pool' | 'generic-feature' | 'street-view' | 'gym' | 'park' | 'whatsapp' | 'arrows-move' | 'check' | 'list' | 'camera';
 
 export type FontFamily = 'Roboto' | 'Montserrat' | 'Lora' | 'Playfair Display';
 
@@ -149,7 +149,7 @@ export interface Property {
 // Represents the currently selected UI element for editing
 export type SelectedElement = {
     sectionId: string;
-    elementKey: 'title' | 'subtitle' | 'media' | 'features' | 'amenities' | 'tiers' | 'floatingTexts' | 'style';
+    elementKey: 'title' | 'subtitle' | 'media' | 'features' | 'amenities' | 'tiers' | 'floatingTexts' | 'style' | 'backgroundImageUrl' | 'mainImageUrl';
     subElementId?: string; // For items within an array (e.g., a specific feature ID)
 };
 

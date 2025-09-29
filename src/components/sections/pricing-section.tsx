@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { PricingSectionData, SelectedElement, PricingTier } from '@/lib/types';
 import { SectionToolbar } from '@/components/section-toolbar';
 import { EditableText } from '@/components/editable-text';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Icon } from '@/components/icon';
 import { cn } from '@/lib/utils';
+import { saveImage } from '@/lib/storage';
 
 interface PricingSectionProps {
   data: PricingSectionData;
@@ -28,9 +29,23 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
   onSelectElement,
 }) => {
   const { tier } = data;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleTierUpdate = (updatedTier: Partial<PricingTier>) => {
     onUpdate({ ...data, tier: { ...data.tier, ...updatedTier } });
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+          const dataUrl = e.target?.result as string;
+          const savedKey = await saveImage(dataUrl);
+          onUpdate({ ...data, backgroundImageUrl: savedKey });
+      };
+      reader.readAsDataURL(file);
   };
 
 
@@ -38,14 +53,26 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
     <section 
         className="py-12 md:py-20 relative group bg-cover bg-center"
         style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${data.backgroundImageUrl})` }}
+        onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'backgroundImageUrl' })}
     >
+      <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
       <div className="container mx-auto px-4 flex items-center justify-center">
         {isAdminMode && (
           <SectionToolbar
             sectionId={data.id}
             onDelete={onDelete}
-            isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
+            isSectionSelected={selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'style' || selectedElement.elementKey === 'backgroundImageUrl')}
           />
+        )}
+         {isAdminMode && (
+          <Button
+            variant="secondary"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 opacity-0 group-hover:opacity-100"
+            onClick={() => fileInputRef.current?.click()}
+          >
+              <Icon name="camera" className="mr-2" />
+              Cambiar Fondo
+          </Button>
         )}
         
         <Card className="max-w-md w-full bg-background/90 backdrop-blur-sm shadow-2xl rounded-2xl">

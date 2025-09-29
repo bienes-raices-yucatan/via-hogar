@@ -8,12 +8,16 @@ import { Slider } from './ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Icon } from './icon';
-import { FontFamily } from '@/lib/types';
+import { FontFamily, IconName } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from './ui/scroll-area';
+
+// Extend IconName to get all icon names
+const allIcons: IconName[] = ['bed' , 'bath' , 'area' , 'map-pin' , 'school' , 'store' , 'bus' , 'sparkles' , 'x-mark' , 'chevron-down' , 'plus' , 'pencil' , 'trash' , 'nearby' , 'logo' , 'drag-handle' , 'chevron-left' , 'chevron-right' , 'copyright' , 'solar-panel' , 'parking' , 'laundry' , 'pool' , 'generic-feature' , 'street-view' , 'gym' , 'park' , 'whatsapp' , 'arrows-move' , 'check' , 'list', 'camera'];
 
 // Type definitions for what the toolbar can edit
 type EditableElement = {
-    type: 'styledText' | 'draggableText' | 'sectionStyle';
+    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature';
     data: any;
 };
 
@@ -80,6 +84,13 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         </>
     );
 
+    const renderIconControls = () => (
+        <>
+             <IconPicker label="Icono" value={values.icon} onChange={(icon) => handleChange('icon', icon)} />
+        </>
+    );
+
+
     const renderControls = () => {
         switch (element.type) {
             case 'styledText':
@@ -87,6 +98,9 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 return renderTextControls();
             case 'sectionStyle':
                 return renderSectionStyleControls();
+            case 'amenity':
+            case 'feature':
+                return renderIconControls();
             default:
                 return <p className="text-sm text-muted-foreground">No hay opciones de edición para este elemento.</p>;
         }
@@ -115,6 +129,10 @@ const Label: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ chil
 
 const ColorPicker: React.FC<{ label: string; value: string; onChange: (color: string) => void }> = ({ label, value, onChange }) => {
     const [color, setColor] = useState(value);
+
+    useEffect(() => {
+        setColor(value);
+    }, [value]);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -147,6 +165,42 @@ const ColorPicker: React.FC<{ label: string; value: string; onChange: (color: st
                             className="w-full"
                         />
                     </div>
+                </PopoverContent>
+            </Popover>
+        </div>
+    );
+};
+
+
+const IconPicker: React.FC<{ label: string; value: IconName; onChange: (icon: IconName) => void }> = ({ label, value, onChange }) => {
+    return (
+        <div className="space-y-2">
+            <Label>{label}</Label>
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <div className="flex items-center gap-2">
+                            <Icon name={value} className="h-4 w-4" />
+                            <span className="capitalize">{value.replace('-', ' ')}</span>
+                        </div>
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-0" align="start">
+                    <ScrollArea className="h-72">
+                        <div className="p-2 grid grid-cols-4 gap-2">
+                            {allIcons.map((icon) => (
+                                <Button
+                                    key={icon}
+                                    variant={value === icon ? 'default' : 'ghost'}
+                                    size="icon"
+                                    onClick={() => onChange(icon)}
+                                    className="w-full h-full aspect-square"
+                                >
+                                    <Icon name={icon} />
+                                </Button>
+                            ))}
+                        </div>
+                    </ScrollArea>
                 </PopoverContent>
             </Popover>
         </div>

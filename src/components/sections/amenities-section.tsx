@@ -30,11 +30,6 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
         onUpdate({ ...data, title: { ...data.title, ...newTitle } });
     }
   };
-
-  const handleAmenityUpdate = (id: string, newText: string) => {
-    const newAmenities = data.amenities.map(a => a.id === id ? { ...a, text: newText } : a);
-    onUpdate({ ...data, amenities: newAmenities });
-  };
   
   const handleAddAmenity = () => {
     const newAmenity: AmenityItem = {
@@ -48,6 +43,11 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
   const handleDeleteAmenity = (id: string) => {
     const newAmenities = data.amenities.filter(a => a.id !== id);
     onUpdate({ ...data, amenities: newAmenities });
+  };
+
+  const handleSelectAmenity = (amenityId: string) => {
+    if (!isAdminMode) return;
+    onSelectElement({ sectionId: data.id, elementKey: 'amenities', subElementId: amenityId });
   };
 
   return (
@@ -78,7 +78,18 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
         )}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
             {data.amenities.map(amenity => (
-                <div key={amenity.id} className="relative group/amenity">
+                <div 
+                    key={amenity.id}
+                    className={cn(
+                        "relative group/amenity",
+                        isAdminMode && "cursor-pointer rounded-lg p-2 transition-all hover:bg-accent/50",
+                        selectedElement?.subElementId === amenity.id && "bg-accent/50 ring-2 ring-primary"
+                    )}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectAmenity(amenity.id);
+                    }}
+                >
                      <div className="flex flex-col items-center text-center">
                         <div className="bg-primary/10 p-4 rounded-full mb-4">
                             <Icon name={amenity.icon} className="w-8 h-8 text-primary" />
@@ -87,7 +98,15 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
                     </div>
                     {isAdminMode && (
                         <div className="absolute top-0 right-0 opacity-0 group-hover/amenity:opacity-100 transition-opacity">
-                            <Button variant="destructive" size="icon" className="h-6 w-6" onClick={() => handleDeleteAmenity(amenity.id)}>
+                            <Button 
+                                variant="destructive" 
+                                size="icon" 
+                                className="h-6 w-6" 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteAmenity(amenity.id)
+                                }}
+                            >
                                 <Icon name="x-mark" className="h-4 w-4" />
                             </Button>
                         </div>

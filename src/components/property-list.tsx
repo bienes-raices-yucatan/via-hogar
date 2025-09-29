@@ -1,11 +1,12 @@
 
 "use client";
-import React from 'react';
+import React, { useRef } from 'react';
 import Image from 'next/image';
 import { Property } from '@/lib/types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Icon } from './icon';
+import { saveImage } from '@/lib/storage';
 
 interface PropertyListProps {
   properties: Property[];
@@ -20,11 +21,55 @@ export const PropertyList: React.FC<PropertyListProps> = ({
   properties,
   onSelectProperty,
   onAddProperty,
-  isAdminMode,
+  onUpdateProperty,
   onDeleteProperty,
+  isAdminMode,
 }) => {
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const propertyIdToUpdateRef = useRef<string | null>(null);
+
+  const handleImageUploadClick = (e: React.MouseEvent, propertyId: string) => {
+    e.stopPropagation();
+    propertyIdToUpdateRef.current = propertyId;
+    imageInputRef.current?.click();
+  };
+
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    const propertyId = propertyIdToUpdateRef.current;
+    if (!file || !propertyId) return;
+
+    const propertyToUpdate = properties.find(p => p.id === propertyId);
+    if (!propertyToUpdate) return;
+    
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const dataUrl = e.target?.result as string;
+        try {
+            const savedKey = await saveImage(dataUrl);
+            onUpdateProperty({ ...propertyToUpdate, mainImageUrl: savedKey });
+        } catch(err) {
+            console.error("Failed to save image", err);
+            // Fallback to dataURL if indexedDB fails, though it's not ideal for large images
+            onUpdateProperty({ ...propertyToUpdate, mainImageUrl: dataUrl });
+        }
+    };
+    reader.readAsDataURL(file);
+
+    // Reset for next upload
+    if(imageInputRef.current) imageInputRef.current.value = "";
+    propertyIdToUpdateRef.current = null;
+  };
+
   return (
     <div className="container mx-auto p-4 md:p-8">
+      <input 
+        type="file" 
+        ref={imageInputRef} 
+        className="hidden" 
+        accept="image/*" 
+        onChange={handleImageChange}
+      />
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Propiedades Disponibles</h1>
         {isAdminMode && (
@@ -49,7 +94,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {properties.map((prop) => (
             <Card key={prop.id} className="overflow-hidden group">
-              <CardHeader className="p-0 relative">
+              <CardHeader className="p-0 relative group/image">
                  <Image
                     src={prop.mainImageUrl}
                     alt={prop.name}
@@ -58,17 +103,25 @@ export const PropertyList: React.FC<PropertyListProps> = ({
                     className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
                 />
                 {isAdminMode && (
-                    <Button
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2 z-10"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteProperty(prop.id);
-                        }}
-                    >
-                        <Icon name="trash" />
-                    </Button>
+                  <div className="absolute top-2 right-2 z-10 flex flex-col gap-2 opacity-0 group-hover/image:opacity-100 transition-opacity">
+                      <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteProperty(prop.id);
+                          }}
+                      >
+                          <Icon name="trash" />
+                      </Button>
+                      <Button
+                          variant="secondary"
+                          size="icon"
+                          onClick={(e) => handleImageUploadClick(e, prop.id)}
+                      >
+                          <Icon name="pencil" />
+                      </Button>
+                  </div>
                 )}
               </CardHeader>
               <CardContent className="p-4">
@@ -88,5 +141,3 @@ export const PropertyList: React.FC<PropertyListProps> = ({
     </div>
   );
 };
-
-    

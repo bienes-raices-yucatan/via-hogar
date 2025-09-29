@@ -46,13 +46,14 @@ export const Icon: React.FC<IconProps> = ({ name, className = 'w-6 h-6', strokeW
     laundry: <><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15.91 15.91a5.25 5.25 0 01-7.42 0 5.25 5.25 0 010-7.42" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 12h.01" /></>,
     pool: <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 110-18 9 9 0 010 18zm0-14.25c-2.12 0-3.858 1.13-4.5 2.658M12 17.25c2.12 0 3.858-1.13 4.5-2.658" />,
     'generic-feature': <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h.01M12 12h.01M12 16.5h.01" />,
-    'street-view': <><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></>,
+    'street-view': <><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></>,
     gym: <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5A2.25 2.25 0 019 5.25h9A2.25 2.25 0 0120.25 7.5v9A2.25 2.25 0 0118 18.75h-9A2.25 2.25 0 016.75 16.5v-9zM5.25 9.75A2.25 2.25 0 013 7.5v9A2.25 2.25 0 005.25 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 01-2.25-2.25H5.25z" />,
     park: <path strokeLinecap="round" strokeLinejoin="round" d="M12.75 3.093l-4.01 4.887a2.25 2.25 0 00-.59 1.48V15.75A2.25 2.25 0 0010.5 18h3a2.25 2.25 0 002.25-2.25V9.46a2.25 2.25 0 00-.59-1.48l-4.01-4.887zM12 21a9 9 0 100-18 9 9 0 000 18z" />,
     whatsapp: <path stroke="none" fill="currentColor" d="M16.6 7.4c-1.6-1.6-3.6-2.4-5.8-2.4c-4.5 0-8.2 3.7-8.2 8.2c0 1.5.4 2.9 1.1 4.2L2 22l4.8-1.2c1.3.7 2.7 1 4.2 1h.1c4.5 0 8.2-3.7 8.2-8.2c0-2.2-.8-4.2-2.4-5.8zm-5.8 13.1c-1.3 0-2.6-.4-3.8-1.1L6.4 19l.3-1.4c-.8-1.2-1.2-2.6-1.2-4.1c0-3.8 3.1-6.9 6.9-6.9c1.9 0 3.6.7 4.9 2c1.3 1.3 2 3 2 4.9c0 3.8-3.1 6.9-6.9 6.9zm4-5.4c-.2-.1-1.3-.6-1.5-.7c-.2-.1-.4-.1-.5.1s-.6.7-.7.8c-.1.1-.2.2-.4.1c-.2-.1-.8-.3-1.5-.9c-.6-.5-1-1.2-1.1-1.4c-.1-.2 0-.3.1-.4l.3-.4c.1-.1.1-.2.2-.4c.1-.1 0-.3-.1-.4c-.1-.1-.5-1.3-.7-1.8c-.2-.4-.3-.4-.5-.4h-.4c-.2 0-.4.1-.5.3c-.1.2-.6.7-.7 1.6c-.1.9.7 1.8.8 2c.1.1 1.3 2 3.2 2.8c.4.2.7.3 1 .4c.5.1.9.1 1.2.1c.4-.1 1.3-.5 1.5-.9c.2-.4.2-.8.1-.9c-.1-.1-.3-.2-.4-.2z" />,
     'arrows-move': <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m0 0l-3.75-3.75M12 19.5l3.75-3.75M12 4.5L8.25 8.25M12 4.5l3.75 3.75M4.5 12h15m0 0l-3.75 3.75M19.5 12l-3.75-3.75" />,
     check: <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />,
-    list: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    list: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />,
+    camera: <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.75a2.25 2.25 0 002.25-2.25v-1.125A12.75 12.75 0 0012 15.75a12.75 12.75 0 00-2.25 2.625v1.125a2.25 2.25 0 002.25 2.25zM12 2.25a2.25 2.25 0 012.25 2.25v1.125A12.75 12.75 0 0112 8.25a12.75 12.75 0 01-2.25-2.625V4.5A2.25 2.25 0 0112 2.25z" />
   };
 
   const iconSvg = icons[name as IconName];

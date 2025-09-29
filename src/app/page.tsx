@@ -19,7 +19,9 @@ import {
     SelectedElement,
     StyledText,
     DraggableTextData,
-    IconName
+    IconName,
+    AmenityItem,
+    FeatureItem
 } from '@/lib/types';
 
 // Import constants
@@ -32,7 +34,7 @@ import {
 
 // Import services
 import { geocodeAddress, generateNearbyPlaces } from '@/ai/gemini-service';
-import { initDB } from '@/lib/storage';
+import { initDB, getImageBlob, saveImage } from '@/lib/storage';
 
 // Import all components
 import { Header } from '@/components/header';
@@ -58,8 +60,8 @@ import { DraggableEditableText } from '@/components/draggable-editable-text';
 
 // Type for the state that tracks the currently selected element for editing
 type SelectedElementForToolbar = {
-    type: 'styledText' | 'draggableText' | 'sectionStyle';
-    data: Partial<StyledText & DraggableTextData & { backgroundColor: string }>;
+    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature';
+    data: Partial<StyledText & DraggableTextData & { backgroundColor: string } & AmenityItem & FeatureItem>;
 };
 
 export default function Home() {
@@ -91,38 +93,55 @@ export default function Home() {
 
   // --- Effects ---
   useEffect(() => {
-    initDB();
-    
-    try {
-        const savedProps = localStorage.getItem('propertiesData');
-        setProperties(savedProps ? JSON.parse(savedProps) : []);
-
-        const savedSubmissions = localStorage.getItem('submissionsData');
-        setSubmissions(savedSubmissions ? JSON.parse(savedSubmissions) : []);
-
-        const savedSiteName = localStorage.getItem('siteName');
-        if (savedSiteName) setSiteName(savedSiteName);
-
-        const savedLogo = localStorage.getItem('customLogo');
-        if (savedLogo) setCustomLogo(savedLogo);
+    const loadFromStorage = async () => {
+        await initDB();
         
-    } catch (error) {
-        console.error("Failed to parse data from localStorage", error);
-        // If parsing fails, start with a clean slate
-        setProperties([]);
-        setSubmissions([]);
+        try {
+            const savedProps = localStorage.getItem('propertiesData');
+            if (savedProps) {
+                const parsedProps: Property[] = JSON.parse(savedProps);
+                // This is a temporary solution to migrate old image URLs to new ones
+                const migratedProps = await Promise.all(parsedProps.map(async (prop) => {
+                    const mainImageBlob = prop.mainImageUrl.startsWith('blob:') ? await fetch(prop.mainImageUrl).then(r => r.blob()) : null;
+                    if(mainImageBlob){
+                        prop.mainImageUrl = await saveImage(URL.createObjectURL(mainImageBlob));
+                    }
+                    return prop;
+                }));
+                setProperties(migratedProps);
+            } else {
+                setProperties([]); // Start with empty if nothing is saved
+            }
+
+            const savedSubmissions = localStorage.getItem('submissionsData');
+            setSubmissions(savedSubmissions ? JSON.parse(savedSubmissions) : []);
+
+            const savedSiteName = localStorage.getItem('siteName');
+            if (savedSiteName) setSiteName(savedSiteName);
+
+            const savedLogo = localStorage.getItem('customLogo');
+            if (savedLogo) setCustomLogo(savedLogo);
+
+        } catch (error) {
+            console.error("Failed to parse data from localStorage, starting fresh.", error);
+            setProperties([]);
+            setSubmissions([]);
+        }
+
+        const savedSelectedPropId = sessionStorage.getItem('selectedPropertyId');
+        if(savedSelectedPropId) setSelectedPropertyId(savedSelectedPropId);
     }
-
-    const savedSelectedPropId = sessionStorage.getItem('selectedPropertyId');
-    if(savedSelectedPropId) setSelectedPropertyId(savedSelectedPropId);
-
+    
+    loadFromStorage();
   }, []);
 
   // Persist data to localStorage
   useEffect(() => { 
-      if (properties.length > 0) {
-          localStorage.setItem('propertiesData', JSON.stringify(properties)); 
-      }
+    if (properties && properties.length > 0) {
+        localStorage.setItem('propertiesData', JSON.stringify(properties)); 
+    } else {
+        localStorage.removeItem('propertiesData');
+    }
   }, [properties]);
   useEffect(() => { 
       if (submissions.length > 0) {
@@ -131,8 +150,11 @@ export default function Home() {
   }, [submissions]);
   useEffect(() => { localStorage.setItem('siteName', siteName); }, [siteName]);
   useEffect(() => {
-    if (customLogo) localStorage.setItem('customLogo', customLogo);
-    else localStorage.removeItem('customLogo');
+    if (customLogo) {
+        localStorage.setItem('customLogo', customLogo);
+    } else {
+        localStorage.removeItem('customLogo');
+    }
   }, [customLogo]);
   
   useEffect(() => {
@@ -154,11 +176,9 @@ export default function Home() {
   // Global click listener to deselect elements
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-        // If in admin mode and the click is on the body (or a non-interactive part of a section), deselect.
         if (isAdminMode && selectedElement) {
             const target = event.target as HTMLElement;
-            // Check if the click is outside any editable-related element
-            if (!target.closest('[class*="outline-dashed"]')) {
+            if (!target.closest('[class*="outline-dashed"], [class*="ring-primary"], [class*="brightness-50"], [data-radix-popper-content-wrapper]')) {
                  setSelectedElement(null);
             }
         }
@@ -173,9 +193,9 @@ export default function Home() {
     setProperties(prev => prev.map(p => (p.id === updatedProperty.id ? updatedProperty : p)));
   }, []);
 
-  const handleUpdateSection = useCallback((sectionId: string, updatedData: AnySectionData) => {
+  const handleUpdateSection = useCallback((sectionId: string, updatedData: Partial<AnySectionData>) => {
     if (!selectedProperty) return;
-    const newSections = selectedProperty.sections.map(s => s.id === sectionId ? updatedData : s);
+    const newSections = selectedProperty.sections.map(s => s.id === sectionId ? { ...s, ...updatedData } : s);
     handleUpdateProperty({ ...selectedProperty, sections: newSections });
   }, [selectedProperty, handleUpdateProperty]);
   
@@ -282,33 +302,41 @@ export default function Home() {
   };
   
   // --- Toolbar Logic ---
-  const selectedElementForToolbar: SelectedElementForToolbar | null = useMemo(() => {
-    if (!selectedElement || !selectedProperty) return null;
+    const selectedElementForToolbar: SelectedElementForToolbar | null = useMemo(() => {
+        if (!selectedElement || !selectedProperty) return null;
 
-    const { sectionId, elementKey, subElementId } = selectedElement;
-    const section = selectedProperty.sections.find(s => s.id === sectionId);
-    if (!section) return null;
+        const { sectionId, elementKey, subElementId } = selectedElement;
+        const section = selectedProperty.sections.find(s => s.id === sectionId);
+        if (!section) return null;
 
-    if (elementKey === 'style') {
-        return { type: 'sectionStyle', data: { backgroundColor: section.style?.backgroundColor || '#FFFFFF' }};
-    }
+        if (elementKey === 'style' || elementKey === 'backgroundImageUrl') {
+            return { type: 'sectionStyle', data: { backgroundColor: section.style?.backgroundColor || '#FFFFFF' }};
+        }
+        
+        let data: any;
 
-    let data: any;
-    if (elementKey === 'floatingTexts' && subElementId && 'floatingTexts' in section && section.floatingTexts) {
-        data = section.floatingTexts.find(t => t.id === subElementId);
-    } else if (elementKey === 'title' && 'title' in section) {
-        data = section.title;
-    } else if (elementKey === 'subtitle' && 'subtitle' in section) {
-        data = section.subtitle;
-    }
-    
-    if (data && 'position' in data) {
-        return { type: 'draggableText', data };
-    } else if (data && 'fontSize' in data) {
-        return { type: 'styledText', data };
-    }
-    return null;
-  }, [selectedElement, selectedProperty]);
+        if (elementKey === 'floatingTexts' && subElementId && 'floatingTexts' in section && section.floatingTexts) {
+            data = section.floatingTexts.find(t => t.id === subElementId);
+        } else if (elementKey === 'title' && 'title' in section) {
+            data = section.title;
+        } else if (elementKey === 'subtitle' && 'subtitle' in section) {
+            data = section.subtitle;
+        } else if (elementKey === 'amenities' && subElementId && 'amenities' in section) {
+            data = section.amenities.find(a => a.id === subElementId);
+            if (data) return { type: 'amenity', data };
+        } else if (elementKey === 'features' && subElementId && 'features' in section) {
+            data = section.features.find(f => f.id === subElementId);
+            if (data) return { type: 'feature', data };
+        }
+        
+        if (data && 'position' in data) {
+            return { type: 'draggableText', data };
+        } else if (data && 'fontSize' in data) {
+            return { type: 'styledText', data };
+        }
+        return null;
+    }, [selectedElement, selectedProperty]);
+
 
   const handleToolbarUpdate = (changes: any) => {
     if (!selectedElement || !selectedProperty) return;
@@ -327,10 +355,13 @@ export default function Home() {
             t.id === subElementId ? { ...t, ...changes } : t
         );
     } else if (elementKey === 'title' && 'title' in sectionToUpdate && sectionToUpdate.title) {
-        // Ensure title is not undefined before spreading
         sectionToUpdate.title = { ...(sectionToUpdate.title as DraggableTextData | StyledText), ...changes };
     } else if (elementKey === 'subtitle' && 'subtitle' in sectionToUpdate && sectionToUpdate.subtitle) {
         sectionToUpdate.subtitle = { ...sectionToUpdate.subtitle, ...changes };
+    } else if (elementKey === 'amenities' && subElementId && 'amenities' in sectionToUpdate) {
+        sectionToUpdate.amenities = sectionToUpdate.amenities.map(a => a.id === subElementId ? { ...a, ...changes } : a);
+    } else if (elementKey === 'features' && subElementId && 'features' in sectionToUpdate) {
+        sectionToUpdate.features = sectionToUpdate.features.map(f => f.id === subElementId ? { ...f, ...changes } : f);
     }
 
     newSections[sectionIndex] = sectionToUpdate;
@@ -433,5 +464,3 @@ export default function Home() {
     </div>
   );
 };
-
-    
