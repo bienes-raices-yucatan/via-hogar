@@ -260,7 +260,7 @@ export default function Home() {
 
   // --- Admin & Login Handlers ---
   const handleAdminLogin = (user: string, pass: string): boolean => {
-    if (user === 'admin' && pass === 'Aguilar1') {
+    if (user === 'Admin' && pass === 'Aguilar1') {
       setIsAdminMode(true);
       setIsAdminLoginModalOpen(false);
       return true;
@@ -432,5 +432,3 @@ export default function Home() {
     </div>
   );
 };
-
-    
