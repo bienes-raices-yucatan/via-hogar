@@ -152,7 +152,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         transition: 'background-position 0.1s ease-out',
         overflow: 'hidden'
       }}
-      onClick={() => setSelectedElement(null)}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).classList.contains('draggable-text-container')) {
+            setSelectedElement(null);
+        }
+      }}
     >
       <div 
         className="absolute inset-0 bg-black/30"
