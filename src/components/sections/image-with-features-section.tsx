@@ -138,3 +138,9 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
                         <Trash2 />
                     </Button>
                 </div>
+            )}
+        </div>
+    );
+};
+
+export default ImageWithFeaturesSection;
