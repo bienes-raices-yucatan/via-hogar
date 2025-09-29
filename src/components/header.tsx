@@ -1,5 +1,6 @@
 
 "use client";
 import React from 'react';
-// Empty component
-export function Header(props: any) { return <div>Header</div>; }
+
+// Empty component placeholder
+export function Header(props: any) { return <div></div>; }

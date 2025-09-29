@@ -31,9 +31,7 @@ import {
 } from '@/lib/constants';
 
 // Import services
-// import { geocodeAddress, generateNearbyPlaces, initDB } from '@/lib/geminiService';
-import { initDB } from '@/lib/storage';
-
+import { geocodeAddress, generateNearbyPlaces, initDB } from '@/ai/gemini-service';
 
 // Import all components
 import { Header } from '@/components/header';
@@ -163,12 +161,17 @@ export default function Home() {
     handleUpdateProperty({ ...selectedProperty, sections: newSections });
   }, [selectedProperty, handleUpdateProperty]);
   
-  const handleAddSection = useCallback((type: AnySectionData['type'], index: number) => {
+  const handleAddSection = useCallback(async (type: AnySectionData['type'], index: number) => {
     if (!selectedProperty) return;
     const uniqueSuffix = `${Date.now()}`;
+    
+    // Simulate placeholder data for now
+    const coordinates = { lat: 19.4326, lng: -99.1332 };
+    const nearbyPlaces: NearbyPlace[] = [];
+
     const newSection = createSectionData(type, uniqueSuffix, {
-      coordinates: { lat: 0, lng: 0 }, // Placeholder, location will use property's coords
-      nearbyPlaces: [],
+      coordinates: coordinates,
+      nearbyPlaces: nearbyPlaces,
     });
 
     const newSections = [...selectedProperty.sections];
@@ -203,36 +206,40 @@ export default function Home() {
 
   // --- Property Management Handlers ---
   const handleAddProperty = async (address: string) => {
-      // const coordinates = await geocodeAddress(address);
-      // const nearbyPlacesData = await generateNearbyPlaces(coordinates.lat, coordinates.lng);
-      // const mapCategoryToIcon = (category: string): IconName => {
-      //   switch (category.toLowerCase()) {
-      //       case 'supermarket':
-      //       case 'store':
-      //           return 'store';
-      //       case 'gym':
-      //           return 'gym';
-      //       case 'school':
-      //           return 'school';
-      //       case 'park':
-      //           return 'park';
-      //       case 'transport':
-      //           return 'bus';
-      //       default:
-      //           return 'generic-feature';
-      //   }
-      // };
-      // const nearbyPlaces: NearbyPlace[] = nearbyPlacesData.map(place => ({
-      //       id: `place-${Date.now()}-${Math.random()}`,
-      //       icon: mapCategoryToIcon(place.category),
-      //       text: place.description
-      // }));
+      try {
+        const coordinates = await geocodeAddress(address);
+        const nearbyPlacesData = await generateNearbyPlaces(coordinates.lat, coordinates.lng);
+        const mapCategoryToIcon = (category: string): IconName => {
+          switch (category.toLowerCase()) {
+              case 'supermarket':
+              case 'store':
+                  return 'store';
+              case 'gym':
+                  return 'gym';
+              case 'school':
+                  return 'school';
+              case 'park':
+                  return 'park';
+              case 'transport':
+                  return 'bus';
+              default:
+                  return 'generic-feature';
+          }
+        };
+        const nearbyPlaces: NearbyPlace[] = (nearbyPlacesData.places || []).map((place: any) => ({
+              id: `place-${Date.now()}-${Math.random()}`,
+              icon: mapCategoryToIcon(place.category),
+              text: place.description
+        }));
 
-      // const newProp = createNewProperty(address, coordinates, nearbyPlaces);
-      const newProp = createNewProperty(address, {lat: 0, lng: 0}, []);
-      setProperties(prev => [...prev, newProp]);
-      setIsNewPropertyModalOpen(false);
-      setSelectedPropertyId(newProp.id);
+        const newProp = createNewProperty(address, coordinates, nearbyPlaces);
+        setProperties(prev => [...prev, newProp]);
+        setIsNewPropertyModalOpen(false);
+        setSelectedPropertyId(newProp.id);
+      } catch (error) {
+        console.error("Failed to add property:", error);
+        // You might want to show a toast or alert to the user here
+      }
   };
   
   const handleDeleteProperty = (id: string) => {

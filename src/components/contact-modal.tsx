@@ -1,5 +1,6 @@
 
 "use client";
 import React from 'react';
-// Empty component
-export function ContactModal(props: any) { return <div>ContactModal</div>; }
+
+// Empty component placeholder
+export function ContactModal(props: any) { return <div></div>; }

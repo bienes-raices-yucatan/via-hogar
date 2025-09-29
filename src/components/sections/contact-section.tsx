@@ -1,5 +1,6 @@
 
 "use client";
 import React from 'react';
-// Empty component
-export function ContactSection(props: any) { return <div>ContactSection</div>; }
+
+// Empty component placeholder
+export function ContactSection(props: any) { return <div></div>; }
