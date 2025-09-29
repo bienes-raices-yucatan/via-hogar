@@ -364,13 +364,13 @@ export default function Home() {
         <main className="flex-grow">
             {selectedProperty ? (
             <div>
+                {isAdminMode && <AddSectionControl index={0} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
                 {selectedProperty.sections.map((section, index) => (
-                    <div key={section.id}>
-                        {isAdminMode && <AddSectionControl index={index} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
+                    <React.Fragment key={section.id}>
                         {renderSection(section, index)}
-                    </div>
+                        {isAdminMode && <AddSectionControl index={index + 1} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
+                    </React.Fragment>
                 ))}
-                {isAdminMode && <AddSectionControl index={selectedProperty.sections.length} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
             </div>
             ) : (
             <PropertyList
