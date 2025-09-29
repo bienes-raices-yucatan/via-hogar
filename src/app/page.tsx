@@ -54,6 +54,7 @@ import { EditingToolbar } from '@/components/editing-toolbar';
 import { ContactModal } from '@/components/contact-modal';
 import { SubmissionsModal } from '@/components/submissions-modal';
 import { ConfirmationModal } from '@/components/confirmation-modal';
+import { DraggableEditableText } from '@/components/draggable-editable-text';
 
 // Type for the state that tracks the currently selected element for editing
 type SelectedElementForToolbar = {
@@ -410,7 +411,3 @@ export default function Home() {
     </div>
   );
 };
-
-    
-
-    
