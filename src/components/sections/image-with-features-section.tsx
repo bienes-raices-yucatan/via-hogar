@@ -2,27 +2,31 @@
 'use client';
 import React, { useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
-import { ImageWithFeaturesSectionData } from '@/lib/types';
+import { ImageWithFeaturesSectionData, Property } from '@/lib/types';
 import { Button } from '../ui/button';
 import { Trash2, PlusCircle, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
 import { Label } from '../ui/label';
-import { useStorage, uploadFile } from '@/firebase/storage';
+import { uploadFile } from '@/firebase/storage';
+import { useFirebaseApp } from '@/firebase';
+import { getStorage } from 'firebase/storage';
 
 type IconName = keyof typeof LucideIcons;
 
 interface ImageWithFeaturesSectionProps {
     data: ImageWithFeaturesSectionData;
+    property: Property;
     updateSection: (sectionId: string, updatedData: Partial<ImageWithFeaturesSectionData>) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
 }
 
-const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
+const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ data, property, updateSection, deleteSection, isAdminMode }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const storage = useStorage();
+    const app = useFirebaseApp();
+    const storage = getStorage(app);
     
     const handleFeatureUpdate = (featureId: string, field: 'title' | 'subtitle', value: string) => {
         const updatedFeatures = data.features.map(f => f.id === featureId ? { ...f, [field]: value } : f);

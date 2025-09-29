@@ -2,27 +2,31 @@
 'use client';
 import React, { useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
-import { AmenitiesSectionData } from '@/lib/types';
+import { AmenitiesSectionData, Property } from '@/lib/types';
 import { Button } from '../ui/button';
 import { Trash2, PlusCircle } from 'lucide-react';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
 import Image from 'next/image';
 import { Label } from '../ui/label';
-import { useStorage, uploadFile } from '@/firebase/storage';
+import { uploadFile } from '@/firebase/storage';
+import { useFirebaseApp } from '@/firebase';
+import { getStorage } from 'firebase/storage';
 
 type IconName = keyof typeof LucideIcons;
 
 interface AmenitiesSectionProps {
     data: AmenitiesSectionData;
+    property: Property;
     updateSection: (sectionId: string, updatedData: Partial<AmenitiesSectionData>) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
 }
 
-const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
+const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, property, updateSection, deleteSection, isAdminMode }) => {
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
-    const storage = useStorage();
+    const app = useFirebaseApp();
+    const storage = getStorage(app);
 
     const handleAmenityTextChange = (amenityId: string, newText: string) => {
         const updatedAmenities = data.amenities.map(a => a.id === amenityId ? { ...a, text: newText } : a);

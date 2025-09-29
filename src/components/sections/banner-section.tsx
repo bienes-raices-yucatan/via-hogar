@@ -10,11 +10,14 @@ import { Label } from '../ui/label';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '@/lib/utils';
 import { Slider } from '../ui/slider';
-import { useStorage, uploadFile } from '@/firebase/storage';
+import { uploadFile } from '@/firebase/storage';
 import ResizableDraggableText from './resizable-draggable-text';
+import { useFirebaseApp } from '@/firebase';
+import { getStorage } from 'firebase/storage';
 
 interface BannerSectionProps {
   data: BannerSectionData;
+  property: Property;
   isFirstSection: boolean;
   updateSection: (sectionId: string, updatedData: Partial<BannerSectionData>) => void;
   deleteSection: (sectionId: string) => void;
@@ -26,6 +29,7 @@ interface BannerSectionProps {
 
 const BannerSection: React.FC<BannerSectionProps> = ({ 
   data,
+  property,
   isFirstSection,
   updateSection, 
   deleteSection, 
@@ -37,7 +41,8 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   const sectionRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [backgroundPosition, setBackgroundPosition] = useState('center');
-  const storage = useStorage();
+  const app = useFirebaseApp();
+  const storage = getStorage(app);
 
   useEffect(() => {
     if (!data.parallaxEnabled || isAdminMode) {

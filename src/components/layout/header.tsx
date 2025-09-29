@@ -5,8 +5,9 @@ import Image from 'next/image';
 import { Button } from '../ui/button';
 import EditableText from '../editable-text';
 import { Label } from '../ui/label';
-import { useStorage, uploadFile } from '@/firebase/storage';
-import { useUser } from '@/firebase';
+import { uploadFile } from '@/firebase/storage';
+import { useFirebaseApp } from '@/firebase';
+import { getStorage } from 'firebase/storage';
 
 interface HeaderProps {
   siteName: string;
@@ -26,7 +27,8 @@ const Header: React.FC<HeaderProps> = ({
   onLogout,
 }) => {
   const logoFileInputRef = useRef<HTMLInputElement>(null);
-  const storage = useStorage();
+  const app = useFirebaseApp();
+  const storage = getStorage(app);
 
   const handleLogoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0] && storage) {

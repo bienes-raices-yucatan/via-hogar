@@ -1,7 +1,7 @@
 
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { GallerySectionData } from '@/lib/types';
+import { GallerySectionData, Property } from '@/lib/types';
 import { Button } from '../ui/button';
 import { Trash2, PlusCircle } from 'lucide-react';
 import Image from 'next/image';
@@ -10,19 +10,23 @@ import { v4 as uuidv4 } from 'uuid';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
 import { Label } from '../ui/label';
-import { useStorage, uploadFile } from '@/firebase/storage';
+import { uploadFile } from '@/firebase/storage';
+import { useFirebaseApp } from '@/firebase';
+import { getStorage } from 'firebase/storage';
 
 interface GallerySectionProps {
     data: GallerySectionData;
+    property: Property;
     updateSection: (sectionId: string, updatedData: Partial<GallerySectionData>) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
 }
 
-const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
+const GallerySection: React.FC<GallerySectionProps> = ({ data, property, updateSection, deleteSection, isAdminMode }) => {
     const [api, setApi] = useState<CarouselApi>()
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
-    const storage = useStorage();
+    const app = useFirebaseApp();
+    const storage = getStorage(app);
 
     useEffect(() => {
         if (!api) {

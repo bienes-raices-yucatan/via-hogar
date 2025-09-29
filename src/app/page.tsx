@@ -111,7 +111,6 @@ export default function Home() {
     );
     const updatedProperty = { ...property, sections: updatedSections };
     
-    setLocalProperties(prev => prev ? prev.map(p => p.id === updatedProperty.id ? updatedProperty : p) : null);
     handleUpdateProperty(updatedProperty);
   };
 

@@ -12,10 +12,13 @@ import { cn } from '@/lib/utils';
 import { Slider } from '../ui/slider';
 import { useStorage, uploadFile } from '@/firebase/storage';
 import ResizableDraggableText from './resizable-draggable-text';
+import { useFirebaseApp } from '@/firebase';
+import { getStorage } from 'firebase/storage';
 
 
 interface HeroSectionProps {
   data: HeroSectionData;
+  property: Property;
   updateSection: (sectionId: string, updatedData: Partial<HeroSectionData>) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
@@ -27,6 +30,7 @@ interface HeroSectionProps {
 
 const HeroSection: React.FC<HeroSectionProps> = ({ 
   data, 
+  property,
   updateSection, 
   deleteSection, 
   isAdminMode, 
@@ -38,7 +42,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   const sectionRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [backgroundPosition, setBackgroundPosition] = useState('center');
-  const storage = useStorage();
+  const app = useFirebaseApp();
+  const storage = getStorage(app);
 
   useEffect(() => {
     if (!data.parallaxEnabled || isAdminMode) {
