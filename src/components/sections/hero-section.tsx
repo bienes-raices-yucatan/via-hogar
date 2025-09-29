@@ -1,6 +1,6 @@
 
 'use client';
-import { HeroSectionData, DraggableTextData } from '@/lib/types';
+import { HeroSectionData, DraggableTextData, Property } from '@/lib/types';
 import { Trash2, Image as ImageIcon, PlusCircle } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
@@ -15,9 +15,10 @@ import ResizableDraggableText from './resizable-draggable-text';
 
 
 interface HeroSectionProps {
+  property: Property;
   data: HeroSectionData;
-  updateSection: (sectionId: string, updatedData: Partial<HeroSectionData>) => void;
-  localUpdateSection: (sectionId: string, updatedData: Partial<HeroSectionData>) => void;
+  updateProperty: (updatedProperty: Property) => void;
+  localUpdateProperty: (updatedProperty: Property) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
   selectedElement: any;
@@ -27,9 +28,10 @@ interface HeroSectionProps {
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({ 
+  property,
   data, 
-  updateSection, 
-  localUpdateSection,
+  updateProperty, 
+  localUpdateProperty,
   deleteSection, 
   isAdminMode, 
   selectedElement,
@@ -41,6 +43,16 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [backgroundPosition, setBackgroundPosition] = useState('center');
   const storage = useStorage();
+
+  const updateSection = (updatedData: Partial<HeroSectionData>) => {
+    const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
+    updateProperty({ ...property, sections: updatedSections });
+  };
+
+  const localUpdateSection = (updatedData: Partial<HeroSectionData>) => {
+    const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
+    localUpdateProperty({ ...property, sections: updatedSections });
+  };
 
   useEffect(() => {
     if (!data.parallaxEnabled || isAdminMode) {
@@ -75,13 +87,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   const handleDraggableTextUpdate = (textId: string, updates: Partial<DraggableTextData>) => {
     if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
-    updateSection(data.id, { draggableTexts: updatedTexts });
+    updateSection({ draggableTexts: updatedTexts });
   };
 
   const handleLocalDraggableTextUpdate = (textId: string, updates: Partial<DraggableTextData>) => {
     if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
-    localUpdateSection(data.id, { draggableTexts: updatedTexts });
+    localUpdateSection({ draggableTexts: updatedTexts });
   };
   
   const handleAddDraggableText = () => {
@@ -96,17 +108,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         height: 50,
     };
     const updatedTexts = [...(data.draggableTexts || []), newText];
-    updateSection(data.id, { draggableTexts: updatedTexts });
+    updateSection({ draggableTexts: updatedTexts });
   };
 
   const handleDeleteDraggableText = (textId: string) => {
     if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.filter(t => t.id !== textId);
-    updateSection(data.id, { draggableTexts: updatedTexts });
+    updateSection({ draggableTexts: updatedTexts });
   };
   
   const handleButtonTextUpdate = (value: string) => {
-    updateSection(data.id, { buttonText: value });
+    updateSection({ buttonText: value });
   };
   
   const createSelectHandler = (textId: string) => () => {
@@ -122,7 +134,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
     if (file && storage) {
       const filePath = `sections/${data.id}/${file.name}`;
       const newUrl = await uploadFile(storage, file, filePath);
-      updateSection(data.id, { imageUrl: newUrl });
+      updateSection({ imageUrl: newUrl });
     }
   };
   
@@ -201,7 +213,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               <Switch
                 id={`parallax-${data.id}`}
                 checked={!!data.parallaxEnabled}
-                onCheckedChange={(checked) => updateSection(data.id, { parallaxEnabled: checked })}
+                onCheckedChange={(checked) => updateSection({ parallaxEnabled: checked })}
               />
               <Label htmlFor={`parallax-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
             </div>
@@ -212,7 +224,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                     max={100}
                     step={1}
                     value={[parseInt(data.height || '75')]}
-                    onValueChange={([value]) => updateSection(data.id, { height: `${value}vh` })}
+                    onValueChange={([value]) => updateSection({ height: `${value}vh` })}
                 />
             </div>
              <div className='space-y-1'>
@@ -222,7 +234,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                     max={10}
                     step={0.5}
                     value={[parseFloat(data.borderRadius || '3')]}
-                    onValueChange={([value]) => updateSection(data.id, { borderRadius: `${value}rem` })}
+                    onValueChange={([value]) => updateSection({ borderRadius: `${value}rem` })}
                 />
             </div>
           </div>

@@ -1,7 +1,8 @@
+
 'use client';
 import React from 'react';
 import * as LucideIcons from 'lucide-react';
-import { PricingSectionData } from '@/lib/types';
+import { PricingSectionData, Property } from '@/lib/types';
 import { Button } from '../ui/button';
 import { Trash2 } from 'lucide-react';
 import EditableText from '../editable-text';
@@ -10,16 +11,22 @@ import { Card, CardContent } from '../ui/card';
 type IconName = keyof typeof LucideIcons;
 
 interface PricingSectionProps {
+    property: Property;
     data: PricingSectionData;
-    updateSection: (sectionId: string, updatedData: Partial<PricingSectionData>) => void;
+    updateProperty: (updatedProperty: Property) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
     isDraggingMode: boolean;
 }
 
-const PricingSection: React.FC<PricingSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
+const PricingSection: React.FC<PricingSectionProps> = ({ property, data, updateProperty, deleteSection, isAdminMode }) => {
     
     const Icon = data.icon ? LucideIcons[data.icon as IconName] as React.ElementType : null;
+
+    const updateSection = (updatedData: Partial<PricingSectionData>) => {
+        const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
+        updateProperty({ ...property, sections: updatedSections });
+    };
 
     return (
         <div className="py-16 md:py-24 relative group/section" style={{backgroundColor: data.style.backgroundColor}}>
@@ -33,25 +40,25 @@ const PricingSection: React.FC<PricingSectionProps> = ({ data, updateSection, de
                         }
                         
                         <div className="text-2xl font-bold text-gray-800 mb-4">
-                           <EditableText value={data.title} onChange={(val) => updateSection(data.id, { title: val })} isAdminMode={isAdminMode} />
+                           <EditableText value={data.title} onChange={(val) => updateSection({ title: val })} isAdminMode={isAdminMode} />
                         </div>
                         
                         {data.originalPrice &&
                             <div className="text-xl text-red-500 line-through mb-1">
-                                <EditableText value={data.originalPrice} onChange={(val) => updateSection(data.id, { originalPrice: val })} isAdminMode={isAdminMode} />
+                                <EditableText value={data.originalPrice} onChange={(val) => updateSection({ originalPrice: val })} isAdminMode={isAdminMode} />
                             </div>
                         }
 
                         <div className="text-4xl font-bold text-gray-900 mb-4">
-                            <EditableText value={data.price} onChange={(val) => updateSection(data.id, { price: val })} isAdminMode={isAdminMode} />
+                            <EditableText value={data.price} onChange={(val) => updateSection({ price: val })} isAdminMode={isAdminMode} />
                         </div>
 
                         <div className="text-gray-600 mb-6">
-                            <EditableText value={data.subtitle} onChange={(val) => updateSection(data.id, { subtitle: val })} isAdminMode={isAdminMode} />
+                            <EditableText value={data.subtitle} onChange={(val) => updateSection({ subtitle: val })} isAdminMode={isAdminMode} />
                         </div>
 
                         <Button size="lg" className="bg-gray-900 text-white hover:bg-gray-800 rounded-full px-8">
-                            <EditableText value={data.buttonText} onChange={(val) => updateSection(data.id, { buttonText: val })} isAdminMode={isAdminMode} />
+                            <EditableText value={data.buttonText} onChange={(val) => updateSection({ buttonText: val })} isAdminMode={isAdminMode} />
                         </Button>
                     </CardContent>
                 </Card>

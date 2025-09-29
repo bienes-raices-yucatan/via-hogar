@@ -2,9 +2,9 @@
 'use client';
 import React, { useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
-import { AmenitiesSectionData } from '@/lib/types';
+import { AmenitiesSectionData, Property } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Trash2, PlusCircle, Image as ImageIcon } from 'lucide-react';
+import { Trash2, PlusCircle } from 'lucide-react';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
 import Image from 'next/image';
@@ -14,30 +14,36 @@ import { useStorage, uploadFile } from '@/firebase/storage';
 type IconName = keyof typeof LucideIcons;
 
 interface AmenitiesSectionProps {
+    property: Property;
     data: AmenitiesSectionData;
-    updateSection: (sectionId: string, updatedData: Partial<AmenitiesSectionData>) => void;
+    updateProperty: (updatedProperty: Property) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
     isDraggingMode: boolean;
 }
 
-const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
+const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ property, data, updateProperty, deleteSection, isAdminMode }) => {
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
     const storage = useStorage();
 
+    const updateSection = (updatedData: Partial<AmenitiesSectionData>) => {
+        const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
+        updateProperty({ ...property, sections: updatedSections });
+    };
+
     const handleAmenityTextChange = (amenityId: string, newText: string) => {
         const updatedAmenities = data.amenities.map(a => a.id === amenityId ? { ...a, text: newText } : a);
-        updateSection(data.id, { amenities: updatedAmenities });
+        updateSection({ amenities: updatedAmenities });
     };
 
     const handleAddAmenity = () => {
         const newAmenity = { id: uuidv4(), icon: 'PlusCircle' as IconName, text: 'Nueva Comodidad' };
-        updateSection(data.id, { amenities: [...data.amenities, newAmenity] });
+        updateSection({ amenities: [...data.amenities, newAmenity] });
     };
 
     const handleDeleteAmenity = (amenityId: string) => {
         const updatedAmenities = data.amenities.filter(a => a.id !== amenityId);
-        updateSection(data.id, { amenities: updatedAmenities });
+        updateSection({ amenities: updatedAmenities });
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, amenityId: string) => {
@@ -48,7 +54,7 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection
             const updatedAmenities = data.amenities.map(a => 
                 a.id === amenityId ? { ...a, imageUrl: newUrl } : a
             );
-            updateSection(data.id, { amenities: updatedAmenities });
+            updateSection({ amenities: updatedAmenities });
         }
     };
     
@@ -58,7 +64,7 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection
                 {data.title && 
                     <EditableText 
                         value={data.title} 
-                        onChange={(val) => updateSection(data.id, {title: val})} 
+                        onChange={(val) => updateSection({title: val})} 
                         isAdminMode={isAdminMode} 
                         as="h2" 
                         className="text-3xl md:text-4xl font-headline font-bold text-center mb-12 text-slate-800"

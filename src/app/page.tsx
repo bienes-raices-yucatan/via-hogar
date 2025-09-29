@@ -35,7 +35,7 @@ export default function Home() {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
   
-  // Local state for fluid UI updates
+  // Local state for fluid UI updates, which gets synchronized from the `properties` hook.
   const [localProperties, setLocalProperties] = useState<Property[] | null>(null);
 
   // Editing state
@@ -52,6 +52,7 @@ export default function Home() {
   );
   
   useEffect(() => {
+    // When the data from Firebase changes, update our local state.
     if (properties) {
       setLocalProperties(properties);
     }
@@ -94,12 +95,20 @@ export default function Home() {
     setSelectedPropertyId(id);
   };
   
+  /**
+   * Persists an updated property to Firestore. The UI will update automatically
+   * via the `useCollection` hook listener.
+   */
   const handleUpdateProperty = async (updatedProperty: Property) => {
-    if (!propertiesRef) return;
+    if (!firestore) return;
     const propRef = doc(firestore, 'properties', updatedProperty.id);
     updateDocumentNonBlocking(propRef, updatedProperty);
   };
-
+  
+  /**
+   * Updates the local state for a property. Used for fluid UI interactions
+   * like dragging, before the final change is persisted.
+   */
   const handleLocalUpdateProperty = (updatedProperty: Property) => {
     setLocalProperties(prev => prev ? prev.map(p => p.id === updatedProperty.id ? updatedProperty : p) : null);
   };
@@ -291,9 +300,12 @@ export default function Home() {
           handleUpdateProperty({ ...property, sections: updatedSections });
         }
     } else if (active.id.toString().startsWith('text-')) {
-        // The visual update is already done in handleDragMove.
-        // Here we just need to persist the final state.
-        handleUpdateProperty(property);
+        // The visual update is done in handleDragMove via local state.
+        // Now, we persist the final state from `localProperties` to Firestore.
+        const finalPropertyState = localProperties.find(p => p.id === selectedPropertyId);
+        if (finalPropertyState) {
+          handleUpdateProperty(finalPropertyState);
+        }
     }
   }
   
@@ -334,6 +346,7 @@ export default function Home() {
                    <SectionRenderer
                       property={selectedProperty}
                       updateProperty={handleUpdateProperty}
+                      localUpdateProperty={handleLocalUpdateProperty}
                       isAdminMode={isAdminMode}
                       isDraggingMode={isDraggingMode}
                       selectedElement={selectedElement}

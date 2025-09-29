@@ -1,10 +1,12 @@
+
 'use client';
 import { FirebaseApp } from 'firebase/app';
 import { FirebaseStorage, getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useFirebaseApp } from './provider';
 
-export function useStorage(): FirebaseStorage {
+export function useStorage(): FirebaseStorage | null {
     const app = useFirebaseApp();
+    if (!app) return null;
     return getStorage(app);
 }
 

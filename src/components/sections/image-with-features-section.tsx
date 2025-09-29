@@ -2,7 +2,7 @@
 'use client';
 import React, { useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
-import { ImageWithFeaturesSectionData } from '@/lib/types';
+import { ImageWithFeaturesSectionData, Property } from '@/lib/types';
 import { Button } from '../ui/button';
 import { Trash2, PlusCircle, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
@@ -14,30 +14,36 @@ import { useStorage, uploadFile } from '@/firebase/storage';
 type IconName = keyof typeof LucideIcons;
 
 interface ImageWithFeaturesSectionProps {
+    property: Property;
     data: ImageWithFeaturesSectionData;
-    updateSection: (sectionId: string, updatedData: Partial<ImageWithFeaturesSectionData>) => void;
+    updateProperty: (updatedProperty: Property) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
     isDraggingMode: boolean;
 }
 
-const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
+const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ property, data, updateProperty, deleteSection, isAdminMode }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const storage = useStorage();
+
+    const updateSection = (updatedData: Partial<ImageWithFeaturesSectionData>) => {
+        const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
+        updateProperty({ ...property, sections: updatedSections });
+    };
     
     const handleFeatureUpdate = (featureId: string, field: 'title' | 'subtitle', value: string) => {
         const updatedFeatures = data.features.map(f => f.id === featureId ? { ...f, [field]: value } : f);
-        updateSection(data.id, { features: updatedFeatures });
+        updateSection({ features: updatedFeatures });
     };
 
     const handleAddFeature = () => {
         const newFeature = { id: uuidv4(), icon: 'PlusCircle', title: 'Nueva Característica', subtitle: 'Descripción aquí.' };
-        updateSection(data.id, { features: [...data.features, newFeature] });
+        updateSection({ features: [...data.features, newFeature] });
     };
     
     const handleDeleteFeature = (featureId: string) => {
         const updatedFeatures = data.features.filter(f => f.id !== featureId);
-        updateSection(data.id, { features: updatedFeatures });
+        updateSection({ features: updatedFeatures });
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,7 +52,7 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
             const mediaType = file.type.startsWith('video') ? 'video' : 'image';
             const filePath = `sections/${data.id}/media/${file.name}`;
             const newUrl = await uploadFile(storage, file, filePath);
-            updateSection(data.id, {
+            updateSection({
                 media: {
                     type: mediaType,
                     url: newUrl,

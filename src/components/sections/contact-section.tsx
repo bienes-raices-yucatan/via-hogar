@@ -1,7 +1,8 @@
+
 'use client';
 
 import React, { useState } from 'react';
-import { ContactSectionData, ContactSubmission } from '@/lib/types';
+import { ContactSectionData, ContactSubmission, Property } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,19 +12,19 @@ import EditableText from '../editable-text';
 import { Card, CardContent } from '../ui/card';
 
 interface ContactSectionProps {
+  property: Property;
   data: ContactSectionData;
-  propertyId: string;
-  onContactSubmit: (submission: Omit<ContactSubmission, 'id' | 'submittedAt'>) => void;
-  updateSection: (sectionId: string, updatedData: Partial<ContactSectionData>) => void;
+  onContactSubmit: (submission: Omit<ContactSubmission, 'id' | 'propertyId' | 'submittedAt'>) => void;
+  updateProperty: (updatedProperty: Property) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
 }
 
 const ContactSection: React.FC<ContactSectionProps> = ({ 
+  property,
   data, 
-  propertyId, 
   onContactSubmit, 
-  updateSection, 
+  updateProperty, 
   deleteSection, 
   isAdminMode 
 }) => {
@@ -31,10 +32,15 @@ const ContactSection: React.FC<ContactSectionProps> = ({
   const [phone, setPhone] = useState('');
   const [userType, setUserType] = useState<'buyer' | 'broker'>('buyer');
 
+  const updateSection = (updatedData: Partial<ContactSectionData>) => {
+    const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
+    updateProperty({ ...property, sections: updatedSections });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() && phone.trim()) {
-      onContactSubmit({ propertyId, name, phone, userType });
+      onContactSubmit({ propertyId: property.id, name, phone, userType });
       setName('');
       setPhone('');
       setUserType('buyer');
@@ -43,18 +49,18 @@ const ContactSection: React.FC<ContactSectionProps> = ({
   
   const handleTitleUpdate = (value: string) => {
     if (data.title) {
-        updateSection(data.id, { title: { ...data.title, text: value } });
+        updateSection({ title: { ...data.title, text: value } });
     }
   };
 
   const handleSubtitleUpdate = (value: string) => {
     if (data.subtitle) {
-      updateSection(data.id, { subtitle: { ...data.subtitle, text: value } });
+      updateSection({ subtitle: { ...data.subtitle, text: value } });
     }
   };
 
   const handleButtonTextUpdate = (value: string) => {
-    updateSection(data.id, { buttonText: value });
+    updateSection({ buttonText: value });
   };
 
   return (

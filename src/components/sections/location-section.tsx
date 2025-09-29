@@ -1,6 +1,7 @@
+
 'use client';
 import React from 'react';
-import { LocationSectionData } from '@/lib/types';
+import { LocationSectionData, Property } from '@/lib/types';
 import Map from '../map';
 import { Button } from '../ui/button';
 import { Trash2, PlusCircle } from 'lucide-react';
@@ -11,18 +12,24 @@ import { v4 as uuidv4 } from 'uuid';
 type IconName = keyof typeof LucideIcons;
 
 interface LocationSectionProps {
+    property: Property;
     data: LocationSectionData;
-    updateSection: (sectionId: string, updatedData: Partial<LocationSectionData>) => void;
+    updateProperty: (updatedProperty: Property) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
     isDraggingMode: boolean;
 }
 
-const LocationSection: React.FC<LocationSectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
+const LocationSection: React.FC<LocationSectionProps> = ({ property, data, updateProperty, deleteSection, isAdminMode }) => {
+
+    const updateSection = (updatedData: Partial<LocationSectionData>) => {
+        const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
+        updateProperty({ ...property, sections: updatedSections });
+    };
 
     const handlePlaceUpdate = (placeId: string, field: 'name' | 'type' | 'distance', value: string) => {
         const updatedPlaces = data.nearbyPlaces.map(p => p.id === placeId ? { ...p, [field]: value } : p);
-        updateSection(data.id, { nearbyPlaces: updatedPlaces });
+        updateSection({ nearbyPlaces: updatedPlaces });
     }
 
     const handleAddPlace = () => {
@@ -34,12 +41,12 @@ const LocationSection: React.FC<LocationSectionProps> = ({ data, updateSection, 
             icon: "MapPin"
         };
         const updatedPlaces = [...data.nearbyPlaces, newPlace];
-        updateSection(data.id, { nearbyPlaces: updatedPlaces });
+        updateSection({ nearbyPlaces: updatedPlaces });
     };
 
     const handleDeletePlace = (placeId: string) => {
         const updatedPlaces = data.nearbyPlaces.filter(p => p.id !== placeId);
-        updateSection(data.id, { nearbyPlaces: updatedPlaces });
+        updateSection({ nearbyPlaces: updatedPlaces });
     };
 
     return (

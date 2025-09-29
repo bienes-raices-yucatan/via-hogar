@@ -1,6 +1,6 @@
 
 'use client';
-import { BannerSectionData, DraggableTextData } from '@/lib/types';
+import { BannerSectionData, DraggableTextData, Property } from '@/lib/types';
 import { Trash2, Image as ImageIcon, PlusCircle } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
@@ -14,10 +14,11 @@ import { useStorage, uploadFile } from '@/firebase/storage';
 import ResizableDraggableText from './resizable-draggable-text';
 
 interface BannerSectionProps {
+  property: Property;
   data: BannerSectionData;
   isFirstSection: boolean;
-  updateSection: (sectionId: string, updatedData: Partial<BannerSectionData>) => void;
-  localUpdateSection: (sectionId: string, updatedData: Partial<BannerSectionData>) => void;
+  updateProperty: (updatedProperty: Property) => void;
+  localUpdateProperty: (updatedProperty: Property) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
   selectedElement: any;
@@ -26,10 +27,11 @@ interface BannerSectionProps {
 }
 
 const BannerSection: React.FC<BannerSectionProps> = ({ 
+  property,
   data,
   isFirstSection,
-  updateSection, 
-  localUpdateSection,
+  updateProperty, 
+  localUpdateProperty,
   deleteSection, 
   isAdminMode, 
   selectedElement,
@@ -40,6 +42,16 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [backgroundPosition, setBackgroundPosition] = useState('center');
   const storage = useStorage();
+
+  const updateSection = (updatedData: Partial<BannerSectionData>) => {
+    const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
+    updateProperty({ ...property, sections: updatedSections });
+  };
+
+  const localUpdateSection = (updatedData: Partial<BannerSectionData>) => {
+    const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
+    localUpdateProperty({ ...property, sections: updatedSections });
+  };
   
   useEffect(() => {
     if (!data.parallaxEnabled || isAdminMode) {
@@ -74,13 +86,13 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   const handleDraggableTextUpdate = (textId: string, updates: Partial<DraggableTextData>) => {
     if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
-    updateSection(data.id, { draggableTexts: updatedTexts });
+    updateSection({ draggableTexts: updatedTexts });
   };
 
   const handleLocalDraggableTextUpdate = (textId: string, updates: Partial<DraggableTextData>) => {
     if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
-    localUpdateSection(data.id, { draggableTexts: updatedTexts });
+    localUpdateSection({ draggableTexts: updatedTexts });
   };
   
   const handleAddDraggableText = () => {
@@ -95,17 +107,17 @@ const BannerSection: React.FC<BannerSectionProps> = ({
         height: 50,
     };
     const updatedTexts = [...(data.draggableTexts || []), newText];
-    updateSection(data.id, { draggableTexts: updatedTexts });
+    updateSection({ draggableTexts: updatedTexts });
   };
 
   const handleDeleteDraggableText = (textId: string) => {
     if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.filter(t => t.id !== textId);
-    updateSection(data.id, { draggableTexts: updatedTexts });
+    updateSection({ draggableTexts: updatedTexts });
   };
   
   const handleButtonTextUpdate = (value: string) => {
-    updateSection(data.id, { buttonText: value });
+    updateSection({ buttonText: value });
   };
   
   const createSelectHandler = (textId: string) => () => {
@@ -121,7 +133,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
     if (file && storage) {
       const filePath = `sections/${data.id}/${file.name}`;
       const newUrl = await uploadFile(storage, file, filePath);
-      updateSection(data.id, { imageUrl: newUrl });
+      updateSection({ imageUrl: newUrl });
     }
   };
   
@@ -198,7 +210,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
               <Switch
                 id={`parallax-banner-${data.id}`}
                 checked={!!data.parallaxEnabled}
-                onCheckedChange={(checked) => updateSection(data.id, { parallaxEnabled: checked })}
+                onCheckedChange={(checked) => updateSection({ parallaxEnabled: checked })}
               />
               <Label htmlFor={`parallax-banner-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
             </div>
@@ -209,7 +221,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
                     max={100}
                     step={1}
                     value={[parseInt(data.height || '50')]}
-                    onValueChange={([value]) => updateSection(data.id, { height: `${value}vh` })}
+                    onValueChange={([value]) => updateSection({ height: `${value}vh` })}
                 />
             </div>
              <div className='space-y-1'>
@@ -219,7 +231,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
                     max={10}
                     step={0.5}
                     value={[parseFloat(data.borderRadius || '3')]}
-                    onValueChange={([value]) => updateSection(data.id, { borderRadius: `${value}rem` })}
+                    onValueChange={([value]) => updateSection({ borderRadius: `${value}rem` })}
                 />
             </div>
           </div>

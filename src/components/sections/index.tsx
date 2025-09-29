@@ -18,11 +18,12 @@ import PricingSection from './pricing-section';
 interface SectionRendererProps {
   property: Property;
   updateProperty: (updatedProperty: Property) => void;
+  localUpdateProperty: (updatedProperty: Property) => void;
   isAdminMode: boolean;
   isDraggingMode: boolean;
   selectedElement: any;
   setSelectedElement: (element: any) => void;
-  onContactSubmit: (submission: Omit<ContactSubmission, 'id' | 'submittedAt'>) => void;
+  onContactSubmit: (submission: Omit<ContactSubmission, 'id' | 'propertyId' | 'submittedAt'>) => void;
   onNavigateHome: () => void;
 }
 
@@ -65,15 +66,8 @@ const SortableSectionWrapper = ({ id, isDraggingMode, children }: { id: string, 
 
 
 const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
-  const { property, updateProperty, onContactSubmit, isDraggingMode, ...componentProps } = props;
+  const { property, updateProperty, onContactSubmit, isDraggingMode, localUpdateProperty, ...componentProps } = props;
 
-  const updateSection = (sectionId: string, updatedData: Partial<AnySectionData>) => {
-    const updatedSections = property.sections.map((section) =>
-      section.id === sectionId ? { ...section, ...updatedData } : section
-    );
-    updateProperty({ ...property, sections: updatedSections });
-  };
-  
   const deleteSection = (sectionId: string) => {
     const updatedSections = property.sections.filter(s => s.id !== sectionId);
     updateProperty({ ...property, sections: updatedSections });
@@ -85,11 +79,13 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
         const isFirstSection = index === 0;
         const commonProps = {
           ...componentProps,
+          property,
           data: section,
-          updateSection,
+          updateProperty,
+          localUpdateProperty,
           deleteSection,
           isFirstSection,
-          isDraggingMode
+          isDraggingMode,
         };
         
         let sectionHtmlId = '';
@@ -116,9 +112,9 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
 
         switch (section.type) {
           case 'HERO':
-            return sectionWrapper(<HeroSection {...commonProps} data={section} localUpdateSection={updateSection} />);
+            return sectionWrapper(<HeroSection {...commonProps} data={section} />);
           case 'BANNER':
-            return sectionWrapper(<BannerSection {...commonProps} data={section} localUpdateSection={updateSection} />);
+            return sectionWrapper(<BannerSection {...commonProps} data={section} />);
           case 'IMAGE_WITH_FEATURES':
             return sectionWrapper(<ImageWithFeaturesSection {...commonProps} data={section} />);
           case 'GALLERY':
@@ -128,7 +124,7 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
           case 'LOCATION':
             return sectionWrapper(<LocationSection {...commonProps} data={section} />);
           case 'CONTACT':
-            return sectionWrapper(<ContactSection {...commonProps} data={section} propertyId={property.id} onContactSubmit={onContactSubmit} />);
+            return sectionWrapper(<ContactSection {...commonProps} data={section} onContactSubmit={onContactSubmit} />);
           case 'PRICING':
             return sectionWrapper(<PricingSection {...commonProps} data={section} />);
           default:

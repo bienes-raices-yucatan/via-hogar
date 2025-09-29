@@ -1,7 +1,7 @@
 
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { GallerySectionData } from '@/lib/types';
+import { GallerySectionData, Property } from '@/lib/types';
 import { Button } from '../ui/button';
 import { Trash2, PlusCircle } from 'lucide-react';
 import Image from 'next/image';
@@ -13,17 +13,23 @@ import { Label } from '../ui/label';
 import { useStorage, uploadFile } from '@/firebase/storage';
 
 interface GallerySectionProps {
+    property: Property;
     data: GallerySectionData;
-    updateSection: (sectionId: string, updatedData: Partial<GallerySectionData>) => void;
+    updateProperty: (updatedProperty: Property) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
     isDraggingMode: boolean;
 }
 
-const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, deleteSection, isAdminMode }) => {
+const GallerySection: React.FC<GallerySectionProps> = ({ property, data, updateProperty, deleteSection, isAdminMode }) => {
     const [api, setApi] = useState<CarouselApi>()
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
     const storage = useStorage();
+
+    const updateSection = (updatedData: Partial<GallerySectionData>) => {
+        const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
+        updateProperty({ ...property, sections: updatedSections });
+    };
     
     useEffect(() => {
         if (!api) {
@@ -36,12 +42,12 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
 
     const handleAddImage = () => {
         const newImage = { id: uuidv4(), url: 'https://picsum.photos/seed/new-gallery/1920/1080', title: 'Nueva Imagen' };
-        updateSection(data.id, { images: [...data.images, newImage] });
+        updateSection({ images: [...data.images, newImage] });
     };
     
     const handleDeleteImage = (imageId: string) => {
         const updatedImages = data.images.filter(img => img.id !== imageId);
-        updateSection(data.id, { images: updatedImages });
+        updateSection({ images: updatedImages });
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, imageId: string) => {
@@ -52,7 +58,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
             const updatedImages = data.images.map(img => 
                 img.id === imageId ? { ...img, url: newUrl } : img
             );
-            updateSection(data.id, { images: updatedImages });
+            updateSection({ images: updatedImages });
         }
     };
 
@@ -130,7 +136,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
                 <div className="absolute top-0 left-0 right-0 p-4 z-10 bg-gradient-to-b from-black/50 to-transparent">
                      <EditableText
                         value={data.title}
-                        onChange={(val) => updateSection(data.id, { title: val })}
+                        onChange={(val) => updateSection({ title: val })}
                         isAdminMode={isAdminMode}
                         as="h2"
                         className="text-3xl md:text-4xl font-headline font-bold text-center text-white"
