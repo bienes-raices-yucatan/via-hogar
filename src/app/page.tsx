@@ -95,6 +95,10 @@ export default function Home() {
   };
   
   const handleUpdateProperty = async (updatedProperty: Property) => {
+    // Update local state immediately for fluid UI
+    setLocalProperties(prev => prev ? prev.map(p => p.id === updatedProperty.id ? updatedProperty : p) : null);
+    
+    // Persist to Firestore
     if (!propertiesRef) return;
     const propRef = doc(firestore, 'properties', updatedProperty.id);
     updateDocumentNonBlocking(propRef, updatedProperty);
