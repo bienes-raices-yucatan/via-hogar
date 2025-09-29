@@ -31,7 +31,8 @@ import {
 } from '@/lib/constants';
 
 // Import services
-import { geocodeAddress, generateNearbyPlaces, initDB } from '@/ai/gemini-service';
+import { geocodeAddress, generateNearbyPlaces } from '@/ai/gemini-service';
+import { initDB } from '@/lib/storage';
 
 // Import all components
 import { Header } from '@/components/header';
