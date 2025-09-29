@@ -1,7 +1,7 @@
 
 'use client';
 import { BannerSectionData, DraggableTextData, Property } from '@/lib/types';
-import { Trash2, PlusCircle } from 'lucide-react';
+import { Trash2, PlusCircle, ImageIcon } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
 import EditableText from '../editable-text';
@@ -11,6 +11,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { cn } from '@/lib/utils';
 import { Slider } from '../ui/slider';
 import ResizableDraggableText from './resizable-draggable-text';
+import { useStorage } from '@/firebase/storage';
+import { uploadFile } from '@/lib/storage';
 
 interface BannerSectionProps {
   data: BannerSectionData;
@@ -36,6 +38,8 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   isDraggingMode,
 }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const storage = useStorage();
   const [backgroundPosition, setBackgroundPosition] = useState('center');
 
   useEffect(() => {
@@ -73,6 +77,15 @@ const BannerSection: React.FC<BannerSectionProps> = ({
     updateProperty({ ...property, sections: updatedSections });
   }
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && storage) {
+      const filePath = `sections/${data.id}/${file.name}`;
+      const newUrl = await uploadFile(storage, file, filePath);
+      handleUpdate({ imageUrl: newUrl });
+    }
+  };
+  
   const handleDraggableTextUpdate = (textId: string, updates: Partial<DraggableTextData>) => {
     if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
@@ -118,6 +131,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
 
   const containerHeight = data.height || '50vh';
   const containerBorderRadius = isFirstSection ? `0 0 ${data.borderRadius || '3rem'} ${data.borderRadius || '3rem'}` : (data.borderRadius || '3rem');
+  const uploadId = `banner-image-upload-${data.id}`;
 
   return (
     <div 
@@ -206,6 +220,12 @@ const BannerSection: React.FC<BannerSectionProps> = ({
                     value={[parseFloat(data.borderRadius || '3')]}
                     onValueChange={([value]) => handleUpdate({ borderRadius: `${value}rem` })}
                 />
+            </div>
+             <div className="w-full">
+                <Label htmlFor={uploadId} className="cursor-pointer text-white text-xs font-semibold flex items-center gap-2">
+                    <ImageIcon size={14}/> Cambiar Fondo
+                </Label>
+                <input id={uploadId} type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
             </div>
           </div>
           <div className="w-full flex justify-between items-center mt-2">

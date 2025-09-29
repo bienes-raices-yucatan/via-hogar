@@ -91,15 +91,11 @@ export default function Home() {
     setSelectedPropertyId(id);
   };
   
-  const handleUpdateProperty = async (updatedProperty: Property) => {
-    if (!firestore) return;
+  const handleUpdateProperty = (updatedProperty: Property) => {
     setLocalProperties(prev => prev ? prev.map(p => p.id === updatedProperty.id ? updatedProperty : p) : null);
+    if (!firestore) return;
     const propRef = doc(firestore, 'properties', updatedProperty.id);
     updateDocumentNonBlocking(propRef, updatedProperty);
-  };
-  
-  const handleLocalUpdateProperty = (updatedProperty: Property) => {
-    setLocalProperties(prev => prev ? prev.map(p => p.id === updatedProperty.id ? updatedProperty : p) : null);
   };
 
   const handleUpdateSection = (sectionId: string, sectionData: Partial<AnySectionData>) => {
@@ -235,12 +231,12 @@ export default function Home() {
     handleUpdateProperty(updatedProperty);
   };
   
-  const handleUpdateLogo = async (newLogoUrl: string) => {
+  const handleUpdateLogo = (newLogoUrl: string) => {
     if (!siteConfigRef) return;
     updateDocumentNonBlocking(siteConfigRef, { logoUrl: newLogoUrl });
   };
   
-  const handleUpdateSiteName = async (newName: string) => {
+  const handleUpdateSiteName = (newName: string) => {
     if (!siteConfigRef) return;
     updateDocumentNonBlocking(siteConfigRef, { siteName: newName });
   }
@@ -280,8 +276,9 @@ export default function Home() {
             }
             return section;
         });
-
-        handleLocalUpdateProperty({ ...property, sections: updatedSections as AnySectionData[] });
+        
+        // Local update for smooth dragging
+        setLocalProperties(prev => prev ? prev.map(p => p.id === property.id ? { ...p, sections: updatedSections as AnySectionData[]} : p) : null);
     }
   }
 

@@ -1,13 +1,16 @@
 
 'use client';
-import React from 'react';
+import React, { useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { ImageWithFeaturesSectionData, Property } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Trash2, PlusCircle, Image as ImageIcon } from 'lucide-react';
+import { Trash2, PlusCircle, ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
+import { useStorage } from '@/firebase/storage';
+import { uploadFile } from '@/lib/storage';
+import { Label } from '../ui/label';
 
 type IconName = keyof typeof LucideIcons;
 
@@ -20,10 +23,22 @@ interface ImageWithFeaturesSectionProps {
 }
 
 const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ data, property, updateProperty, deleteSection, isAdminMode }) => {
+    const storage = useStorage();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const handleUpdate = (updates: Partial<ImageWithFeaturesSectionData>) => {
         const updatedSections = property.sections.map(s => s.id === data.id ? {...s, ...updates} : s);
         updateProperty({ ...property, sections: updatedSections });
     }
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && storage) {
+            const filePath = `sections/${data.id}/media/${file.name}`;
+            const newUrl = await uploadFile(storage, file, filePath);
+            handleUpdate({ media: { ...data.media, url: newUrl } });
+        }
+    };
 
     const handleFeatureUpdate = (featureId: string, field: 'title' | 'subtitle', value: string) => {
         const updatedFeatures = data.features.map(f => f.id === featureId ? { ...f, [field]: value } : f);
@@ -39,6 +54,8 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
         const updatedFeatures = data.features.filter(f => f.id !== featureId);
         handleUpdate({ features: updatedFeatures });
     };
+
+    const uploadId = `media-upload-${data.id}`;
 
     return (
         <div className="py-16 md:py-24 relative group/section" style={{backgroundColor: data.style.backgroundColor}}>
@@ -63,6 +80,16 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
                               </div>
                             )}
                         </div>
+                        {isAdminMode && (
+                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover/media:opacity-100 transition-opacity">
+                                <Label htmlFor={uploadId} className="cursor-pointer">
+                                    <div className="p-3 bg-black/50 rounded-full text-white" title="Cambiar imagen/video">
+                                        <ImageIcon size={24}/>
+                                    </div>
+                                </Label>
+                                <input id={uploadId} type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*"/>
+                           </div>
+                        )}
                     </div>
                     <div className="space-y-8">
                         {data.features.map(feature => {
