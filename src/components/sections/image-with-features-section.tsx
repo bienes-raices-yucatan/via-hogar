@@ -99,7 +99,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
           <div className="flex justify-center">
              <MediaComponent />
           </div>
