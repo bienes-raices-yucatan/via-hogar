@@ -118,19 +118,19 @@ export interface ContactSectionData extends PageSection {
 // Data for a single pricing tier in the Pricing section
 export interface PricingTier {
     id: string;
-    name: string;
+    title: string;
     price: string;
-    frequency: string;
-    features: { id: string, text: string }[];
+    currency: string;
+    description: string;
     buttonText: string;
-    isFeatured: boolean;
+    oldPrice?: string;
 }
 
 // Data for the section listing pricing plans
 export interface PricingSectionData extends PageSection {
     type: 'pricing';
-    title?: StyledText;
-    tiers: PricingTier[];
+    backgroundImageUrl: string;
+    tier: PricingTier;
 }
 
 // Union type for any possible section

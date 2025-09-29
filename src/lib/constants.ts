@@ -1,4 +1,5 @@
 
+
 import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission } from './types';
 
 // Default styled text for titles
@@ -88,13 +89,16 @@ export const createSectionData = (
             return {
                 ...base,
                 type: 'pricing',
-                style: { backgroundColor: '#F9FAFB' }, // gray-50
-                title: getDefaultTitle('Opciones de Precios'),
-                tiers: [
-                    { id: `tier-${uniqueSuffix}-1`, name: 'Básico', price: '1,000', frequency: '/mes', features: [{id: 'f1', text:'Característica 1'}, {id: 'f2', text:'Característica 2'}], buttonText: 'Elegir Plan', isFeatured: false },
-                    { id: `tier-${uniqueSuffix}-2`, name: 'Popular', price: '1,500', frequency: '/mes', features: [{id: 'f3', text:'Característica A'}, {id: 'f4', text:'Característica B'}, {id: 'f5', text:'Característica C'}], buttonText: 'Elegir Plan', isFeatured: true },
-                    { id: `tier-${uniqueSuffix}-3`, name: 'Premium', price: '2,000', frequency: '/mes', features: [{id: 'f6', text:'Beneficio X'}, {id: 'f7', text:'Beneficio Y'}], buttonText: 'Elegir Plan', isFeatured: false },
-                ],
+                backgroundImageUrl: 'https://images.pexels.com/photos/2089698/pexels-photo-2089698.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+                tier: {
+                    id: `tier-${uniqueSuffix}`,
+                    title: 'Precio de la propiedad',
+                    oldPrice: '6,500,000',
+                    price: '5,500,000',
+                    currency: 'MDP',
+                    description: 'Lista para escriturar y con entrega inmediata.',
+                    buttonText: 'Me Interesa',
+                },
             } as PricingSectionData;
         case 'contact':
             return {
@@ -126,6 +130,7 @@ const DEFAULT_SECTIONS_FOR_NEW_PROPERTY: AnySectionData['type'][] = [
     'imageWithFeatures',
     'gallery',
     'amenities',
+    'pricing',
     'contact',
     'location'
 ];
@@ -144,9 +149,9 @@ export const createNewProperty = (address: string, coordinates: { lat: number; l
 
     return {
         id: `prop-${uniqueSuffix}`,
-        name: 'Nombre de la Propiedad',
+        name: 'Nueva Propiedad',
         address: address,
-        price: '$0',
+        price: '$5,500,000 MDP',
         mainImageUrl: 'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
         sections: uniqueSections,
     };

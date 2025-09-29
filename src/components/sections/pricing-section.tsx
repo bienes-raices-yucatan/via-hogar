@@ -6,7 +6,7 @@ import { PricingSectionData, SelectedElement, PricingTier } from '@/lib/types';
 import { SectionToolbar } from '@/components/section-toolbar';
 import { EditableText } from '@/components/editable-text';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Icon } from '@/components/icon';
 import { cn } from '@/lib/utils';
 
@@ -27,37 +27,19 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
   selectedElement,
   onSelectElement,
 }) => {
-  const handleTitleUpdate = (newTitle: any) => {
-    if (data.title) {
-        onUpdate({ ...data, title: { ...data.title, ...newTitle } });
-    }
+  const { tier } = data;
+
+  const handleTierUpdate = (updatedTier: Partial<PricingTier>) => {
+    onUpdate({ ...data, tier: { ...data.tier, ...updatedTier } });
   };
 
-  const handleAddTier = () => {
-    const newTier: PricingTier = {
-        id: `tier-${Date.now()}`,
-        name: 'Nuevo Plan',
-        price: '0',
-        frequency: '/mes',
-        features: [{id:'f1', text:'Característica'}],
-        buttonText: 'Elegir',
-        isFeatured: false,
-    };
-    onUpdate({ ...data, tiers: [...data.tiers, newTier] });
-  };
-
-  const handleDeleteTier = (id: string) => {
-    const newTiers = data.tiers.filter(t => t.id !== id);
-    onUpdate({ ...data, tiers: newTiers });
-  };
 
   return (
     <section 
-        className="py-12 md:py-20 relative group"
-        style={{ backgroundColor: data.style?.backgroundColor }}
-        onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
+        className="py-12 md:py-20 relative group bg-cover bg-center"
+        style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${data.backgroundImageUrl})` }}
     >
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 flex items-center justify-center">
         {isAdminMode && (
           <SectionToolbar
             sectionId={data.id}
@@ -65,71 +47,77 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
             isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
           />
         )}
-        <div className="text-center mb-12">
-            {data.title && (
-                <EditableText
-                    id={`${data.id}-title`}
-                    as="h2"
-                    isAdminMode={isAdminMode}
-                    onUpdate={handleTitleUpdate}
-                    className="text-3xl md:text-4xl font-bold text-foreground"
-                    value={data.title}
-                    onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'title' })}
-                    isSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'title'}
-                />
-            )}
-        </div>
         
-        <div className={cn(
-            "grid gap-8",
-            // Adjust grid columns based on number of tiers for better layout
-            data.tiers.length === 1 && "grid-cols-1 max-w-sm mx-auto",
-            data.tiers.length === 2 && "grid-cols-1 md:grid-cols-2 max-w-3xl mx-auto",
-            data.tiers.length >= 3 && "grid-cols-1 md:grid-cols-3 max-w-6xl mx-auto",
-        )}>
-          {data.tiers.map((tier) => (
-            <Card key={tier.id} className={cn("flex flex-col relative group/tier", tier.isFeatured && "border-primary border-2 shadow-xl")}>
-              <CardHeader className="items-center text-center">
-                <CardTitle>{tier.name}</CardTitle>
-                <div className="flex items-baseline">
-                    <span className="text-4xl font-bold">${tier.price}</span>
-                    <span className="text-muted-foreground ml-1">{tier.frequency}</span>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <ul className="space-y-3">
-                    {tier.features.map((feature) => (
-                        <li key={feature.id} className="flex items-center gap-3">
-                            <Icon name="check" className="w-5 h-5 text-primary"/>
-                            <span className="text-muted-foreground">{feature.text}</span>
-                        </li>
-                    ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full" variant={tier.isFeatured ? 'default' : 'outline'}>
-                  {tier.buttonText}
-                </Button>
-              </CardFooter>
-              {isAdminMode && (
-                <div className="absolute top-2 right-2 opacity-0 group-hover/tier:opacity-100 transition-opacity">
-                    <Button variant="destructive" size="icon" className="h-6 w-6" onClick={() => handleDeleteTier(tier.id)}>
-                        <Icon name="x-mark" className="h-4 w-4"/>
-                    </Button>
-                </div>
-              )}
-            </Card>
-          ))}
-           {isAdminMode && (
-                <button
-                    onClick={handleAddTier}
-                    className="flex flex-col items-center justify-center text-center border-2 border-dashed rounded-lg p-8 hover:bg-accent hover:border-primary transition-colors min-h-[300px]"
-                >
-                    <Icon name="plus" className="w-10 h-10 text-muted-foreground mb-2" />
-                    <span className="font-semibold text-muted-foreground">Añadir Plan</span>
-                </button>
+        <Card className="max-w-md w-full bg-background/90 backdrop-blur-sm shadow-2xl rounded-2xl">
+          <CardContent className="p-8 text-center flex flex-col items-center">
+            <Icon name="logo" className="w-12 h-12 text-primary mb-4" />
+            
+            <EditableText
+              as="h2"
+              id={`${data.id}-tier-title`}
+              isAdminMode={isAdminMode}
+              onUpdate={(val) => handleTierUpdate({ title: val.text })}
+              className="text-xl font-bold text-foreground mb-4"
+              value={{ text: tier.title, color: '', fontFamily: 'Montserrat', fontSize: 1.25 }}
+              onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'tiers', subElementId: tier.id })}
+              isSelected={selectedElement?.subElementId === tier.id && selectedElement.elementKey === 'tiers'}
+            />
+
+            {tier.oldPrice && (
+              <div className="relative">
+                <EditableText
+                  as="p"
+                  id={`${data.id}-tier-oldprice`}
+                  isAdminMode={isAdminMode}
+                  onUpdate={(val) => handleTierUpdate({ oldPrice: val.text })}
+                  className="text-2xl text-red-500"
+                  value={{ text: tier.oldPrice, color: '', fontFamily: 'Montserrat', fontSize: 1.5 }}
+                  onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'tiers', subElementId: tier.id })}
+                  isSelected={selectedElement?.subElementId === tier.id && selectedElement.elementKey === 'tiers'}
+                />
+                <div className="absolute top-1/2 left-0 w-full h-0.5 bg-red-500 transform -rotate-6"></div>
+              </div>
             )}
-        </div>
+            
+            <div className="flex items-baseline mb-4">
+              <EditableText
+                as="p"
+                id={`${data.id}-tier-price`}
+                isAdminMode={isAdminMode}
+                onUpdate={(val) => handleTierUpdate({ price: val.text })}
+                className="text-4xl font-bold text-foreground"
+                value={{ text: tier.price, color: '', fontFamily: 'Montserrat', fontSize: 2.25 }}
+                onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'tiers', subElementId: tier.id })}
+                isSelected={selectedElement?.subElementId === tier.id && selectedElement.elementKey === 'tiers'}
+              />
+               <EditableText
+                as="span"
+                id={`${data.id}-tier-currency`}
+                isAdminMode={isAdminMode}
+                onUpdate={(val) => handleTierUpdate({ currency: val.text })}
+                className="ml-2 text-3xl font-semibold text-foreground"
+                value={{ text: tier.currency, color: '', fontFamily: 'Montserrat', fontSize: 1.875 }}
+                onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'tiers', subElementId: tier.id })}
+                isSelected={selectedElement?.subElementId === tier.id && selectedElement.elementKey === 'tiers'}
+              />
+            </div>
+
+            <EditableText
+              as="p"
+              id={`${data.id}-tier-description`}
+              isAdminMode={isAdminMode}
+              onUpdate={(val) => handleTierUpdate({ description: val.text })}
+              className="text-muted-foreground mb-6"
+              value={{ text: tier.description, color: '', fontFamily: 'Roboto', fontSize: 1 }}
+              onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'tiers', subElementId: tier.id })}
+              isSelected={selectedElement?.subElementId === tier.id && selectedElement.elementKey === 'tiers'}
+            />
+
+            <Button size="lg" className="w-full bg-gray-800 text-white hover:bg-gray-700">
+                {tier.buttonText}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </section>
   );
