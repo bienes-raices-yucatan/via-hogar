@@ -35,9 +35,9 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   const handleAddFeature = () => {
     const newFeature: FeatureItem = {
       id: `feat-${Date.now()}`,
-      imageUrl: '', // This can be updated later
+      icon: 'generic-feature',
       title: 'Nueva Característica',
-      subtitle: 'Descripción breve',
+      description: 'Descripción breve',
     };
     onUpdate({ ...data, features: [...data.features, newFeature] });
   };
@@ -47,6 +47,30 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     onUpdate({ ...data, features: newFeatures });
   };
 
+  const MediaComponent = () => {
+    if (data.media.type === 'video') {
+        return (
+            <div className="relative aspect-video w-full rounded-lg overflow-hidden shadow-lg">
+                <video
+                    src={data.media.url}
+                    controls
+                    className="w-full h-full object-cover"
+                />
+            </div>
+        )
+    }
+    // Default to image
+    return (
+        <div className="relative aspect-[4/5] w-full rounded-lg overflow-hidden shadow-lg">
+            <Image
+            src={data.media.url}
+            alt={data.title?.text || 'Property Image'}
+            fill
+            className="object-cover"
+            />
+        </div>
+    )
+  }
 
   return (
     <section 
@@ -75,36 +99,33 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
-          <div className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-lg">
-             <Image
-                src={data.media.url}
-                alt={data.title?.text || 'Property Image'}
-                fill
-                className="object-cover"
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16 items-center">
+          <div className="flex justify-center">
+             <MediaComponent />
           </div>
-          <div className="space-y-6">
-            {data.features.map((feature) => (
-              <div key={feature.id} className="flex items-start gap-4 relative group/feature">
-                <div className="bg-primary/10 text-primary p-3 rounded-full">
-                  <Icon name="check" className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-lg text-foreground">{feature.title}</h4>
-                  <p className="text-muted-foreground">{feature.subtitle}</p>
-                </div>
-                {isAdminMode && (
-                    <div className="absolute top-0 right-0 opacity-0 group-hover/feature:opacity-100 transition-opacity">
-                        <Button variant="destructive" size="icon" className="h-6 w-6" onClick={() => handleDeleteFeature(feature.id)}>
-                            <Icon name="x-mark" className="h-4 w-4" />
-                        </Button>
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
+                {data.features.map((feature) => (
+                <div key={feature.id} className="flex items-start gap-4 relative group/feature">
+                    <div className="bg-primary/10 text-primary p-3 rounded-lg flex-shrink-0">
+                    <Icon name={feature.icon} className="w-6 h-6" />
                     </div>
-                )}
-              </div>
-            ))}
+                    <div>
+                    <h4 className="font-bold text-lg text-foreground">{feature.title}</h4>
+                    <p className="text-muted-foreground mt-1">{feature.description}</p>
+                    </div>
+                    {isAdminMode && (
+                        <div className="absolute -top-1 -right-1 opacity-0 group-hover/feature:opacity-100 transition-opacity">
+                            <Button variant="destructive" size="icon" className="h-6 w-6" onClick={() => handleDeleteFeature(feature.id)}>
+                                <Icon name="x-mark" className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    )}
+                </div>
+                ))}
+            </div>
             {isAdminMode && (
-                <Button variant="outline" onClick={handleAddFeature}>
+                <Button variant="outline" onClick={handleAddFeature} className="mt-8">
                     <Icon name="plus" className="mr-2" />
                     Añadir Característica
                 </Button>

@@ -42,9 +42,9 @@ export interface HeroSectionData extends PageSection {
 // Data for a single feature item (e.g., '3 Bedrooms', 'Solar Panels')
 export interface FeatureItem {
   id: string;
-  imageUrl: string;
+  icon: IconName;
   title: string;
-  subtitle: string;
+  description: string;
 }
 
 // Data for the section containing an image and a list of features

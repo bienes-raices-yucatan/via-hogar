@@ -1,6 +1,6 @@
 
 
-import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission } from './types';
+import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission, FeatureItem } from './types';
 
 // Default styled text for titles
 const defaultTitleStyle: Omit<StyledText, 'text'> = {
@@ -61,13 +61,21 @@ export const createSectionData = (
                 parallaxEffect: false,
             };
         case 'imageWithFeatures':
+             const defaultFeatures: FeatureItem[] = [
+                { id: `feat-1-${uniqueSuffix}`, icon: 'bed', title: '3 Dormitorios', description: 'Todos con su propio baño y guardarropa.' },
+                { id: `feat-2-${uniqueSuffix}`, icon: 'bath', title: '5 baños', description: 'Baños con acabados de alta calidad.' },
+                { id: `feat-3-${uniqueSuffix}`, icon: 'pool', title: 'Piscina totalmente equipada', description: 'Con cascada, sistema de filtrado automático y calentador de agua.' },
+                { id: `feat-4-${uniqueSuffix}`, icon: 'parking', title: '2 espacios de estacionamiento', description: 'Techados y cerrados, para que tus vehículos estén a resguardo.' },
+                { id: `feat-5-${uniqueSuffix}`, icon: 'solar-panel', title: 'Paneles solares', description: '18 paneles solares, suficientes para abastecer toda la casa.' },
+                { id: `feat-6-${uniqueSuffix}`, icon: 'laundry', title: 'Lavandería equipada', description: 'Cuarto de lavado con lavadora, secadora y gabinetes.' },
+            ];
             return {
                 ...base,
                 type: 'imageWithFeatures',
                 style: { backgroundColor: '#FFFFFF' },
-                title: getDefaultTitle('Descubre Más Sobre la Propiedad'),
+                title: getDefaultTitle('Características Principales'),
                 media: { type: 'image', url: 'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
-                features: [],
+                features: defaultFeatures,
             };
         case 'gallery':
             return {
