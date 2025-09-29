@@ -95,10 +95,6 @@ export default function Home() {
   };
   
   const handleUpdateProperty = async (updatedProperty: Property) => {
-    // Update local state immediately for fluid UI
-    handleLocalUpdateProperty(updatedProperty);
-    
-    // Persist to Firestore
     if (!propertiesRef) return;
     const propRef = doc(firestore, 'properties', updatedProperty.id);
     updateDocumentNonBlocking(propRef, updatedProperty);
@@ -338,7 +334,6 @@ export default function Home() {
                    <SectionRenderer
                       property={selectedProperty}
                       updateProperty={handleUpdateProperty}
-                      localUpdateProperty={handleLocalUpdateProperty}
                       isAdminMode={isAdminMode}
                       isDraggingMode={isDraggingMode}
                       selectedElement={selectedElement}

@@ -18,7 +18,6 @@ import PricingSection from './pricing-section';
 interface SectionRendererProps {
   property: Property;
   updateProperty: (updatedProperty: Property) => void;
-  localUpdateProperty: (updatedProperty: Property) => void;
   isAdminMode: boolean;
   isDraggingMode: boolean;
   selectedElement: any;
@@ -66,20 +65,13 @@ const SortableSectionWrapper = ({ id, isDraggingMode, children }: { id: string, 
 
 
 const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
-  const { property, updateProperty, localUpdateProperty, onContactSubmit, isDraggingMode, ...componentProps } = props;
+  const { property, updateProperty, onContactSubmit, isDraggingMode, ...componentProps } = props;
 
   const updateSection = (sectionId: string, updatedData: Partial<AnySectionData>) => {
     const updatedSections = property.sections.map((section) =>
       section.id === sectionId ? { ...section, ...updatedData } : section
     );
     updateProperty({ ...property, sections: updatedSections });
-  };
-  
-  const localUpdateSection = (sectionId: string, updatedData: Partial<AnySectionData>) => {
-    const updatedSections = property.sections.map((section) =>
-      section.id === sectionId ? { ...section, ...updatedData } : section
-    );
-    localUpdateProperty({ ...property, sections: updatedSections });
   };
   
   const deleteSection = (sectionId: string) => {
@@ -95,7 +87,6 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
           ...componentProps,
           data: section,
           updateSection,
-          localUpdateSection,
           deleteSection,
           isFirstSection,
           isDraggingMode
@@ -125,9 +116,9 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
 
         switch (section.type) {
           case 'HERO':
-            return sectionWrapper(<HeroSection {...commonProps} data={section} />);
+            return sectionWrapper(<HeroSection {...commonProps} data={section} localUpdateSection={updateSection} />);
           case 'BANNER':
-            return sectionWrapper(<BannerSection {...commonProps} data={section} />);
+            return sectionWrapper(<BannerSection {...commonProps} data={section} localUpdateSection={updateSection} />);
           case 'IMAGE_WITH_FEATURES':
             return sectionWrapper(<ImageWithFeaturesSection {...commonProps} data={section} />);
           case 'GALLERY':
