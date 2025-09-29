@@ -206,41 +206,15 @@ export default function Home() {
   };
 
   // --- Property Management Handlers ---
-  const handleAddProperty = async (address: string) => {
-      try {
-        const coordinates = await geocodeAddress(address);
-        const nearbyPlacesData = await generateNearbyPlaces(coordinates.lat, coordinates.lng);
-        const mapCategoryToIcon = (category: string): IconName => {
-          switch (category.toLowerCase()) {
-              case 'supermarket':
-              case 'store':
-                  return 'store';
-              case 'gym':
-                  return 'gym';
-              case 'school':
-                  return 'school';
-              case 'park':
-                  return 'park';
-              case 'transport':
-                  return 'bus';
-              default:
-                  return 'generic-feature';
-          }
-        };
-        const nearbyPlaces: NearbyPlace[] = (nearbyPlacesData.places || []).map((place: any) => ({
-              id: `place-${Date.now()}-${Math.random()}`,
-              icon: mapCategoryToIcon(place.category),
-              text: place.description
-        }));
+  const handleAddProperty = () => {
+      const address = "Dirección no especificada";
+      const coordinates = { lat: 19.4326, lng: -99.1332 }; // Default coords
+      const nearbyPlaces: NearbyPlace[] = []; // Empty for now
 
-        const newProp = createNewProperty(address, coordinates, nearbyPlaces);
-        setProperties(prev => [...prev, newProp]);
-        setIsNewPropertyModalOpen(false);
-        setSelectedPropertyId(newProp.id);
-      } catch (error) {
-        console.error("Failed to add property:", error);
-        throw error;
-      }
+      const newProp = createNewProperty(address, coordinates, nearbyPlaces);
+      newProp.name = "Nueva Propiedad";
+      setProperties(prev => [...prev, newProp]);
+      setSelectedPropertyId(newProp.id); // Navigate to the new property
   };
   
   const handleDeleteProperty = (id: string) => {
@@ -402,7 +376,7 @@ export default function Home() {
             <PropertyList
                 properties={properties}
                 onSelectProperty={setSelectedPropertyId}
-                onAddProperty={() => setIsNewPropertyModalOpen(true)}
+                onAddProperty={handleAddProperty}
                 onUpdateProperty={handleUpdateProperty}
                 onDeleteProperty={handleDeleteProperty}
                 isAdminMode={isAdminMode}
@@ -413,7 +387,11 @@ export default function Home() {
         <Footer onAdminLoginClick={() => setIsAdminLoginModalOpen(true)} />
 
         {/* --- Modals --- */}
-        {isNewPropertyModalOpen && <NewPropertyModal onClose={() => setIsNewPropertyModalOpen(false)} onCreate={handleAddProperty} />}
+        {isNewPropertyModalOpen && <NewPropertyModal onClose={() => setIsNewPropertyModalOpen(false)} onCreate={() => {
+            // This modal is no longer used for creation, but keeping structure just in case.
+            // Consider removing if it's confirmed to be obsolete.
+            setIsNewPropertyModalOpen(false);
+        }} />}
         {isAdminLoginModalOpen && <AdminLoginModal onClose={() => setIsAdminLoginModalOpen(false)} onLogin={handleAdminLogin} />}
         {isAddSectionModalOpen.open && <AddSectionModal onClose={() => setIsAddSectionModalOpen({ open: false, index: 0 })} onSelect={(type) => handleAddSection(type, isAddSectionModalOpen.index)} />}
         {isContactModalOpen && selectedProperty && <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} onSubmit={handleContactSubmit} property={selectedProperty} />}
@@ -432,5 +410,7 @@ export default function Home() {
     </div>
   );
 };
+
+    
 
     
