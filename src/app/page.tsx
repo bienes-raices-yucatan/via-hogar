@@ -260,8 +260,7 @@ export default function Home() {
 
   // --- Admin & Login Handlers ---
   const handleAdminLogin = (user: string, pass: string): boolean => {
-    // In a real app, this would be a secure check.
-    if (user === 'admin' && pass === 'admin') {
+    if (user === 'admin' && pass === 'Aguilar1') {
       setIsAdminMode(true);
       setIsAdminLoginModalOpen(false);
       return true;
