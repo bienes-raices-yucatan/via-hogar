@@ -32,6 +32,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   isAdminMode, 
   selectedElement,
   setSelectedElement,
+  isDraggingMode,
 }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -154,6 +155,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
             data={text}
             sectionId={data.id}
             isAdminMode={isAdminMode}
+            isDraggingMode={isDraggingMode}
             onSelect={createSelectHandler(text.id)}
             onUpdate={(updates) => handleDraggableTextUpdate(text.id, updates)}
             onDelete={() => handleDeleteDraggableText(text.id)}

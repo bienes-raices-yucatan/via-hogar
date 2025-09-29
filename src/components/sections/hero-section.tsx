@@ -33,6 +33,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   selectedElement,
   setSelectedElement,
   isFirstSection,
+  isDraggingMode,
 }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -156,6 +157,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           data={text}
           sectionId={data.id}
           isAdminMode={isAdminMode}
+          isDraggingMode={isDraggingMode}
           onSelect={createSelectHandler(text.id)}
           onUpdate={(updates) => handleDraggableTextUpdate(text.id, updates)}
           onDelete={() => handleDeleteDraggableText(text.id)}

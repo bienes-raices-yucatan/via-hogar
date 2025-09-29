@@ -11,6 +11,7 @@ interface ResizableDraggableTextProps {
     data: DraggableTextData;
     sectionId: string;
     isAdminMode: boolean;
+    isDraggingMode: boolean; // Add this prop
     isSelected: boolean;
     containerRef: React.RefObject<HTMLDivElement>;
     onSelect: () => void;
@@ -22,6 +23,7 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
     data,
     sectionId,
     isAdminMode,
+    isDraggingMode, // Use this prop
     isSelected,
     containerRef,
     onSelect,
@@ -30,7 +32,7 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
 }) => {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: `text-${sectionId}-${data.id}`,
-        disabled: !isAdminMode || !isSelected,
+        disabled: !isAdminMode || !isSelected || isDraggingMode, // Disable text drag when section drag is active
     });
     const nodeRef = useRef<HTMLDivElement>(null);
     
@@ -140,7 +142,7 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
             <div 
               className="flex items-start gap-2 h-full w-full"
             >
-                {isSelected && (
+                {isSelected && !isDraggingMode && (
                     <div 
                         {...listeners} 
                         {...attributes} 
