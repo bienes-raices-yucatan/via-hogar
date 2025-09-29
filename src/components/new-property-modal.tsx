@@ -37,7 +37,8 @@ export const NewPropertyModal: React.FC<NewPropertyModalProps> = ({ onClose, onC
       onClose(); // Close on success
     } catch (err) {
       console.error(err);
-      setError('No se pudo crear la propiedad. Inténtalo de nuevo.');
+      const errorMessage = err instanceof Error ? err.message : 'Un error desconocido ocurrió.';
+      setError(`No se pudo crear la propiedad. ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -86,3 +87,5 @@ export const NewPropertyModal: React.FC<NewPropertyModalProps> = ({ onClose, onC
     </Dialog>
   );
 };
+
+    

@@ -239,7 +239,7 @@ export default function Home() {
         setSelectedPropertyId(newProp.id);
       } catch (error) {
         console.error("Failed to add property:", error);
-        // You might want to show a toast or alert to the user here
+        throw error;
       }
   };
   
@@ -432,3 +432,5 @@ export default function Home() {
     </div>
   );
 };
+
+    
