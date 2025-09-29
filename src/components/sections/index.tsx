@@ -66,17 +66,10 @@ const SortableSectionWrapper = ({ id, isDraggingMode, children }: { id: string, 
 
 
 const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
-  const { property, updateProperty, onContactSubmit, isDraggingMode } = props;
+  const { property, updateProperty, onContactSubmit, isDraggingMode, updateSection } = props;
 
   const deleteSection = (sectionId: string) => {
     const updatedSections = property.sections.filter(s => s.id !== sectionId);
-    updateProperty({ ...property, sections: updatedSections });
-  };
-
-  const updateSection = (sectionId: string, updatedData: Partial<AnySectionData>) => {
-    const updatedSections = property.sections.map(s => 
-      s.id === sectionId ? { ...s, ...updatedData } : s
-    );
     updateProperty({ ...property, sections: updatedSections });
   };
 
@@ -88,7 +81,6 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
           ...props,
           data: section,
           deleteSection,
-          updateSection,
           property,
         };
         
@@ -116,23 +108,23 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
 
         switch (section.type) {
           case 'HERO':
-            return sectionWrapper(<HeroSection {...commonProps} data={section} />);
+            return sectionWrapper(<HeroSection {...commonProps} data={section} updateProperty={updateProperty} />);
           case 'BANNER':
-            return sectionWrapper(<BannerSection {...commonProps} data={section} />);
+            return sectionWrapper(<BannerSection {...commonProps} data={section} updateProperty={updateProperty} />);
           case 'IMAGE_WITH_FEATURES':
-            return sectionWrapper(<ImageWithFeaturesSection {...commonProps} data={section} />);
+            return sectionWrapper(<ImageWithFeaturesSection {...commonProps} data={section} updateProperty={updateProperty} />);
           case 'GALLERY':
-            return sectionWrapper(<GallerySection {...commonProps} data={section} />);
+            return sectionWrapper(<GallerySection {...commonProps} data={section} updateProperty={updateProperty} />);
           case 'AMENITIES':
-             return sectionWrapper(<AmenitiesSection {...commonProps} data={section} />);
-          case 'LOCATION':
-            return sectionWrapper(<LocationSection {...commonProps} data={section} />);
+             return sectionWrapper(<AmenitiesSection {...commonProps} data={section} updateProperty={updateProperty} />);
           case 'CONTACT':
-            return sectionWrapper(<ContactSection {...commonProps} data={section} onContactSubmit={onContactSubmit} />);
+            return sectionWrapper(<ContactSection {...commonProps} data={section} onContactSubmit={onContactSubmit} updateSection={props.updateSection} />);
+          case 'LOCATION':
+            return sectionWrapper(<LocationSection {...commonProps} data={section} updateProperty={updateProperty} />);
           case 'PRICING':
             return sectionWrapper(<PricingSection {...commonProps} data={section} />);
           default:
-            return <div key={section.id}>Unknown section type: {(section as any).type}</div>;
+            return null;
         }
       })}
     </div>

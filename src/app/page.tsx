@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -94,6 +93,7 @@ export default function Home() {
   
   const handleUpdateProperty = async (updatedProperty: Property) => {
     if (!firestore) return;
+    setLocalProperties(prev => prev ? prev.map(p => p.id === updatedProperty.id ? updatedProperty : p) : null);
     const propRef = doc(firestore, 'properties', updatedProperty.id);
     updateDocumentNonBlocking(propRef, updatedProperty);
   };

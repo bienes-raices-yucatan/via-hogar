@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
@@ -18,29 +17,33 @@ type IconName = keyof typeof LucideIcons;
 interface AmenitiesSectionProps {
     data: AmenitiesSectionData;
     property: Property;
-    updateSection: (sectionId: string, updatedData: Partial<AmenitiesSectionData>) => void;
+    updateProperty: (updatedProperty: Property) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
 }
 
-const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, property, updateSection, deleteSection, isAdminMode }) => {
+const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, property, updateProperty, deleteSection, isAdminMode }) => {
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
     const app = useFirebaseApp();
     const storage = getStorage(app);
 
     const handleAmenityTextChange = (amenityId: string, newText: string) => {
         const updatedAmenities = data.amenities.map(a => a.id === amenityId ? { ...a, text: newText } : a);
-        updateSection(data.id, { amenities: updatedAmenities });
+        const updatedSections = property.sections.map(s => s.id === data.id ? {...s, amenities: updatedAmenities} : s);
+        updateProperty({ ...property, sections: updatedSections });
     };
 
     const handleAddAmenity = () => {
         const newAmenity = { id: uuidv4(), icon: 'PlusCircle' as IconName, text: 'Nueva Comodidad' };
-        updateSection(data.id, { amenities: [...data.amenities, newAmenity] });
+        const updatedAmenities = [...data.amenities, newAmenity];
+        const updatedSections = property.sections.map(s => s.id === data.id ? {...s, amenities: updatedAmenities} : s);
+        updateProperty({ ...property, sections: updatedSections });
     };
 
     const handleDeleteAmenity = (amenityId: string) => {
         const updatedAmenities = data.amenities.filter(a => a.id !== amenityId);
-        updateSection(data.id, { amenities: updatedAmenities });
+        const updatedSections = property.sections.map(s => s.id === data.id ? {...s, amenities: updatedAmenities} : s);
+        updateProperty({ ...property, sections: updatedSections });
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, amenityId: string) => {
@@ -51,17 +54,23 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, property, upd
             const updatedAmenities = data.amenities.map(a => 
                 a.id === amenityId ? { ...a, imageUrl: newUrl } : a
             );
-            updateSection(data.id, { amenities: updatedAmenities });
+            const updatedSections = property.sections.map(s => s.id === data.id ? {...s, amenities: updatedAmenities} : s);
+            updateProperty({ ...property, sections: updatedSections });
         }
     };
     
+    const handleUpdate = (updates: Partial<AmenitiesSectionData>) => {
+        const updatedSections = property.sections.map(s => s.id === data.id ? {...s, ...updates} : s);
+        updateProperty({ ...property, sections: updatedSections });
+    }
+
     return (
         <div className="py-16 md:py-24 relative group/section" style={{backgroundColor: data.style.backgroundColor}}>
             <div className="container mx-auto px-4">
                 {data.title && 
                     <EditableText 
                         value={data.title} 
-                        onChange={(val) => updateSection(data.id, {title: val})} 
+                        onChange={(val) => handleUpdate({title: val})} 
                         isAdminMode={isAdminMode} 
                         as="h2" 
                         className="text-3xl md:text-4xl font-headline font-bold text-center mb-12 text-slate-800"

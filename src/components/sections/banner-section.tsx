@@ -19,7 +19,7 @@ interface BannerSectionProps {
   data: BannerSectionData;
   property: Property;
   isFirstSection: boolean;
-  updateSection: (sectionId: string, updatedData: Partial<BannerSectionData>) => void;
+  updateProperty: (updatedProperty: Property) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
   selectedElement: any;
@@ -31,7 +31,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   data,
   property,
   isFirstSection,
-  updateSection, 
+  updateProperty, 
   deleteSection, 
   isAdminMode, 
   selectedElement,
@@ -74,10 +74,15 @@ const BannerSection: React.FC<BannerSectionProps> = ({
     };
   }, [data.parallaxEnabled, isAdminMode]);
 
+  const handleUpdate = (updates: Partial<BannerSectionData>) => {
+    const updatedSections = property.sections.map(s => s.id === data.id ? {...s, ...updates} : s);
+    updateProperty({ ...property, sections: updatedSections });
+  }
+
   const handleDraggableTextUpdate = (textId: string, updates: Partial<DraggableTextData>) => {
     if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
-    updateSection(data.id, { draggableTexts: updatedTexts });
+    handleUpdate({ draggableTexts: updatedTexts });
   };
   
   const handleAddDraggableText = () => {
@@ -92,17 +97,17 @@ const BannerSection: React.FC<BannerSectionProps> = ({
         height: 50,
     };
     const updatedTexts = [...(data.draggableTexts || []), newText];
-    updateSection(data.id, { draggableTexts: updatedTexts });
+    handleUpdate({ draggableTexts: updatedTexts });
   };
 
   const handleDeleteDraggableText = (textId: string) => {
     if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.filter(t => t.id !== textId);
-    updateSection(data.id, { draggableTexts: updatedTexts });
+    handleUpdate({ draggableTexts: updatedTexts });
   };
   
   const handleButtonTextUpdate = (value: string) => {
-    updateSection(data.id, { buttonText: value });
+    handleUpdate({ buttonText: value });
   };
   
   const createSelectHandler = (textId: string) => () => {
@@ -118,7 +123,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
     if (file && storage) {
       const filePath = `sections/${data.id}/${file.name}`;
       const newUrl = await uploadFile(storage, file, filePath);
-      updateSection(data.id, { imageUrl: newUrl });
+      handleUpdate({ imageUrl: newUrl });
     }
   };
   
@@ -195,7 +200,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
               <Switch
                 id={`parallax-banner-${data.id}`}
                 checked={!!data.parallaxEnabled}
-                onCheckedChange={(checked) => updateSection(data.id, { parallaxEnabled: checked })}
+                onCheckedChange={(checked) => handleUpdate({ parallaxEnabled: checked })}
               />
               <Label htmlFor={`parallax-banner-${data.id}`} className="text-white text-xs font-semibold">Parallax</Label>
             </div>
@@ -206,7 +211,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
                     max={100}
                     step={1}
                     value={[parseInt(data.height || '50')]}
-                    onValueChange={([value]) => updateSection(data.id, { height: `${value}vh` })}
+                    onValueChange={([value]) => handleUpdate({ height: `${value}vh` })}
                 />
             </div>
              <div className='space-y-1'>
@@ -216,7 +221,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
                     max={10}
                     step={0.5}
                     value={[parseFloat(data.borderRadius || '3')]}
-                    onValueChange={([value]) => updateSection(data.id, { borderRadius: `${value}rem` })}
+                    onValueChange={([value]) => handleUpdate({ borderRadius: `${value}rem` })}
                 />
             </div>
           </div>

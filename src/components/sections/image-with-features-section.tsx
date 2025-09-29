@@ -18,29 +18,34 @@ type IconName = keyof typeof LucideIcons;
 interface ImageWithFeaturesSectionProps {
     data: ImageWithFeaturesSectionData;
     property: Property;
-    updateSection: (sectionId: string, updatedData: Partial<ImageWithFeaturesSectionData>) => void;
+    updateProperty: (updatedProperty: Property) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
 }
 
-const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ data, property, updateSection, deleteSection, isAdminMode }) => {
+const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ data, property, updateProperty, deleteSection, isAdminMode }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const app = useFirebaseApp();
     const storage = getStorage(app);
     
+    const handleUpdate = (updates: Partial<ImageWithFeaturesSectionData>) => {
+        const updatedSections = property.sections.map(s => s.id === data.id ? {...s, ...updates} : s);
+        updateProperty({ ...property, sections: updatedSections });
+    }
+
     const handleFeatureUpdate = (featureId: string, field: 'title' | 'subtitle', value: string) => {
         const updatedFeatures = data.features.map(f => f.id === featureId ? { ...f, [field]: value } : f);
-        updateSection(data.id, { features: updatedFeatures });
+        handleUpdate({ features: updatedFeatures });
     };
 
     const handleAddFeature = () => {
         const newFeature = { id: uuidv4(), icon: 'PlusCircle', title: 'Nueva Característica', subtitle: 'Descripción aquí.' };
-        updateSection(data.id, { features: [...data.features, newFeature] });
+        handleUpdate({ features: [...data.features, newFeature] });
     };
     
     const handleDeleteFeature = (featureId: string) => {
         const updatedFeatures = data.features.filter(f => f.id !== featureId);
-        updateSection(data.id, { features: updatedFeatures });
+        handleUpdate({ features: updatedFeatures });
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,7 +54,7 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
             const mediaType = file.type.startsWith('video') ? 'video' : 'image';
             const filePath = `sections/${data.id}/media/${file.name}`;
             const newUrl = await uploadFile(storage, file, filePath);
-            updateSection(data.id, {
+            handleUpdate({
                 media: {
                     type: mediaType,
                     url: newUrl,
@@ -133,9 +138,3 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
                         <Trash2 />
                     </Button>
                 </div>
-            )}
-        </div>
-    );
-};
-
-export default ImageWithFeaturesSection;
