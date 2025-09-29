@@ -15,7 +15,7 @@ interface ContactSectionProps {
   property: Property;
   data: ContactSectionData;
   onContactSubmit: (submission: Omit<ContactSubmission, 'id' | 'propertyId' | 'submittedAt'>) => void;
-  updateProperty: (updatedProperty: Property) => void;
+  updateSection: (sectionId: string, updatedData: Partial<ContactSectionData>) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
 }
@@ -24,18 +24,13 @@ const ContactSection: React.FC<ContactSectionProps> = ({
   property,
   data, 
   onContactSubmit, 
-  updateProperty, 
+  updateSection, 
   deleteSection, 
   isAdminMode 
 }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [userType, setUserType] = useState<'buyer' | 'broker'>('buyer');
-
-  const updateSection = (updatedData: Partial<ContactSectionData>) => {
-    const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
-    updateProperty({ ...property, sections: updatedSections });
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,18 +44,18 @@ const ContactSection: React.FC<ContactSectionProps> = ({
   
   const handleTitleUpdate = (value: string) => {
     if (data.title) {
-        updateSection({ title: { ...data.title, text: value } });
+        updateSection(data.id, { title: { ...data.title, text: value } });
     }
   };
 
   const handleSubtitleUpdate = (value: string) => {
     if (data.subtitle) {
-      updateSection({ subtitle: { ...data.subtitle, text: value } });
+      updateSection(data.id, { subtitle: { ...data.subtitle, text: value } });
     }
   };
 
   const handleButtonTextUpdate = (value: string) => {
-    updateSection({ buttonText: value });
+    updateSection(data.id, { buttonText: value });
   };
 
   return (

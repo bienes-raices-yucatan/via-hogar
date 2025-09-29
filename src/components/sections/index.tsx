@@ -18,6 +18,7 @@ import PricingSection from './pricing-section';
 interface SectionRendererProps {
   property: Property;
   updateProperty: (updatedProperty: Property) => void;
+  updateSection: (sectionId: string, updatedData: Partial<AnySectionData>) => void;
   isAdminMode: boolean;
   isDraggingMode: boolean;
   selectedElement: any;
@@ -65,7 +66,7 @@ const SortableSectionWrapper = ({ id, isDraggingMode, children }: { id: string, 
 
 
 const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
-  const { property, updateProperty, onContactSubmit, isDraggingMode, ...componentProps } = props;
+  const { property, updateProperty, onContactSubmit, isDraggingMode, updateSection } = props;
 
   const deleteSection = (sectionId: string) => {
     const updatedSections = property.sections.filter(s => s.id !== sectionId);
@@ -77,13 +78,11 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
       {property.sections.map((section, index) => {
         const isFirstSection = index === 0;
         const commonProps = {
-          ...componentProps,
-          property,
+          ...props,
           data: section,
-          updateProperty,
           deleteSection,
           isFirstSection,
-          isDraggingMode,
+          updateSection
         };
         
         let sectionHtmlId = '';
@@ -120,11 +119,11 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
           case 'AMENITIES':
              return sectionWrapper(<AmenitiesSection {...commonProps} data={section} />);
           case 'LOCATION':
-            return sectionWrapper(<LocationSection {...commonProps} data={section} />);
+            return sectionWrapper(<LocationSection {...commonProps} data={section} property={property} updateProperty={updateProperty} />);
           case 'CONTACT':
-            return sectionWrapper(<ContactSection {...commonProps} data={section} onContactSubmit={onContactSubmit} />);
+            return sectionWrapper(<ContactSection {...commonProps} data={section} property={property} onContactSubmit={onContactSubmit} />);
           case 'PRICING':
-            return sectionWrapper(<PricingSection {...commonProps} data={section} />);
+            return sectionWrapper(<PricingSection {...commonProps} data={section} property={property} updateProperty={updateProperty} />);
           default:
             return <div key={section.id}>Unknown section type: {(section as any).type}</div>;
         }

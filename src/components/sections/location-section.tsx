@@ -15,21 +15,17 @@ interface LocationSectionProps {
     property: Property;
     data: LocationSectionData;
     updateProperty: (updatedProperty: Property) => void;
+    updateSection: (sectionId: string, updatedData: Partial<LocationSectionData>) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
     isDraggingMode: boolean;
 }
 
-const LocationSection: React.FC<LocationSectionProps> = ({ property, data, updateProperty, deleteSection, isAdminMode }) => {
-
-    const updateSection = (updatedData: Partial<LocationSectionData>) => {
-        const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
-        updateProperty({ ...property, sections: updatedSections });
-    };
+const LocationSection: React.FC<LocationSectionProps> = ({ property, data, updateProperty, updateSection, deleteSection, isAdminMode }) => {
 
     const handlePlaceUpdate = (placeId: string, field: 'name' | 'type' | 'distance', value: string) => {
         const updatedPlaces = data.nearbyPlaces.map(p => p.id === placeId ? { ...p, [field]: value } : p);
-        updateSection({ nearbyPlaces: updatedPlaces });
+        updateSection(data.id, { nearbyPlaces: updatedPlaces });
     }
 
     const handleAddPlace = () => {
@@ -41,12 +37,12 @@ const LocationSection: React.FC<LocationSectionProps> = ({ property, data, updat
             icon: "MapPin"
         };
         const updatedPlaces = [...data.nearbyPlaces, newPlace];
-        updateSection({ nearbyPlaces: updatedPlaces });
+        updateSection(data.id, { nearbyPlaces: updatedPlaces });
     };
 
     const handleDeletePlace = (placeId: string) => {
         const updatedPlaces = data.nearbyPlaces.filter(p => p.id !== placeId);
-        updateSection({ nearbyPlaces: updatedPlaces });
+        updateSection(data.id, { nearbyPlaces: updatedPlaces });
     };
 
     return (

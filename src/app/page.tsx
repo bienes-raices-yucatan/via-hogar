@@ -35,10 +35,8 @@ export default function Home() {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
   
-  // Local state for fluid UI updates, which gets synchronized from the `properties` hook.
   const [localProperties, setLocalProperties] = useState<Property[] | null>(null);
 
-  // Editing state
   const [isDraggingMode, setIsDraggingMode] = useState(false);
   const [selectedElement, setSelectedElement] = useState<any>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -52,7 +50,6 @@ export default function Home() {
   );
   
   useEffect(() => {
-    // When the data from Firebase changes, update our local state.
     if (properties) {
       setLocalProperties(properties);
     }
@@ -95,22 +92,27 @@ export default function Home() {
     setSelectedPropertyId(id);
   };
   
-  /**
-   * Persists an updated property to Firestore. The UI will update automatically
-   * via the `useCollection` hook listener.
-   */
   const handleUpdateProperty = async (updatedProperty: Property) => {
     if (!firestore) return;
     const propRef = doc(firestore, 'properties', updatedProperty.id);
     updateDocumentNonBlocking(propRef, updatedProperty);
   };
   
-  /**
-   * Updates the local state for a property. Used for fluid UI interactions
-   * like dragging, before the final change is persisted.
-   */
   const handleLocalUpdateProperty = (updatedProperty: Property) => {
     setLocalProperties(prev => prev ? prev.map(p => p.id === updatedProperty.id ? updatedProperty : p) : null);
+  };
+
+  const handleUpdateSection = (sectionId: string, sectionData: Partial<AnySectionData>) => {
+    const property = localProperties?.find(p => p.id === selectedPropertyId);
+    if (!property) return;
+
+    const updatedSections = property.sections.map(s => 
+        s.id === sectionId ? { ...s, ...sectionData } : s
+    );
+    const updatedProperty = { ...property, sections: updatedSections };
+    
+    setLocalProperties(prev => prev ? prev.map(p => p.id === updatedProperty.id ? updatedProperty : p) : null);
+    handleUpdateProperty(updatedProperty);
   };
 
 
@@ -300,8 +302,6 @@ export default function Home() {
           handleUpdateProperty({ ...property, sections: updatedSections });
         }
     } else if (active.id.toString().startsWith('text-')) {
-        // The visual update is done in handleDragMove via local state.
-        // Now, we persist the final state from `localProperties` to Firestore.
         const finalPropertyState = localProperties.find(p => p.id === selectedPropertyId);
         if (finalPropertyState) {
           handleUpdateProperty(finalPropertyState);
@@ -346,6 +346,7 @@ export default function Home() {
                    <SectionRenderer
                       property={selectedProperty}
                       updateProperty={handleUpdateProperty}
+                      updateSection={handleUpdateSection}
                       isAdminMode={isAdminMode}
                       isDraggingMode={isDraggingMode}
                       selectedElement={selectedElement}
