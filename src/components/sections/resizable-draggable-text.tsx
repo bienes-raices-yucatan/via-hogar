@@ -28,7 +28,7 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
     onUpdate,
     onDelete
 }) => {
-    const { attributes, listeners, setNodeRef, transform } = useDraggable({
+    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: `text-${sectionId}-${data.id}`,
         disabled: !isAdminMode || !isSelected,
     });
@@ -109,11 +109,11 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
         zIndex: isSelected ? 21 : 20,
         transform: `translate(-50%, -50%)`,
         boxShadow: isSelected ? '0 0 0 2px #FFB300' : 'none',
-        transition: 'box-shadow 0.2s',
+        transition: isDragging ? 'none' : 'box-shadow 0.2s, transform 0s',
     };
 
-    if (transform) {
-        style.transform = `translate3d(${transform.x}px, ${transform.y}px, 0) translate(-50%, -50%)`;
+    if (transform && isDragging) {
+        // Do not apply transform from useDraggable, as it is handled by the parent onDragMove
     }
 
     const resizers = ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'top', 'bottom', 'left', 'right'];

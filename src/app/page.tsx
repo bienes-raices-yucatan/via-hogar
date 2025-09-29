@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragMoveEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 
@@ -35,6 +35,9 @@ export default function Home() {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
   
+  // Local state for fluid UI updates
+  const [localProperties, setLocalProperties] = useState<Property[] | null>(null);
+
   // Editing state
   const [isDraggingMode, setIsDraggingMode] = useState(false);
   const [selectedElement, setSelectedElement] = useState<any>(null);
@@ -48,10 +51,14 @@ export default function Home() {
     })
   );
   
-  // Effect to seed initial data if collections are empty
+  useEffect(() => {
+    if (properties) {
+      setLocalProperties(properties);
+    }
+  }, [properties]);
+
   useEffect(() => {
     const seedData = async () => {
-      // Ensure we have an authenticated user, even if anonymous
       if (isUserLoading || !auth) return;
       if (!user) {
         try {
@@ -62,10 +69,7 @@ export default function Home() {
         }
       }
 
-      const shouldSeedProperties = properties && properties.length === 0;
-      const shouldSeedSiteConfig = siteConfig === null;
-
-      if (shouldSeedProperties && propertiesRef) {
+      if (!isLoadingProperties && properties && properties.length === 0 && propertiesRef) {
         console.log("Seeding initial properties...");
         const batch = writeBatch(firestore);
         initialProperties.forEach(propData => {
@@ -75,7 +79,7 @@ export default function Home() {
         await batch.commit();
       }
       
-      if (shouldSeedSiteConfig && siteConfigRef) {
+      if (!isLoadingSiteConfig && siteConfig === null && siteConfigRef) {
         console.log("Seeding initial site config...");
         await setDocumentNonBlocking(siteConfigRef, initialSiteConfig);
       }
@@ -95,6 +99,11 @@ export default function Home() {
     const propRef = doc(firestore, 'properties', updatedProperty.id);
     updateDocumentNonBlocking(propRef, updatedProperty);
   };
+
+  const handleLocalUpdateProperty = (updatedProperty: Property) => {
+    setLocalProperties(prev => prev ? prev.map(p => p.id === updatedProperty.id ? updatedProperty : p) : null);
+  };
+
 
   const handleAddNewProperty = async () => {
     if (!propertiesRef) return;
@@ -121,7 +130,9 @@ export default function Home() {
               fontSize: 4,
               color: '#ffffff',
               fontFamily: 'Playfair Display',
-              position: { x: 50, y: 40 }
+              position: { x: 50, y: 40 },
+              width: 500,
+              height: 100,
             }
           ]
         }
@@ -151,7 +162,7 @@ export default function Home() {
   };
 
   const handleAddSection = (sectionType: AnySectionData['type']) => {
-    const property = properties?.find(p => p.id === selectedPropertyId);
+    const property = localProperties?.find(p => p.id === selectedPropertyId);
     if (!property) return;
 
     let newSection: AnySectionData;
@@ -231,25 +242,14 @@ export default function Home() {
     alert('¡Gracias por tu interés! Nos pondremos en contacto contigo pronto.');
   };
   
-  const handleDragEnd = (event: DragEndEvent) => {
-    const {active, over} = event;
-    if (!over || !properties) return;
-    
-    const property = properties.find(p => p.id === selectedPropertyId);
+   const handleDragMove = (event: DragMoveEvent) => {
+    const { active, delta } = event;
+    if (!localProperties) return;
+
+    const property = localProperties.find(p => p.id === selectedPropertyId);
     if (!property) return;
     
-    if (active.id.toString().startsWith('section-') && over.id.toString().startsWith('section-')) {
-        if (active.id !== over.id) {
-          const oldIndex = property.sections.findIndex(s => `section-${s.id}` === active.id);
-          const newIndex = property.sections.findIndex(s => `section-${s.id}` === over.id);
-          
-          const updatedSections = arrayMove(property.sections, oldIndex, newIndex);
-          handleUpdateProperty({ ...property, sections: updatedSections });
-        }
-    }
-    
     if (active.id.toString().startsWith('text-')) {
-        const { delta } = event;
         const [_, sectionId, textId] = active.id.toString().split('-');
 
         const updatedSections = property.sections.map(section => {
@@ -271,7 +271,29 @@ export default function Home() {
             return section;
         });
 
-        handleUpdateProperty({ ...property, sections: updatedSections as AnySectionData[] });
+        handleLocalUpdateProperty({ ...property, sections: updatedSections as AnySectionData[] });
+    }
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const {active, over} = event;
+    if (!over || !localProperties) return;
+    
+    const property = localProperties.find(p => p.id === selectedPropertyId);
+    if (!property) return;
+    
+    if (active.id.toString().startsWith('section-') && over.id.toString().startsWith('section-')) {
+        if (active.id !== over.id) {
+          const oldIndex = property.sections.findIndex(s => `section-${s.id}` === active.id);
+          const newIndex = property.sections.findIndex(s => `section-${s.id}` === over.id);
+          
+          const updatedSections = arrayMove(property.sections, oldIndex, newIndex);
+          handleUpdateProperty({ ...property, sections: updatedSections });
+        }
+    } else if (active.id.toString().startsWith('text-')) {
+        // The visual update is already done in handleDragMove.
+        // Here we just need to persist the final state.
+        handleUpdateProperty(property);
     }
   }
   
@@ -283,13 +305,14 @@ export default function Home() {
     );
   }
 
-  const selectedProperty = properties?.find(p => p.id === selectedPropertyId);
+  const selectedProperty = localProperties?.find(p => p.id === selectedPropertyId);
   
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
+      onDragMove={handleDragMove}
     >
       <div className={`min-h-screen bg-background font-body text-slate-800 flex flex-col ${isAdminMode ? 'admin-mode' : ''}`}>
         <Header 
@@ -323,7 +346,7 @@ export default function Home() {
           ) : (
             <div className="container mx-auto px-4 py-8">
               <PropertyList
-                properties={properties || []}
+                properties={localProperties || []}
                 onSelectProperty={handleSelectProperty}
                 onDeleteProperty={handleDeleteProperty}
                 onUpdateProperty={handleUpdateProperty}
@@ -339,7 +362,7 @@ export default function Home() {
             selectedElement={selectedElement}
             setSelectedElement={setSelectedElement}
             updateProperty={handleUpdateProperty}
-            properties={properties || []}
+            properties={localProperties || []}
             selectedPropertyId={selectedPropertyId}
           />
         )}
@@ -365,5 +388,3 @@ export default function Home() {
     </DndContext>
   );
 }
-
-    
