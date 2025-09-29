@@ -57,13 +57,15 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
             newWidth = initialWidth + dx;
         }
         if (direction.includes('left')) {
-            newWidth = initialWidth - dx;
+            // This is more complex, involves moving the element as well, let's simplify for now
+            // newWidth = initialWidth - dx;
         }
         if (direction.includes('bottom')) {
             newHeight = initialHeight + dy;
         }
         if (direction.includes('top')) {
-            newHeight = initialHeight - dy;
+             // This is more complex, involves moving the element as well, let's simplify for now
+            // newHeight = initialHeight - dy;
         }
 
         onUpdate({
