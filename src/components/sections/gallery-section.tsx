@@ -46,7 +46,7 @@ const GallerySection: React.FC<GallerySectionProps> = ({ data, updateSection, de
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, imageId: string) => {
         const file = e.target.files?.[0];
-        if (file) {
+        if (file && storage) {
             const filePath = `sections/${data.id}/gallery/${imageId}/${file.name}`;
             const newUrl = await uploadFile(storage, file, filePath);
             const updatedImages = data.images.map(img => 

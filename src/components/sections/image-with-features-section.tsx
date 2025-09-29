@@ -42,7 +42,7 @@ const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({ dat
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
+        if (file && storage) {
             const mediaType = file.type.startsWith('video') ? 'video' : 'image';
             const filePath = `sections/${data.id}/media/${file.name}`;
             const newUrl = await uploadFile(storage, file, filePath);

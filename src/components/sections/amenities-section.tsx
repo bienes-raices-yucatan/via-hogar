@@ -42,7 +42,7 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, updateSection
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, amenityId: string) => {
         const file = e.target.files?.[0];
-        if (file) {
+        if (file && storage) {
             const filePath = `sections/${data.id}/amenities/${amenityId}/${file.name}`;
             const newUrl = await uploadFile(storage, file, filePath);
             const updatedAmenities = data.amenities.map(a => 

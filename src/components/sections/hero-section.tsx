@@ -118,8 +118,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+    const file = e.target.files?.[0];
+    if (file && storage) {
       const filePath = `sections/${data.id}/${file.name}`;
       const newUrl = await uploadFile(storage, file, filePath);
       updateSection(data.id, { imageUrl: newUrl });

@@ -6,6 +6,7 @@ import { Button } from '../ui/button';
 import EditableText from '../editable-text';
 import { Label } from '../ui/label';
 import { useStorage, uploadFile } from '@/firebase/storage';
+import { useFirebaseApp } from '@/firebase';
 
 interface HeaderProps {
   siteName: string;
@@ -28,11 +29,15 @@ const Header: React.FC<HeaderProps> = ({
   const storage = useStorage();
 
   const handleLogoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files && e.target.files[0] && storage) {
       const file = e.target.files[0];
       const filePath = `config/logo/${file.name}`;
-      const newLogoUrl = await uploadFile(storage, file, filePath);
-      setLogoUrl(newLogoUrl);
+      try {
+        const newLogoUrl = await uploadFile(storage, file, filePath);
+        setLogoUrl(newLogoUrl);
+      } catch (error) {
+        console.error("Failed to upload logo:", error);
+      }
     }
   };
   
