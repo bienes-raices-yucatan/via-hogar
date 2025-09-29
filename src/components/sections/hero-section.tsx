@@ -17,6 +17,7 @@ import ResizableDraggableText from './resizable-draggable-text';
 interface HeroSectionProps {
   data: HeroSectionData;
   updateSection: (sectionId: string, updatedData: Partial<HeroSectionData>) => void;
+  localUpdateSection: (sectionId: string, updatedData: Partial<HeroSectionData>) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
   selectedElement: any;
@@ -28,6 +29,7 @@ interface HeroSectionProps {
 const HeroSection: React.FC<HeroSectionProps> = ({ 
   data, 
   updateSection, 
+  localUpdateSection,
   deleteSection, 
   isAdminMode, 
   selectedElement,
@@ -74,6 +76,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
     if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
     updateSection(data.id, { draggableTexts: updatedTexts });
+  };
+
+  const handleLocalDraggableTextUpdate = (textId: string, updates: Partial<DraggableTextData>) => {
+    if (!data.draggableTexts) return;
+    const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
+    localUpdateSection(data.id, { draggableTexts: updatedTexts });
   };
   
   const handleAddDraggableText = () => {
@@ -160,6 +168,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           isDraggingMode={isDraggingMode}
           onSelect={createSelectHandler(text.id)}
           onUpdate={(updates) => handleDraggableTextUpdate(text.id, updates)}
+          onLocalUpdate={(updates) => handleLocalDraggableTextUpdate(text.id, updates)}
           onDelete={() => handleDeleteDraggableText(text.id)}
           isSelected={selectedElement?.type === 'DRAGGABLE_TEXT' && selectedElement?.textId === text.id}
           containerRef={sectionRef}

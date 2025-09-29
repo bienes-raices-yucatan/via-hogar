@@ -96,7 +96,7 @@ export default function Home() {
   
   const handleUpdateProperty = async (updatedProperty: Property) => {
     // Update local state immediately for fluid UI
-    setLocalProperties(prev => prev ? prev.map(p => p.id === updatedProperty.id ? updatedProperty : p) : null);
+    handleLocalUpdateProperty(updatedProperty);
     
     // Persist to Firestore
     if (!propertiesRef) return;
@@ -338,6 +338,7 @@ export default function Home() {
                    <SectionRenderer
                       property={selectedProperty}
                       updateProperty={handleUpdateProperty}
+                      localUpdateProperty={handleLocalUpdateProperty}
                       isAdminMode={isAdminMode}
                       isDraggingMode={isDraggingMode}
                       selectedElement={selectedElement}

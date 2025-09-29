@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { DraggableTextData } from '@/lib/types';
 import EditableText from '../editable-text';
 import { useDraggable } from '@dnd-kit/core';
@@ -16,6 +16,7 @@ interface ResizableDraggableTextProps {
     containerRef: React.RefObject<HTMLDivElement>;
     onSelect: () => void;
     onUpdate: (updates: Partial<DraggableTextData>) => void;
+    onLocalUpdate: (updates: Partial<DraggableTextData>) => void;
     onDelete: () => void;
 }
 
@@ -28,6 +29,7 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
     containerRef,
     onSelect,
     onUpdate,
+    onLocalUpdate,
     onDelete
 }) => {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -35,6 +37,11 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
         disabled: !isAdminMode || !isSelected || isDraggingMode,
     });
     const nodeRef = useRef<HTMLDivElement>(null);
+    const [localData, setLocalData] = useState(data);
+    
+    useEffect(() => {
+        setLocalData(data);
+    }, [data]);
     
     const resizeStartRef = useRef<{
         width: number;
@@ -54,38 +61,29 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
         let newWidth = initialWidth;
         let newHeight = initialHeight;
 
-        if (direction.includes('right')) {
-            newWidth = initialWidth + dx;
-        }
-        if (direction.includes('left')) {
-            // Note: Resizing from left/top requires repositioning, which is more complex.
-            // For now, we focus on making right/bottom resizing smooth as it's most common.
-            // A full implementation would adjust position.x as well.
-        }
-        if (direction.includes('bottom')) {
-            newHeight = initialHeight + dy;
-        }
-        if (direction.includes('top')) {
-            // Similar to left resizing.
-        }
-        
-        // For corner handles
         if (direction.includes('right')) newWidth = initialWidth + dx;
+        if (direction.includes('left')) newWidth = initialWidth - dx;
         if (direction.includes('bottom')) newHeight = initialHeight + dy;
+        if (direction.includes('top')) newHeight = initialHeight - dy;
         
-        onUpdate({
+        const updates = {
             width: Math.max(50, newWidth),
             height: Math.max(30, newHeight),
-        });
+        };
+        setLocalData(prev => ({...prev, ...updates}));
+        onLocalUpdate(updates);
 
-    }, [onUpdate]);
+    }, [onLocalUpdate]);
 
     const stopResizing = useCallback(() => {
+        if (resizeStartRef.current) {
+            onUpdate({ width: localData.width, height: localData.height });
+        }
         window.removeEventListener('mousemove', handleResize);
         window.removeEventListener('mouseup', stopResizing);
         document.body.style.cursor = 'default';
         resizeStartRef.current = null;
-    }, [handleResize]);
+    }, [handleResize, onUpdate, localData.width, localData.height]);
 
     useEffect(() => {
         return () => {
@@ -99,8 +97,8 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
         e.preventDefault();
 
         resizeStartRef.current = {
-            width: data.width || 300,
-            height: data.height || 50,
+            width: localData.width || 300,
+            height: localData.height || 50,
             startX: e.clientX,
             startY: e.clientY,
             direction: direction,
@@ -113,17 +111,18 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
     
     const style: React.CSSProperties = {
         position: 'absolute',
-        left: `${data.position.x}%`,
-        top: `${data.position.y}%`,
-        width: `${data.width}px`,
-        height: `${data.height}px`,
-        color: data.color,
-        fontSize: `${data.fontSize}rem`,
-        fontFamily: data.fontFamily,
+        left: `${localData.position.x}%`,
+        top: `${localData.position.y}%`,
+        width: `${localData.width}px`,
+        color: localData.color,
+        fontSize: `${localData.fontSize}rem`,
+        fontFamily: localData.fontFamily,
         zIndex: isSelected ? 21 : 20,
         transform: `translate(-50%, -50%)`,
         boxShadow: isSelected ? '0 0 0 2px hsl(var(--primary))' : 'none',
         transition: isDragging ? 'none' : 'box-shadow 0.2s',
+        minHeight: `${localData.height}px`,
+        height: 'auto',
     };
 
     if (transform && isDragging) {
@@ -156,7 +155,7 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
                     </div>
                 )}
                 <EditableText
-                    value={data.text}
+                    value={localData.text}
                     onChange={(val) => onUpdate({ text: val })}
                     isAdminMode={isAdminMode}
                     className="font-bold font-headline leading-tight w-full h-full"

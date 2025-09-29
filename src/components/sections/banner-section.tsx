@@ -17,6 +17,7 @@ interface BannerSectionProps {
   data: BannerSectionData;
   isFirstSection: boolean;
   updateSection: (sectionId: string, updatedData: Partial<BannerSectionData>) => void;
+  localUpdateSection: (sectionId: string, updatedData: Partial<BannerSectionData>) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
   selectedElement: any;
@@ -28,6 +29,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
   data,
   isFirstSection,
   updateSection, 
+  localUpdateSection,
   deleteSection, 
   isAdminMode, 
   selectedElement,
@@ -73,6 +75,12 @@ const BannerSection: React.FC<BannerSectionProps> = ({
     if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
     updateSection(data.id, { draggableTexts: updatedTexts });
+  };
+
+  const handleLocalDraggableTextUpdate = (textId: string, updates: Partial<DraggableTextData>) => {
+    if (!data.draggableTexts) return;
+    const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
+    localUpdateSection(data.id, { draggableTexts: updatedTexts });
   };
   
   const handleAddDraggableText = () => {
@@ -158,6 +166,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({
             isDraggingMode={isDraggingMode}
             onSelect={createSelectHandler(text.id)}
             onUpdate={(updates) => handleDraggableTextUpdate(text.id, updates)}
+            onLocalUpdate={(updates) => handleLocalDraggableTextUpdate(text.id, updates)}
             onDelete={() => handleDeleteDraggableText(text.id)}
             isSelected={selectedElement?.type === 'DRAGGABLE_TEXT' && selectedElement?.textId === text.id}
             containerRef={sectionRef}
