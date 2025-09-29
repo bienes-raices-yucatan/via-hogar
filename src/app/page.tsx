@@ -346,7 +346,6 @@ export default function Home() {
                    <SectionRenderer
                       property={selectedProperty}
                       updateProperty={handleUpdateProperty}
-                      localUpdateProperty={handleLocalUpdateProperty}
                       isAdminMode={isAdminMode}
                       isDraggingMode={isDraggingMode}
                       selectedElement={selectedElement}

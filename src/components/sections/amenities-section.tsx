@@ -19,7 +19,6 @@ interface AmenitiesSectionProps {
     updateProperty: (updatedProperty: Property) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
-    isDraggingMode: boolean;
 }
 
 const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ property, data, updateProperty, deleteSection, isAdminMode }) => {

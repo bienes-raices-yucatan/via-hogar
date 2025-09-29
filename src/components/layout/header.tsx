@@ -6,6 +6,7 @@ import { Button } from '../ui/button';
 import EditableText from '../editable-text';
 import { Label } from '../ui/label';
 import { useStorage, uploadFile } from '@/firebase/storage';
+import { useUser } from '@/firebase';
 
 interface HeaderProps {
   siteName: string;

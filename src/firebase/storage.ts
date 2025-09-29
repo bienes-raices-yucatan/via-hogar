@@ -1,6 +1,5 @@
 
 'use client';
-import { FirebaseApp } from 'firebase/app';
 import { FirebaseStorage, getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useFirebaseApp } from './provider';
 

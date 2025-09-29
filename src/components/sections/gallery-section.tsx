@@ -18,7 +18,6 @@ interface GallerySectionProps {
     updateProperty: (updatedProperty: Property) => void;
     deleteSection: (sectionId: string) => void;
     isAdminMode: boolean;
-    isDraggingMode: boolean;
 }
 
 const GallerySection: React.FC<GallerySectionProps> = ({ property, data, updateProperty, deleteSection, isAdminMode }) => {

@@ -18,7 +18,6 @@ interface HeroSectionProps {
   property: Property;
   data: HeroSectionData;
   updateProperty: (updatedProperty: Property) => void;
-  localUpdateProperty: (updatedProperty: Property) => void;
   deleteSection: (sectionId: string) => void;
   isAdminMode: boolean;
   selectedElement: any;
@@ -31,7 +30,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   property,
   data, 
   updateProperty, 
-  localUpdateProperty,
   deleteSection, 
   isAdminMode, 
   selectedElement,
@@ -47,11 +45,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   const updateSection = (updatedData: Partial<HeroSectionData>) => {
     const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
     updateProperty({ ...property, sections: updatedSections });
-  };
-
-  const localUpdateSection = (updatedData: Partial<HeroSectionData>) => {
-    const updatedSections = property.sections.map(s => s.id === data.id ? { ...s, ...updatedData } : s);
-    localUpdateProperty({ ...property, sections: updatedSections });
   };
 
   useEffect(() => {
@@ -88,12 +81,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
     if (!data.draggableTexts) return;
     const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
     updateSection({ draggableTexts: updatedTexts });
-  };
-
-  const handleLocalDraggableTextUpdate = (textId: string, updates: Partial<DraggableTextData>) => {
-    if (!data.draggableTexts) return;
-    const updatedTexts = data.draggableTexts.map(t => t.id === textId ? {...t, ...updates} : t);
-    localUpdateSection({ draggableTexts: updatedTexts });
   };
   
   const handleAddDraggableText = () => {
@@ -184,7 +171,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           isDraggingMode={isDraggingMode}
           onSelect={createSelectHandler(text.id)}
           onUpdate={(updates) => handleDraggableTextUpdate(text.id, updates)}
-          onLocalUpdate={(updates) => handleLocalDraggableTextUpdate(text.id, updates)}
+          onLocalUpdate={(updates) => { /* No-op, managed by parent */}}
           onDelete={() => handleDeleteDraggableText(text.id)}
           isSelected={selectedElement?.type === 'DRAGGABLE_TEXT' && selectedElement?.textId === text.id}
           containerRef={sectionRef}

@@ -18,7 +18,6 @@ import PricingSection from './pricing-section';
 interface SectionRendererProps {
   property: Property;
   updateProperty: (updatedProperty: Property) => void;
-  localUpdateProperty: (updatedProperty: Property) => void;
   isAdminMode: boolean;
   isDraggingMode: boolean;
   selectedElement: any;
@@ -66,7 +65,7 @@ const SortableSectionWrapper = ({ id, isDraggingMode, children }: { id: string, 
 
 
 const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
-  const { property, updateProperty, onContactSubmit, isDraggingMode, localUpdateProperty, ...componentProps } = props;
+  const { property, updateProperty, onContactSubmit, isDraggingMode, ...componentProps } = props;
 
   const deleteSection = (sectionId: string) => {
     const updatedSections = property.sections.filter(s => s.id !== sectionId);
@@ -82,7 +81,6 @@ const SectionRenderer: React.FC<SectionRendererProps> = (props) => {
           property,
           data: section,
           updateProperty,
-          localUpdateProperty,
           deleteSection,
           isFirstSection,
           isDraggingMode,
