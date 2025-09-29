@@ -93,17 +93,25 @@ export default function Home() {
   useEffect(() => {
     initDB();
     
-    const savedProps = localStorage.getItem('propertiesData');
-    setProperties(savedProps ? JSON.parse(savedProps) : INITIAL_PROPERTIES_DATA);
+    try {
+        const savedProps = localStorage.getItem('propertiesData');
+        setProperties(savedProps ? JSON.parse(savedProps) : []);
 
-    const savedSubmissions = localStorage.getItem('submissionsData');
-    setSubmissions(savedSubmissions ? JSON.parse(savedSubmissions) : INITIAL_SUBMISSIONS_DATA);
+        const savedSubmissions = localStorage.getItem('submissionsData');
+        setSubmissions(savedSubmissions ? JSON.parse(savedSubmissions) : []);
 
-    const savedSiteName = localStorage.getItem('siteName');
-    if (savedSiteName) setSiteName(savedSiteName);
+        const savedSiteName = localStorage.getItem('siteName');
+        if (savedSiteName) setSiteName(savedSiteName);
 
-    const savedLogo = localStorage.getItem('customLogo');
-    if (savedLogo) setCustomLogo(savedLogo);
+        const savedLogo = localStorage.getItem('customLogo');
+        if (savedLogo) setCustomLogo(savedLogo);
+        
+    } catch (error) {
+        console.error("Failed to parse data from localStorage", error);
+        // If parsing fails, start with a clean slate
+        setProperties([]);
+        setSubmissions([]);
+    }
 
     const savedSelectedPropId = sessionStorage.getItem('selectedPropertyId');
     if(savedSelectedPropId) setSelectedPropertyId(savedSelectedPropId);
@@ -111,8 +119,16 @@ export default function Home() {
   }, []);
 
   // Persist data to localStorage
-  useEffect(() => { localStorage.setItem('propertiesData', JSON.stringify(properties)); }, [properties]);
-  useEffect(() => { localStorage.setItem('submissionsData', JSON.stringify(submissions)); }, [submissions]);
+  useEffect(() => { 
+      if (properties.length > 0) {
+          localStorage.setItem('propertiesData', JSON.stringify(properties)); 
+      }
+  }, [properties]);
+  useEffect(() => { 
+      if (submissions.length > 0) {
+          localStorage.setItem('submissionsData', JSON.stringify(submissions)); 
+      }
+  }, [submissions]);
   useEffect(() => { localStorage.setItem('siteName', siteName); }, [siteName]);
   useEffect(() => {
     if (customLogo) localStorage.setItem('customLogo', customLogo);
@@ -224,7 +240,13 @@ export default function Home() {
         title: 'Eliminar Propiedad',
         message: '¿Estás seguro de que quieres eliminar esta propiedad? Todos sus datos se perderán permanentemente.',
         onConfirm: () => {
-             setProperties(prev => prev.filter(p => p.id !== id));
+             setProperties(prev => {
+                const newProps = prev.filter(p => p.id !== id);
+                if (newProps.length === 0) {
+                    localStorage.removeItem('propertiesData');
+                }
+                return newProps;
+             });
              if (selectedPropertyId === id) {
                 setSelectedPropertyId(null);
              }

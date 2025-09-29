@@ -26,15 +26,23 @@ export const EditableText: React.FC<EditableTextProps> = ({
     onSelect,
     isSelected,
 }) => {
-    const textRef = useRef(value.text);
+    const [currentText, setCurrentText] = useState(value.text);
+    const hasChangedRef = useRef(false);
+
+    // Update internal state if the prop changes from outside
+    useEffect(() => {
+        setCurrentText(value.text);
+    }, [value.text]);
 
     const handleContentChange = (e: ContentEditableEvent) => {
-        textRef.current = e.target.value;
+        setCurrentText(e.target.value);
+        hasChangedRef.current = true;
     };
 
     const handleBlur = () => {
-        if (textRef.current !== value.text) {
-            onUpdate({ text: textRef.current });
+        if (hasChangedRef.current) {
+            onUpdate({ text: currentText });
+            hasChangedRef.current = false;
         }
     };
     
@@ -55,7 +63,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
 
     return (
         <ContentEditable
-            html={textRef.current}
+            html={currentText}
             tagName={Component}
             onChange={handleContentChange}
             onBlur={handleBlur}
@@ -77,3 +85,5 @@ export const EditableText: React.FC<EditableTextProps> = ({
         />
     );
 };
+
+    
