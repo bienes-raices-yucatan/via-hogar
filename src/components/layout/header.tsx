@@ -1,13 +1,9 @@
 
 'use client';
-import React, { useRef } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { Button } from '../ui/button';
 import EditableText from '../editable-text';
-import { Label } from '../ui/label';
-import { uploadFile } from '@/firebase/storage';
-import { useFirebaseApp } from '@/firebase';
-import { getStorage } from 'firebase/storage';
 
 interface HeaderProps {
   siteName: string;
@@ -26,23 +22,6 @@ const Header: React.FC<HeaderProps> = ({
   isAdminMode,
   onLogout,
 }) => {
-  const logoFileInputRef = useRef<HTMLInputElement>(null);
-  const app = useFirebaseApp();
-  const storage = getStorage(app);
-
-  const handleLogoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0] && storage) {
-      const file = e.target.files[0];
-      const filePath = `config/logo/${file.name}`;
-      try {
-        const newLogoUrl = await uploadFile(storage, file, filePath);
-        setLogoUrl(newLogoUrl);
-      } catch (error) {
-        console.error("Failed to upload logo:", error);
-      }
-    }
-  };
-  
   const scrollToSection = (sectionId: string) => {
     const sectionElement = document.getElementById(sectionId);
     if (sectionElement) {
@@ -54,16 +33,9 @@ const Header: React.FC<HeaderProps> = ({
     <header className="fixed top-0 left-0 right-0 z-40 p-4 sm:p-6 flex justify-between items-center text-white bg-gradient-to-b from-black/50 to-transparent">
       <div className="flex items-center gap-2 sm:gap-4">
         <div className="group">
-            <Label htmlFor="logo-upload" className={isAdminMode ? 'cursor-pointer' : ''}>
-              <div 
-                className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden"
-                title={isAdminMode ? "Hacer clic para cambiar logo" : ""}
-              >
-                <Image src={logoUrl} alt="Logo" layout="fill" objectFit="cover" />
-                 {isAdminMode && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"></div>}
-              </div>
-            </Label>
-            {isAdminMode && <input id="logo-upload" type="file" ref={logoFileInputRef} onChange={handleLogoFileChange} className="hidden" accept="image/*" />}
+          <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden">
+            <Image src={logoUrl} alt="Logo" layout="fill" objectFit="cover" />
+          </div>
         </div>
 
         <EditableText

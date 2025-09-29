@@ -1,7 +1,7 @@
 
 'use client';
 import { HeroSectionData, DraggableTextData, Property } from '@/lib/types';
-import { Trash2, Image as ImageIcon, PlusCircle } from 'lucide-react';
+import { Trash2, PlusCircle } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
 import EditableText from '../editable-text';
@@ -10,11 +10,7 @@ import { Label } from '../ui/label';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '@/lib/utils';
 import { Slider } from '../ui/slider';
-import { uploadFile } from '@/firebase/storage';
 import ResizableDraggableText from './resizable-draggable-text';
-import { useFirebaseApp } from '@/firebase';
-import { getStorage } from 'firebase/storage';
-
 
 interface HeroSectionProps {
   data: HeroSectionData;
@@ -40,10 +36,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   isDraggingMode,
 }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [backgroundPosition, setBackgroundPosition] = useState('center');
-  const app = useFirebaseApp();
-  const storage = getStorage(app);
 
   useEffect(() => {
     if (!data.parallaxEnabled || isAdminMode) {
@@ -118,17 +111,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           textId: textId
       });
   };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && storage) {
-      const filePath = `sections/${data.id}/${file.name}`;
-      const newUrl = await uploadFile(storage, file, filePath);
-      handleUpdate({ imageUrl: newUrl });
-    }
-  };
-  
-  const uploadId = `hero-image-upload-${data.id}`;
 
   const scrollToContact = () => {
     document.getElementById('section-contact')?.scrollIntoView({ behavior: 'smooth' });
@@ -232,19 +214,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" onClick={handleAddDraggableText} title="Añadir Texto">
                 <PlusCircle />
             </Button>
-            <Label htmlFor={uploadId} className="cursor-pointer">
-              <div className="h-10 w-10 flex items-center justify-center text-white hover:bg-white/20 rounded-md" title="Cambiar imagen de fondo">
-                <ImageIcon />
-              </div>
-            </Label>
-            <input
-              type="file"
-              id={uploadId}
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-              accept="image/*"
-            />
             <Button size="icon" variant="destructive" onClick={(e) => { e.stopPropagation(); deleteSection(data.id);}}>
               <Trash2 />
             </Button>

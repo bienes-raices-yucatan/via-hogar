@@ -1,5 +1,5 @@
 'use client';
-import React, { useRef } from 'react';
+import React from 'react';
 import * as LucideIcons from 'lucide-react';
 import { AmenitiesSectionData, Property } from '@/lib/types';
 import { Button } from '../ui/button';
@@ -7,10 +7,6 @@ import { Trash2, PlusCircle } from 'lucide-react';
 import EditableText from '../editable-text';
 import { v4 as uuidv4 } from 'uuid';
 import Image from 'next/image';
-import { Label } from '../ui/label';
-import { uploadFile } from '@/firebase/storage';
-import { useFirebaseApp } from '@/firebase';
-import { getStorage } from 'firebase/storage';
 
 type IconName = keyof typeof LucideIcons;
 
@@ -23,10 +19,6 @@ interface AmenitiesSectionProps {
 }
 
 const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, property, updateProperty, deleteSection, isAdminMode }) => {
-    const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
-    const app = useFirebaseApp();
-    const storage = getStorage(app);
-
     const handleAmenityTextChange = (amenityId: string, newText: string) => {
         const updatedAmenities = data.amenities.map(a => a.id === amenityId ? { ...a, text: newText } : a);
         const updatedSections = property.sections.map(s => s.id === data.id ? {...s, amenities: updatedAmenities} : s);
@@ -44,19 +36,6 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, property, upd
         const updatedAmenities = data.amenities.filter(a => a.id !== amenityId);
         const updatedSections = property.sections.map(s => s.id === data.id ? {...s, amenities: updatedAmenities} : s);
         updateProperty({ ...property, sections: updatedSections });
-    };
-
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, amenityId: string) => {
-        const file = e.target.files?.[0];
-        if (file && storage) {
-            const filePath = `sections/${data.id}/amenities/${amenityId}/${file.name}`;
-            const newUrl = await uploadFile(storage, file, filePath);
-            const updatedAmenities = data.amenities.map(a => 
-                a.id === amenityId ? { ...a, imageUrl: newUrl } : a
-            );
-            const updatedSections = property.sections.map(s => s.id === data.id ? {...s, amenities: updatedAmenities} : s);
-            updateProperty({ ...property, sections: updatedSections });
-        }
     };
     
     const handleUpdate = (updates: Partial<AmenitiesSectionData>) => {
@@ -79,21 +58,16 @@ const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({ data, property, upd
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
                     {data.amenities.map(amenity => {
                         const Icon = amenity.icon ? LucideIcons[amenity.icon as IconName] as React.ElementType : null;
-                        const uploadId = `amenity-upload-${amenity.id}`;
                         return (
                             <div key={amenity.id} className="text-center p-4 rounded-lg transition-colors group/amenity relative">
                                 <div className="relative w-16 h-16 mx-auto mb-3">
-                                    <Label htmlFor={uploadId} className={isAdminMode ? 'cursor-pointer' : ''}>
-                                        <div className="relative w-16 h-16 rounded-full overflow-hidden group/image" title={isAdminMode ? "Cambiar imagen" : ""}>
-                                            {amenity.imageUrl ? (
-                                                <Image src={amenity.imageUrl} alt={amenity.text} layout="fill" objectFit="cover" />
-                                            ) : (
-                                                Icon && <div className="w-full h-full flex items-center justify-center bg-slate-100"><Icon className="h-10 w-10 text-primary" /></div>
-                                            )}
-                                            {isAdminMode && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/image:opacity-100 transition-opacity"></div>}
-                                        </div>
-                                    </Label>
-                                    {isAdminMode && <input type="file" id={uploadId} accept="image/*" className="hidden" ref={el => (fileInputRefs.current[amenity.id] = el)} onChange={e => handleFileChange(e, amenity.id)} />}
+                                    <div className="relative w-16 h-16 rounded-full overflow-hidden group/image">
+                                        {amenity.imageUrl ? (
+                                            <Image src={amenity.imageUrl} alt={amenity.text} layout="fill" objectFit="cover" />
+                                        ) : (
+                                            Icon && <div className="w-full h-full flex items-center justify-center bg-slate-100"><Icon className="h-10 w-10 text-primary" /></div>
+                                        )}
+                                    </div>
                                 </div>
                                 
                                 <EditableText value={amenity.text} onChange={newText => handleAmenityTextChange(amenity.id, newText)} isAdminMode={isAdminMode} className="text-slate-700" />
