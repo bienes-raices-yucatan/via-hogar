@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Property, AnySectionData, ContactSubmission } from '@/lib/types';
