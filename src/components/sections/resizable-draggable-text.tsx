@@ -11,7 +11,7 @@ interface ResizableDraggableTextProps {
     data: DraggableTextData;
     sectionId: string;
     isAdminMode: boolean;
-    isDraggingMode: boolean; // Add this prop
+    isDraggingMode: boolean;
     isSelected: boolean;
     containerRef: React.RefObject<HTMLDivElement>;
     onSelect: () => void;
@@ -23,7 +23,7 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
     data,
     sectionId,
     isAdminMode,
-    isDraggingMode, // Use this prop
+    isDraggingMode,
     isSelected,
     containerRef,
     onSelect,
@@ -32,11 +32,10 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
 }) => {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: `text-${sectionId}-${data.id}`,
-        disabled: !isAdminMode || !isSelected || isDraggingMode, // Disable text drag when section drag is active
+        disabled: !isAdminMode || !isSelected || isDraggingMode,
     });
     const nodeRef = useRef<HTMLDivElement>(null);
     
-    // Store initial state on resize start
     const resizeStartRef = useRef<{
         width: number;
         height: number;
@@ -46,7 +45,7 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
     } | null>(null);
 
     const handleResize = useCallback((e: MouseEvent) => {
-        if (!resizeStartRef.current || !containerRef.current) return;
+        if (!resizeStartRef.current) return;
 
         const { startX, startY, width: initialWidth, height: initialHeight, direction } = resizeStartRef.current;
         const dx = e.clientX - startX;
@@ -59,29 +58,33 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
             newWidth = initialWidth + dx;
         }
         if (direction.includes('left')) {
-            // This is more complex, involves moving the element as well, let's simplify for now
-            // newWidth = initialWidth - dx;
+            // Note: Resizing from left/top requires repositioning, which is more complex.
+            // For now, we focus on making right/bottom resizing smooth as it's most common.
+            // A full implementation would adjust position.x as well.
         }
         if (direction.includes('bottom')) {
             newHeight = initialHeight + dy;
         }
         if (direction.includes('top')) {
-             // This is more complex, involves moving the element as well, let's simplify for now
-            // newHeight = initialHeight - dy;
+            // Similar to left resizing.
         }
-
+        
+        // For corner handles
+        if (direction.includes('right')) newWidth = initialWidth + dx;
+        if (direction.includes('bottom')) newHeight = initialHeight + dy;
+        
         onUpdate({
             width: Math.max(50, newWidth),
-            height: Math.max(20, newHeight),
+            height: Math.max(30, newHeight),
         });
 
-    }, [onUpdate, containerRef]);
+    }, [onUpdate]);
 
     const stopResizing = useCallback(() => {
-        resizeStartRef.current = null;
         window.removeEventListener('mousemove', handleResize);
         window.removeEventListener('mouseup', stopResizing);
         document.body.style.cursor = 'default';
+        resizeStartRef.current = null;
     }, [handleResize]);
 
     useEffect(() => {
@@ -119,12 +122,12 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
         fontFamily: data.fontFamily,
         zIndex: isSelected ? 21 : 20,
         transform: `translate(-50%, -50%)`,
-        boxShadow: isSelected ? '0 0 0 2px #FFB300' : 'none',
-        transition: isDragging ? 'none' : 'box-shadow 0.2s, transform 0s',
+        boxShadow: isSelected ? '0 0 0 2px hsl(var(--primary))' : 'none',
+        transition: isDragging ? 'none' : 'box-shadow 0.2s',
     };
 
     if (transform && isDragging) {
-        // Do not apply transform from useDraggable, as it is handled by the parent onDragMove
+        // This is handled by the parent onDragMove for fluid movement
     }
 
     const resizers = ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'top', 'bottom', 'left', 'right'];
@@ -165,7 +168,7 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
                 <>
                     <button 
                         onClick={(e) => { e.stopPropagation(); onDelete(); }} 
-                        className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center opacity-100"
+                        className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center opacity-100 z-30"
                     >
                         <Trash2 size={14}/>
                     </button>
@@ -174,12 +177,12 @@ const ResizableDraggableText: React.FC<ResizableDraggableTextProps> = ({
                             key={dir}
                             onMouseDown={(e) => handleResizerMouseDown(e, dir)}
                             className={cn(
-                                'absolute bg-white border-2 border-primary rounded-full w-3 h-3 z-20',
+                                'absolute bg-white border-2 border-primary rounded-full z-20',
                                 {
-                                    'top-0 left-0 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize': dir === 'top-left',
-                                    'top-0 right-0 translate-x-1/2 -translate-y-1/2 cursor-nesw-resize': dir === 'top-right',
-                                    'bottom-0 left-0 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize': dir === 'bottom-left',
-                                    'bottom-0 right-0 translate-x-1/2 translate-y-1/2 cursor-nwse-resize': dir === 'bottom-right',
+                                    'top-0 left-0 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize w-3 h-3': dir === 'top-left',
+                                    'top-0 right-0 translate-x-1/2 -translate-y-1/2 cursor-nesw-resize w-3 h-3': dir === 'top-right',
+                                    'bottom-0 left-0 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize w-3 h-3': dir === 'bottom-left',
+                                    'bottom-0 right-0 translate-x-1/2 translate-y-1/2 cursor-nwse-resize w-3 h-3': dir === 'bottom-right',
                                     'top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-ns-resize w-10 h-2 rounded': dir === 'top',
                                     'bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 cursor-ns-resize w-10 h-2 rounded': dir === 'bottom',
                                     'top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize w-2 h-10 rounded': dir === 'left',
