@@ -1,4 +1,5 @@
 
+
 // A type for the icon names available in the Icon component
 export type IconName = 'bed' | 'bath' | 'area' | 'map-pin' | 'school' | 'store' | 'bus' | 'sparkles' | 'x-mark' | 'chevron-down' | 'plus' | 'pencil' | 'trash' | 'nearby' | 'logo' | 'drag-handle' | 'chevron-left' | 'chevron-right' | 'copyright' | 'solar-panel' | 'parking' | 'laundry' | 'pool' | 'generic-feature' | 'street-view' | 'gym' | 'park' | 'whatsapp' | 'arrows-move' | 'check' | 'list' | 'camera';
 
@@ -44,6 +45,7 @@ export interface HeroSectionData extends PageSection {
 export interface FeatureItem {
   id: string;
   icon: IconName;
+  imageUrl?: string;
   title: StyledText;
   description: StyledText;
 }
@@ -57,7 +59,6 @@ export interface ImageWithFeaturesSectionData extends PageSection {
     url: string;
   };
   features: FeatureItem[];
-  featureTexts?: StyledText[];
 }
 
 // Data for a single image in the gallery, with an optional title
@@ -96,16 +97,9 @@ export interface LocationSectionData extends PageSection {
 // Data for a single amenity item in the Amenities section
 export interface AmenityItem {
   id: string;
-  text: StyledText;
+  text: string;
   icon: IconName;
   imageUrl?: string;
-}
-
-// Data for the section listing property or complex amenities
-export interface AmenitiesSectionData extends PageSection {
-  type: 'amenities';
-  title?: StyledText;
-  amenities: AmenityItem[];
 }
 
 // Data for the contact section
@@ -165,5 +159,3 @@ export interface ContactSubmission {
     userType: 'buyer' | 'broker';
     submittedAt: string;
 }
-
-    

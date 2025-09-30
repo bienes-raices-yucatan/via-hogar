@@ -8,7 +8,7 @@ import { Slider } from './ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Icon } from './icon';
-import { FontFamily, IconName, TextAlign, StyledText, DraggableTextData } from '@/lib/types';
+import { FontFamily, IconName, TextAlign, StyledText, DraggableTextData, FeatureItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
@@ -48,19 +48,14 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         onUpdate({ [key]: value });
     };
 
-    const handleTextChange = (key: string, value: any) => {
-        const textKey = "text" in values ? "text" : "title" in values ? "title" : "description";
-
-        const textObj = values[textKey] as Partial<StyledText | DraggableTextData>;
-
-        const newTextObj = { ...textObj, [key]: value };
-        
-        const newValues = { ...values, [textKey]: newTextObj };
-
+    const handleNestedTextChange = (textKey: 'title' | 'description', property: keyof StyledText, value: any) => {
+        const textObject = values[textKey] as StyledText;
+        const newTextObject = { ...textObject, [property]: value };
+        const newValues = { ...values, [textKey]: newTextObject };
         setValues(newValues);
-        onUpdate({ [textKey]: newTextObj });
+        onUpdate({ [textKey]: newTextObject });
     };
-    
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -75,19 +70,15 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const renderTextControls = (isDraggable: boolean, isFeatureText: boolean = false) => {
-        const textData = isFeatureText 
-        ? ("text" in values ? values.text : "title" in values ? values.title : values.description) 
-        : values;
-
-        return (
+    const renderTextControls = (data: StyledText | DraggableTextData, onValueChange: (key: string, value: any) => void) => {
+      return (
         <>
             <div className="space-y-2">
                 <Label>Alineación</Label>
                  <ToggleGroup 
                     type="single" 
-                    defaultValue={textData?.textAlign || 'left'} 
-                    onValueChange={(value: TextAlign) => {if (value) isFeatureText ? handleTextChange('textAlign', value) : handleChange('textAlign', value)}}
+                    defaultValue={data.textAlign || 'left'} 
+                    onValueChange={(value: TextAlign) => {if (value) onValueChange('textAlign', value)}}
                     className="w-full grid grid-cols-3"
                  >
                     <ToggleGroupItem value="left" aria-label="Alinear a la izquierda">
@@ -102,21 +93,21 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 </ToggleGroup>
             </div>
             <div className="space-y-2">
-                <Label>Tamaño ({(textData?.fontSize || 1).toFixed(2)}rem)</Label>
+                <Label>Tamaño ({(data.fontSize || 1).toFixed(2)}rem)</Label>
                 <Slider
-                    value={[textData?.fontSize || 1]}
-                    onValueChange={(val) => isFeatureText ? handleTextChange('fontSize', val[0]) : handleChange('fontSize', val[0])}
+                    value={[data.fontSize || 1]}
+                    onValueChange={(val) => onValueChange('fontSize', val[0])}
                     min={0.5}
                     max={10}
                     step={0.1}
                 />
             </div>
-            {isDraggable && (
+            {'position' in data && (
                  <div className="space-y-2">
-                    <Label>Ancho ({(values.width || 40).toFixed(0)}%)</Label>
+                    <Label>Ancho ({(data.width || 40).toFixed(0)}%)</Label>
                     <Slider
-                        value={[values.width || 40]}
-                        onValueChange={(val) => handleChange('width', val[0])}
+                        value={[data.width || 40]}
+                        onValueChange={(val) => onValueChange('width', val[0])}
                         min={10}
                         max={100}
                         step={1}
@@ -125,7 +116,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
             )}
             <div className="space-y-2">
                 <Label>Familia de Fuente</Label>
-                 <Select value={textData?.fontFamily || 'Roboto'} onValueChange={(val: FontFamily) => isFeatureText ? handleTextChange('fontFamily', val) : handleChange('fontFamily', val)}>
+                 <Select value={data.fontFamily || 'Roboto'} onValueChange={(val: FontFamily) => onValueChange('fontFamily', val)}>
                     <SelectTrigger>
                         <SelectValue placeholder="Selecciona una fuente" />
                     </SelectTrigger>
@@ -138,50 +129,63 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                     </SelectContent>
                 </Select>
             </div>
-            <ColorPicker label="Color de Texto" value={textData?.color} onChange={(c) => isFeatureText ? handleTextChange('color', c) : handleChange('color', c)} />
+            <ColorPicker label="Color de Texto" value={data.color} onChange={(c) => onValueChange('color', c)} />
         </>
-    );
-    }
+      )
+    };
     
     const renderSectionStyleControls = () => (
         <>
             <ColorPicker label="Color de Fondo" value={values.backgroundColor} onChange={(c) => handleChange('backgroundColor', c)} />
         </>
     );
-
-    const renderIconControls = (isAmenity = false) => (
+    
+    const renderAmenityControls = () => (
         <>
-             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
              <IconPicker label="Icono" value={values.icon} onChange={(icon) => handleChange('icon', icon)} />
-             
-             {isAmenity && (
-                 <div className="space-y-2">
-                    <Label>Texto de la amenidad</Label>
-                    <Input value={values.text} onChange={(e) => handleChange('text', e.target.value)} />
-                </div>
-             )}
-             
-             {isFeatureText(values) && renderTextControls(false, true)}
-
-
-             {(isAmenity || isFeatureText(values)) && (
-                 <>
-                    <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                        <Icon name="camera" className="mr-2" />
-                        {isAmenity ? 'Usar Imagen en vez de icono' : 'Cambiar Imagen'}
-                    </Button>
-                    {values.imageUrl && (
-                        <Button variant="destructive" size="sm" onClick={() => handleChange('imageUrl', null)}>
-                            <Icon name="trash" className="mr-2" />
-                            Quitar Imagen
-                        </Button>
-                    )}
-                 </>
-             )}
+             <div className="space-y-2">
+                <Label>Texto de la amenidad</Label>
+                <Input value={values.text} onChange={(e) => handleChange('text', e.target.value)} />
+            </div>
+            <hr/>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                <Icon name="camera" className="mr-2" />
+                Usar Imagen en vez de icono
+            </Button>
+            {values.imageUrl && (
+                <Button variant="destructive" size="sm" onClick={() => handleChange('imageUrl', null)}>
+                    <Icon name="trash" className="mr-2" />
+                    Quitar Imagen
+                </Button>
+            )}
         </>
     );
 
-    const isFeatureText = (v: any) => v && ('title' in v || 'text' in v);
+    const renderFeatureControls = () => (
+        <>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+            <IconPicker label="Icono" value={values.icon} onChange={(icon) => handleChange('icon', icon)} />
+            <hr />
+            <p className="text-xs font-bold text-muted-foreground uppercase">Título</p>
+            {renderTextControls(values.title, (key, value) => handleNestedTextChange('title', key as keyof StyledText, value))}
+            <hr />
+            <p className="text-xs font-bold text-muted-foreground uppercase">Descripción</p>
+            {renderTextControls(values.description, (key, value) => handleNestedTextChange('description', key as keyof StyledText, value))}
+            <hr />
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                <Icon name="camera" className="mr-2" />
+                Usar Imagen en vez de icono
+            </Button>
+            {values.imageUrl && (
+                <Button variant="destructive" size="sm" onClick={() => handleChange('imageUrl', null)}>
+                    <Icon name="trash" className="mr-2" />
+                    Quitar Imagen
+                </Button>
+            )}
+        </>
+    );
+
 
     const renderPricingTierControls = () => (
         <>
@@ -211,15 +215,14 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
     const renderControls = () => {
         switch (element.type) {
             case 'styledText':
-                return renderTextControls(false);
             case 'draggableText':
-                return renderTextControls(true);
+                return renderTextControls(values, handleChange);
             case 'sectionStyle':
                 return renderSectionStyleControls();
             case 'amenity':
-                return renderIconControls(true);
+                return renderAmenityControls();
             case 'feature':
-                return renderIconControls(false);
+                return renderFeatureControls();
             case 'pricingTier':
                 return renderPricingTierControls();
             default:
@@ -228,16 +231,18 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
     };
 
     return (
-        <div className="fixed bottom-4 right-4 z-50 w-64 bg-background border rounded-lg shadow-lg">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-72 bg-background border rounded-lg shadow-lg">
             <div className="flex justify-between items-center p-2 border-b">
                 <span className="text-sm font-medium">Editar Elemento</span>
                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}>
                     <Icon name="x-mark" />
                 </Button>
             </div>
-            <div className="p-4 space-y-4">
-                {renderControls()}
-            </div>
+            <ScrollArea className="h-[40vh]">
+                <div className="p-4 space-y-4">
+                    {renderControls()}
+                </div>
+            </ScrollArea>
         </div>
     );
 };
@@ -326,5 +331,3 @@ const IconPicker: React.FC<{ label: string; value: IconName; onChange: (icon: Ic
         </div>
     );
 };
-
-    
