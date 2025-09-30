@@ -21,6 +21,7 @@ export interface DraggableTextData extends StyledText {
         x: number; // percentage from left
         y: number; // percentage from top
     };
+    width?: number; // percentage of parent
 }
 
 // Base structure for any section on the page

@@ -40,11 +40,11 @@ export const DraggableEditableText: React.FC<DraggableEditableTextProps> = ({
       enabled: isDraggingMode && isAdminMode,
     });
     
-    const textStyle = {
-        fontSize: `${value.fontSize}rem`,
-        color: value.color,
-        fontFamily: value.fontFamily,
-        textAlign: value.textAlign || 'center',
+    const containerStyle = {
+        left: `${position.x}%`,
+        top: `${position.y}%`,
+        transform: 'translate(-50%, -50%)',
+        width: value.width ? `${value.width}%` : 'auto',
     };
 
     if (!isAdminMode && !isDraggingMode) {
@@ -52,13 +52,22 @@ export const DraggableEditableText: React.FC<DraggableEditableTextProps> = ({
             <div
                 className="absolute"
                 style={{
-                    ...textStyle,
                     left: `${value.position.x}%`,
                     top: `${value.position.y}%`,
                     transform: 'translate(-50%, -50%)',
+                    width: value.width ? `${value.width}%` : 'auto',
                 }}
-                dangerouslySetInnerHTML={{ __html: value.text.replace(/\n/g, '<br />') }}
-            />
+            >
+                <EditableText
+                    as="div"
+                    id={value.id}
+                    value={value}
+                    onUpdate={(val) => onUpdate(val)}
+                    isAdminMode={false}
+                    onSelect={() => {}}
+                    isSelected={false}
+                />
+            </div>
         );
     }
     
@@ -72,12 +81,7 @@ export const DraggableEditableText: React.FC<DraggableEditableTextProps> = ({
                 isDraggingMode && 'cursor-move',
                 isSelected && !isDraggingMode && 'outline-dashed outline-2 outline-primary'
             )}
-            style={{
-                left: `${position.x}%`,
-                top: `${position.y}%`,
-                transform: 'translate(-50%, -50%)',
-                width: 'auto', // Allow text to determine width
-            }}
+            style={containerStyle}
             onClick={(e) => {
                 if (!isDraggingMode) {
                     e.stopPropagation();
@@ -90,7 +94,6 @@ export const DraggableEditableText: React.FC<DraggableEditableTextProps> = ({
                 id={value.id}
                 value={value}
                 onUpdate={(val) => onUpdate(val)}
-                className="text-center"
                 isAdminMode={isAdminMode}
                 onSelect={onSelect}
                 isSelected={isSelected && !isDraggingMode}

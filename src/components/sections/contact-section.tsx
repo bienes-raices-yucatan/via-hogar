@@ -83,11 +83,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
       )}
       {isLoading ? <Skeleton className="absolute inset-0" /> : (
         <div 
-          className={cn(
-              "py-24 md:py-32 bg-cover bg-center bg-no-repeat",
-              isAdminMode && "group-hover:brightness-75 transition-all",
-              selectedElement?.sectionId === data.id && selectedElement.elementKey === 'backgroundImageUrl' && "brightness-75"
-          )}
+          className="py-24 md:py-32 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${imageUrl})` }}
         >
           <div className="container mx-auto px-4 text-center">
@@ -118,7 +114,6 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               )}
             
             <Button size="lg" onClick={onOpenContactForm}>
-              <Icon name="whatsapp" className="mr-2" />
               Contactar Ahora
             </Button>
           </div>

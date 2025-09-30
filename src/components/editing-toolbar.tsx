@@ -49,7 +49,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         onUpdate({ [key]: value });
     };
 
-    const renderTextControls = () => (
+    const renderTextControls = (isDraggable: boolean) => (
         <>
             <div className="space-y-2">
                 <Label>Alineación</Label>
@@ -80,6 +80,18 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                     step={0.1}
                 />
             </div>
+            {isDraggable && (
+                 <div className="space-y-2">
+                    <Label>Ancho ({values.width?.toFixed(0) || 'auto'}%)</Label>
+                    <Slider
+                        value={[values.width || 40]}
+                        onValueChange={(val) => handleChange('width', val[0])}
+                        min={10}
+                        max={100}
+                        step={1}
+                    />
+                </div>
+            )}
             <div className="space-y-2">
                 <Label>Familia de Fuente</Label>
                  <Select value={values.fontFamily || 'Roboto'} onValueChange={(val: FontFamily) => handleChange('fontFamily', val)}>
@@ -120,8 +132,9 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
     const renderControls = () => {
         switch (element.type) {
             case 'styledText':
+                return renderTextControls(false);
             case 'draggableText':
-                return renderTextControls();
+                return renderTextControls(true);
             case 'sectionStyle':
                 return renderSectionStyleControls();
             case 'amenity':

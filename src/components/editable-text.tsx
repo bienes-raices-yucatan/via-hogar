@@ -81,7 +81,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
             }}
             className={cn(
                 className,
-                'transition-all duration-200 focus:outline-none whitespace-pre-wrap',
+                'transition-all duration-200 focus:outline-none whitespace-pre-wrap w-full',
                 isAdminMode && 'cursor-pointer hover:outline-dashed hover:outline-1 hover:outline-primary',
                 isSelected && 'outline-dashed outline-2 outline-primary'
             )}
