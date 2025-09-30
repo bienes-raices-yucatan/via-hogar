@@ -75,6 +75,7 @@ export default function Home() {
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [selectedIdsForExport, setSelectedIdsForExport] = useState<Set<string>>(new Set());
 
   // --- Modal State ---
   const [isNewPropertyModalOpen, setIsNewPropertyModalOpen] = useState(false);
@@ -168,6 +169,7 @@ export default function Home() {
       if (!isAdminMode) {
           setSelectedElement(null);
           setIsDraggingMode(false);
+          setSelectedIdsForExport(new Set());
       }
   }, [isAdminMode]);
   
@@ -303,6 +305,27 @@ export default function Home() {
     });
   };
 
+  const handleTogglePropertySelectionForExport = (propertyId: string) => {
+    setSelectedIdsForExport(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(propertyId)) {
+            newSet.delete(propertyId);
+        } else {
+            newSet.add(propertyId);
+        }
+        return newSet;
+    });
+};
+
+const handleToggleAllPropertiesForExport = () => {
+    if (selectedIdsForExport.size === properties.length) {
+        setSelectedIdsForExport(new Set());
+    } else {
+        setSelectedIdsForExport(new Set(properties.map(p => p.id)));
+    }
+};
+
+
   // --- Admin & Login Handlers ---
   const handleAdminLogin = (user: string, pass: string): boolean => {
     if (user === 'Admin' && pass === 'Aguilar1') {
@@ -332,8 +355,18 @@ export default function Home() {
     // --- Import/Export Handlers ---
     const handleExport = async () => {
         try {
-            toast({ title: "Exportando...", description: "Recopilando datos de propiedades e imágenes." });
-            const jsonString = await exportData(properties, submissions, siteName, customLogo);
+            const propertiesToExport = selectedIdsForExport.size > 0
+                ? properties.filter(p => selectedIdsForExport.has(p.id))
+                : properties;
+
+            if (propertiesToExport.length === 0) {
+                toast({ title: "No hay propiedades seleccionadas", description: "Por favor, selecciona al menos una propiedad para guardar.", variant: "destructive" });
+                return;
+            }
+
+            toast({ title: "Guardando...", description: `Recopilando datos de ${propertiesToExport.length} propiedades.` });
+            
+            const jsonString = await exportData(propertiesToExport, submissions, siteName, customLogo);
             const blob = new Blob([jsonString], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -572,6 +605,9 @@ export default function Home() {
                 onUpdateProperty={handleUpdateProperty}
                 onDeleteProperty={handleDeleteProperty}
                 isAdminMode={isAdminMode}
+                selectedIdsForExport={selectedIdsForExport}
+                onToggleSelection={handleTogglePropertySelectionForExport}
+                onToggleAll={handleToggleAllPropertiesForExport}
             />
             )}
         </main>
