@@ -61,6 +61,7 @@ import { ContactModal } from '@/components/contact-modal';
 import { SubmissionsModal } from '@/components/submissions-modal';
 import { ConfirmationModal } from '@/components/confirmation-modal';
 import { DraggableEditableText } from '@/components/draggable-editable-text';
+import { ExportModal } from '@/components/export-modal';
 import { useToast } from '@/hooks/use-toast';
 
 // Type for the state that tracks the currently selected element for editing
@@ -75,7 +76,6 @@ export default function Home() {
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [selectedIdsForExport, setSelectedIdsForExport] = useState<Set<string>>(new Set());
 
   // --- Modal State ---
   const [isNewPropertyModalOpen, setIsNewPropertyModalOpen] = useState(false);
@@ -83,6 +83,7 @@ export default function Home() {
   const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState<{ open: boolean; index: number }>({ open: false, index: 0 });
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [confirmationModalState, setConfirmationModalState] = useState<{isOpen: boolean; onConfirm: () => void; title: string; message: string}>({isOpen: false, onConfirm: () => {}, title: '', message: ''});
 
 
@@ -169,7 +170,6 @@ export default function Home() {
       if (!isAdminMode) {
           setSelectedElement(null);
           setIsDraggingMode(false);
-          setSelectedIdsForExport(new Set());
       }
   }, [isAdminMode]);
   
@@ -305,26 +305,6 @@ export default function Home() {
     });
   };
 
-  const handleTogglePropertySelectionForExport = (propertyId: string) => {
-    setSelectedIdsForExport(prev => {
-        const newSet = new Set(prev);
-        if (newSet.has(propertyId)) {
-            newSet.delete(propertyId);
-        } else {
-            newSet.add(propertyId);
-        }
-        return newSet;
-    });
-};
-
-const handleToggleAllPropertiesForExport = () => {
-    if (selectedIdsForExport.size === properties.length) {
-        setSelectedIdsForExport(new Set());
-    } else {
-        setSelectedIdsForExport(new Set(properties.map(p => p.id)));
-    }
-};
-
 
   // --- Admin & Login Handlers ---
   const handleAdminLogin = (user: string, pass: string): boolean => {
@@ -353,11 +333,10 @@ const handleToggleAllPropertiesForExport = () => {
   };
   
     // --- Import/Export Handlers ---
-    const handleExport = async () => {
+    const handleExport = async (selectedIds: Set<string>) => {
+        setIsExportModalOpen(false);
         try {
-            const propertiesToExport = selectedIdsForExport.size > 0
-                ? properties.filter(p => selectedIdsForExport.has(p.id))
-                : properties;
+            const propertiesToExport = properties.filter(p => selectedIds.has(p.id));
 
             if (propertiesToExport.length === 0) {
                 toast({ title: "No hay propiedades seleccionadas", description: "Por favor, selecciona al menos una propiedad para guardar.", variant: "destructive" });
@@ -605,9 +584,6 @@ const handleToggleAllPropertiesForExport = () => {
                 onUpdateProperty={handleUpdateProperty}
                 onDeleteProperty={handleDeleteProperty}
                 isAdminMode={isAdminMode}
-                selectedIdsForExport={selectedIdsForExport}
-                onToggleSelection={handleTogglePropertySelectionForExport}
-                onToggleAll={handleToggleAllPropertiesForExport}
             />
             )}
         </main>
@@ -623,13 +599,21 @@ const handleToggleAllPropertiesForExport = () => {
         {isContactModalOpen && selectedProperty && <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} onSubmit={handleContactSubmit} property={selectedProperty} />}
         {isSubmissionsModalOpen && <SubmissionsModal isOpen={isSubmissionsModalOpen} onClose={() => setIsSubmissionsModalOpen(false)} submissions={getSubmissionsForCurrentProperty()} />}
         <ConfirmationModal {...confirmationModalState} onClose={closeConfirmationModal} />
+        {isExportModalOpen && (
+            <ExportModal
+                isOpen={isExportModalOpen}
+                onClose={() => setIsExportModalOpen(false)}
+                properties={properties}
+                onExport={handleExport}
+            />
+        )}
         
         {/* --- Admin Tools --- */}
         {isAdminMode && (
             <AdminToolbar 
                 isDraggingMode={isDraggingMode} 
                 setIsDraggingMode={setIsDraggingMode}
-                onExport={handleExport}
+                onExportClick={() => setIsExportModalOpen(true)}
                 onImport={handleImport}
             />
         )}

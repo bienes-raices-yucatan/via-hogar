@@ -7,11 +7,11 @@ import { Icon } from './icon';
 interface AdminToolbarProps {
   isDraggingMode: boolean;
   setIsDraggingMode: (isDragging: boolean) => void;
-  onExport: () => void;
+  onExportClick: () => void;
   onImport: (file: File) => void;
 }
 
-export const AdminToolbar: React.FC<AdminToolbarProps> = ({ isDraggingMode, setIsDraggingMode, onExport, onImport }) => {
+export const AdminToolbar: React.FC<AdminToolbarProps> = ({ isDraggingMode, setIsDraggingMode, onExportClick, onImport }) => {
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportClick = () => {
@@ -48,8 +48,8 @@ export const AdminToolbar: React.FC<AdminToolbarProps> = ({ isDraggingMode, setI
        <Button 
          variant="outline"
          size="sm"
-         onClick={onExport}
-         title="Guardar una copia de seguridad de todas las propiedades"
+         onClick={onExportClick}
+         title="Guardar una copia de seguridad de las propiedades seleccionadas"
        >
         <Icon name="download" className="mr-2 h-4 w-4" />
         Guardar
