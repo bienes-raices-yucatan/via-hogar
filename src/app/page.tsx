@@ -588,10 +588,10 @@ export default function Home() {
             <div>
                 {isAdminMode && <AddSectionControl index={0} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
                 {selectedProperty.sections.map((section, index) => (
-                    <React.Fragment key={section.id}>
+                    <div key={section.id}>
                         {renderSection(section, index)}
                         {isAdminMode && <AddSectionControl index={index + 1} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
-                    </React.Fragment>
+                    </div>
                 ))}
             </div>
             ) : (
@@ -644,3 +644,5 @@ export default function Home() {
     </div>
   );
 };
+
+    
