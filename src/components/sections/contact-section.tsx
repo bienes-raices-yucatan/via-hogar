@@ -81,10 +81,10 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
         <div 
           className={cn(
               "py-24 md:py-32 bg-cover bg-center bg-no-repeat",
-              isAdminMode && "group-hover:brightness-50 transition-all",
-              selectedElement?.sectionId === data.id && selectedElement.elementKey === 'backgroundImageUrl' && "brightness-50"
+              isAdminMode && "group-hover:brightness-75 transition-all",
+              selectedElement?.sectionId === data.id && selectedElement.elementKey === 'backgroundImageUrl' && "brightness-75"
           )}
-          style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${imageUrl})` }}
+          style={{ backgroundImage: `url(${imageUrl})` }}
         >
           <div className="container mx-auto px-4 text-center">
               {data.title && (

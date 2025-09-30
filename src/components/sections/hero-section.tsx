@@ -4,7 +4,6 @@
 import React, { useRef } from 'react';
 import { HeroSectionData, SelectedElement } from '@/lib/types';
 import { SectionToolbar } from '../section-toolbar';
-import { EditableText } from '../editable-text';
 import { DraggableEditableText } from '../draggable-editable-text';
 import { cn } from '@/lib/utils';
 import { saveImage } from '@/lib/storage';
@@ -75,11 +74,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <div
                 className={cn(
                     "absolute inset-0 bg-cover bg-center",
-                    isAdminMode && "group-hover:brightness-50 transition-all",
-                    selectedElement?.sectionId === data.id && selectedElement.elementKey === 'backgroundImageUrl' && "brightness-50"
+                    isAdminMode && "group-hover:brightness-75 transition-all",
+                    selectedElement?.sectionId === data.id && selectedElement.elementKey === 'backgroundImageUrl' && "brightness-75"
                 )}
                 style={{ 
-                    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url(${imageUrl})`,
+                    backgroundImage: `url(${imageUrl})`,
                 }}
             />
         )}
