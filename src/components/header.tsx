@@ -58,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({
     };
 
     return (
-        <header className="bg-background border-b p-4 flex justify-between items-center sticky top-0 z-40">
+        <header className="fixed top-0 left-0 right-0 z-40 p-4 flex justify-between items-center transition-colors duration-300">
             <div 
                 className="flex items-center gap-2 cursor-pointer group relative"
                 onClick={onNavigateHome}
@@ -68,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
                 ) : logoUrl ? (
                     <Image src={logoUrl} alt="Custom Logo" width={32} height={32} className="object-contain h-8 w-8" />
                 ) : (
-                    <Icon name="logo" className="w-8 h-8 text-primary" />
+                    <Icon name="logo" className="w-8 h-8 text-white" />
                 )}
                 {isAdminMode ? (
                      <ContentEditable
@@ -76,10 +76,10 @@ export const Header: React.FC<HeaderProps> = ({
                         tagName="h1"
                         onChange={handleSiteNameChange}
                         onBlur={handleSiteNameBlur}
-                        className={cn("text-xl font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary rounded-sm px-1")}
+                        className={cn("text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-primary rounded-sm px-1")}
                      />
                 ) : (
-                    <h1 className="text-xl font-bold text-foreground">{siteName}</h1>
+                    <h1 className="text-xl font-bold text-white">{siteName}</h1>
                 )}
                
                 {isAdminMode && (
@@ -87,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <Button
                             variant="outline"
                             size="icon"
-                            className="absolute -right-10 h-7 w-7 opacity-0 group-hover:opacity-100"
+                            className="absolute -right-10 h-7 w-7 opacity-0 group-hover:opacity-100 bg-white/20 text-white hover:bg-white/30"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 logoInputRef.current?.click();
@@ -116,5 +116,3 @@ export const Header: React.FC<HeaderProps> = ({
         </header>
     );
 };
-
-    

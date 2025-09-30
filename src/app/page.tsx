@@ -581,7 +581,7 @@ export default function Home() {
             onNavigateHome={() => setSelectedPropertyId(null)}
         />
 
-        <main className="flex-grow pt-16">
+        <main className="flex-grow">
             {selectedProperty ? (
             <div>
                 {isAdminMode && <AddSectionControl index={0} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
