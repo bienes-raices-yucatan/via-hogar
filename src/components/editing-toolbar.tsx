@@ -8,9 +8,11 @@ import { Slider } from './ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Icon } from './icon';
-import { FontFamily, IconName } from '@/lib/types';
+import { FontFamily, IconName, TextAlign } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
+import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
+import { AlignCenter, AlignLeft, AlignRight } from 'lucide-react';
 
 // Extend IconName to get all icon names
 const allIcons: IconName[] = ['bed' , 'bath' , 'area' , 'map-pin' , 'school' , 'store' , 'bus' , 'sparkles' , 'x-mark' , 'chevron-down' , 'plus' , 'pencil' , 'trash' , 'nearby' , 'logo' , 'drag-handle' , 'chevron-left' , 'chevron-right' , 'copyright' , 'solar-panel' , 'parking' , 'laundry' , 'pool' , 'generic-feature' , 'street-view' , 'gym' , 'park' , 'whatsapp' , 'arrows-move' , 'check' , 'list', 'camera'];
@@ -50,6 +52,25 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
     const renderTextControls = () => (
         <>
             <div className="space-y-2">
+                <Label>Alineación</Label>
+                 <ToggleGroup 
+                    type="single" 
+                    defaultValue={values.textAlign || 'left'} 
+                    onValueChange={(value: TextAlign) => {if (value) handleChange('textAlign', value)}}
+                    className="w-full grid grid-cols-3"
+                 >
+                    <ToggleGroupItem value="left" aria-label="Alinear a la izquierda">
+                        <AlignLeft className="h-4 w-4" />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="center" aria-label="Alinear al centro">
+                        <AlignCenter className="h-4 w-4" />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="right" aria-label="Alinear a la derecha">
+                        <AlignRight className="h-4 w-4" />
+                    </ToggleGroupItem>
+                </ToggleGroup>
+            </div>
+            <div className="space-y-2">
                 <Label>Tamaño ({values.fontSize?.toFixed(2) || '1.00'}rem)</Label>
                 <Slider
                     value={[values.fontSize || 1]}
@@ -84,12 +105,17 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         </>
     );
 
-    const renderIconControls = () => (
+    const renderIconControls = (isAmenity = false) => (
         <>
              <IconPicker label="Icono" value={values.icon} onChange={(icon) => handleChange('icon', icon)} />
+             {isAmenity && (
+                 <div className="space-y-2">
+                    <Label>Texto de la amenidad</Label>
+                    <Input value={values.text} onChange={(e) => handleChange('text', e.target.value)} />
+                 </div>
+             )}
         </>
     );
-
 
     const renderControls = () => {
         switch (element.type) {
@@ -99,6 +125,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
             case 'sectionStyle':
                 return renderSectionStyleControls();
             case 'amenity':
+                return renderIconControls(true);
             case 'feature':
                 return renderIconControls();
             default:

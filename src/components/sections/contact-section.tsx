@@ -70,10 +70,14 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
       {isAdminMode && (
           <Button
             variant="secondary"
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 opacity-0 group-hover:opacity-100"
-            onClick={() => fileInputRef.current?.click()}
+            className="absolute top-4 right-14 z-20 opacity-0 group-hover:opacity-100"
+            onClick={(e) => {
+                e.stopPropagation();
+                fileInputRef.current?.click()
+            }}
+            size="sm"
           >
-              <Icon name="camera" className="mr-2" />
+              <Icon name="camera" className="mr-2 h-4 w-4" />
               Cambiar Fondo
           </Button>
       )}

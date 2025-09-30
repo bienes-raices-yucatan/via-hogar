@@ -21,7 +21,8 @@ import {
     DraggableTextData,
     IconName,
     AmenityItem,
-    FeatureItem
+    FeatureItem,
+    TextAlign
 } from '@/lib/types';
 
 // Import constants
@@ -104,9 +105,11 @@ export default function Home() {
                 const parsedProps: Property[] = JSON.parse(savedProps);
                 // This is a temporary solution to migrate old image URLs to new ones
                 const migratedProps = await Promise.all(parsedProps.map(async (prop) => {
-                    const mainImageBlob = prop.mainImageUrl.startsWith('blob:') ? await fetch(prop.mainImageUrl).then(r => r.blob()) : null;
-                    if(mainImageBlob){
-                        prop.mainImageUrl = await saveImage(URL.createObjectURL(mainImageBlob));
+                    if (prop.mainImageUrl && prop.mainImageUrl.startsWith('blob:')) {
+                        const mainImageBlob = await fetch(prop.mainImageUrl).then(r => r.blob()).catch(() => null);
+                        if(mainImageBlob){
+                            prop.mainImageUrl = await saveImage(URL.createObjectURL(mainImageBlob));
+                        }
                     }
                     return prop;
                 }));
@@ -353,7 +356,7 @@ export default function Home() {
             data = section.title;
         } else if (elementKey === 'subtitle' && 'subtitle' in section) {
             data = section.subtitle;
-        } else if (elementKey === 'amenities' && subElementId && 'amenities' in section) {
+        } else if (elementKey === 'amenities' && subElementId && 'amenities' in section && section.amenities) {
             data = section.amenities.find(a => a.id === subElementId);
             if (data) return { type: 'amenity', data };
         } else if (elementKey === 'features' && subElementId && 'features' in section) {
@@ -390,7 +393,7 @@ export default function Home() {
         sectionToUpdate.title = { ...(sectionToUpdate.title as DraggableTextData | StyledText), ...changes };
     } else if (elementKey === 'subtitle' && 'subtitle' in sectionToUpdate && sectionToUpdate.subtitle) {
         sectionToUpdate.subtitle = { ...sectionToUpdate.subtitle, ...changes };
-    } else if (elementKey === 'amenities' && subElementId && 'amenities' in sectionToUpdate) {
+    } else if (elementKey === 'amenities' && subElementId && 'amenities' in sectionToUpdate && sectionToUpdate.amenities) {
         sectionToUpdate.amenities = sectionToUpdate.amenities.map(a => a.id === subElementId ? { ...a, ...changes } : a);
     } else if (elementKey === 'features' && subElementId && 'features' in sectionToUpdate) {
         sectionToUpdate.features = sectionToUpdate.features.map(f => f.id === subElementId ? { ...f, ...changes } : f);

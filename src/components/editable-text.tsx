@@ -46,18 +46,20 @@ export const EditableText: React.FC<EditableTextProps> = ({
         }
     };
     
+    const textStyle = {
+        fontSize: `${value.fontSize}rem`,
+        color: value.color,
+        fontFamily: value.fontFamily,
+        textAlign: value.textAlign || 'left',
+    };
+
     if (!isAdminMode) {
         return (
             <Component
                 className={className}
-                style={{
-                    fontSize: `${value.fontSize}rem`,
-                    color: value.color,
-                    fontFamily: value.fontFamily,
-                }}
-            >
-                {value.text}
-            </Component>
+                style={textStyle}
+                dangerouslySetInnerHTML={{ __html: value.text.replace(/\n/g, '<br />') }}
+            />
         );
     }
 
@@ -71,19 +73,19 @@ export const EditableText: React.FC<EditableTextProps> = ({
                 e.stopPropagation();
                 onSelect();
             }}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    (e.target as HTMLElement).blur();
+                }
+            }}
             className={cn(
                 className,
-                'transition-all duration-200 focus:outline-none',
+                'transition-all duration-200 focus:outline-none whitespace-pre-wrap',
                 isAdminMode && 'cursor-pointer hover:outline-dashed hover:outline-1 hover:outline-primary',
                 isSelected && 'outline-dashed outline-2 outline-primary'
             )}
-            style={{
-                fontSize: `${value.fontSize}rem`,
-                color: value.color,
-                fontFamily: value.fontFamily,
-            }}
+            style={textStyle}
         />
     );
 };
-
-    

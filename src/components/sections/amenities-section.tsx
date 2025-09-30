@@ -45,6 +45,11 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
     onUpdate({ ...data, amenities: newAmenities });
   };
 
+  const handleUpdateAmenity = (id: string, updates: Partial<AmenityItem>) => {
+    const newAmenities = data.amenities.map(a => a.id === id ? { ...a, ...updates } : a);
+    onUpdate({ ...data, amenities: newAmenities });
+  };
+
   const handleSelectAmenity = (amenityId: string) => {
     if (!isAdminMode) return;
     onSelectElement({ sectionId: data.id, elementKey: 'amenities', subElementId: amenityId });
@@ -94,7 +99,22 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
                         <div className="bg-primary/10 p-4 rounded-full mb-4">
                             <Icon name={amenity.icon} className="w-8 h-8 text-primary" />
                         </div>
-                        <p className="font-semibold text-foreground">{amenity.text}</p>
+                        <EditableText
+                            as="p"
+                            id={amenity.id}
+                            isAdminMode={isAdminMode}
+                            onUpdate={(val) => handleUpdateAmenity(amenity.id, { text: val.text })}
+                            className="font-semibold text-foreground"
+                            value={{
+                                text: amenity.text,
+                                // Provide dummy style values, they aren't used for amenity text styling via toolbar
+                                color: '#000', 
+                                fontFamily: 'Roboto', 
+                                fontSize: 1
+                            }}
+                            onSelect={() => handleSelectAmenity(amenity.id)}
+                            isSelected={selectedElement?.subElementId === amenity.id}
+                        />
                     </div>
                     {isAdminMode && (
                         <div className="absolute top-0 right-0 opacity-0 group-hover/amenity:opacity-100 transition-opacity">

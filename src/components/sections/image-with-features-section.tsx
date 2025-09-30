@@ -87,12 +87,10 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
         return <Image src={imageUrl} alt={data.title?.text || 'Property Image'} fill className="object-cover" />;
     };
     
-    const aspectClass = data.media.type === 'video' ? 'aspect-video' : 'aspect-[4/5]';
-
     return (
         <div className={cn(
             "relative w-full rounded-lg overflow-hidden shadow-lg group/media",
-            aspectClass,
+            "aspect-[4/5]",
             isAdminMode && "cursor-pointer",
             isSelected && "ring-2 ring-primary ring-offset-2"
         )}
@@ -138,7 +136,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-start">
           <div className="flex justify-center">
              <MediaComponent />
           </div>

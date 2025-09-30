@@ -40,25 +40,28 @@ export const DraggableEditableText: React.FC<DraggableEditableTextProps> = ({
       enabled: isDraggingMode && isAdminMode,
     });
     
+    const textStyle = {
+        fontSize: `${value.fontSize}rem`,
+        color: value.color,
+        fontFamily: value.fontFamily,
+        textAlign: value.textAlign || 'center',
+    };
+
     if (!isAdminMode && !isDraggingMode) {
         return (
             <div
                 className="absolute"
                 style={{
+                    ...textStyle,
                     left: `${value.position.x}%`,
                     top: `${value.position.y}%`,
                     transform: 'translate(-50%, -50%)',
-                    fontSize: `${value.fontSize}rem`,
-                    color: value.color,
-                    fontFamily: value.fontFamily,
                 }}
-            >
-                {value.text}
-            </div>
+                dangerouslySetInnerHTML={{ __html: value.text.replace(/\n/g, '<br />') }}
+            />
         );
     }
     
-
     return (
         <div
             onMouseDown={handleStart}
@@ -73,6 +76,7 @@ export const DraggableEditableText: React.FC<DraggableEditableTextProps> = ({
                 left: `${position.x}%`,
                 top: `${position.y}%`,
                 transform: 'translate(-50%, -50%)',
+                width: 'auto', // Allow text to determine width
             }}
             onClick={(e) => {
                 if (!isDraggingMode) {
