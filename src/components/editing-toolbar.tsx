@@ -8,17 +8,17 @@ import { Slider } from './ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Icon } from './icon';
-import { FontFamily, IconName, TextAlign, StyledText, DraggableTextData, FeatureItem } from '@/lib/types';
+import { FontFamily, IconName, TextAlign, StyledText, DraggableTextData, FeatureItem, FontWeight } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
-import { AlignCenter, AlignLeft, AlignRight } from 'lucide-react';
+import { AlignCenter, AlignLeft, AlignRight, Bold } from 'lucide-react';
 
 const allIcons: IconName[] = ['bed' , 'bath' , 'area' , 'map-pin' , 'school' , 'store' , 'bus' , 'sparkles' , 'x-mark' , 'chevron-down' , 'plus' , 'pencil' , 'trash' , 'nearby' , 'logo' , 'drag-handle' , 'chevron-left' , 'chevron-right' , 'copyright' , 'solar-panel' , 'parking' , 'laundry' , 'pool' , 'generic-feature' , 'street-view' , 'gym' , 'park' , 'whatsapp' , 'arrows-move' , 'check' , 'list', 'camera'];
 
 // Type definitions for what the toolbar can edit
 type EditableElement = {
-    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier';
+    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier' | 'nearbyPlace';
     data: any;
 };
 
@@ -29,6 +29,7 @@ interface EditingToolbarProps {
 }
 
 const fontOptions: { label: string; value: FontFamily }[] = [
+    { label: 'Cuerpo de Texto', value: 'Poppins' },
     { label: 'Sans Serif', value: 'Roboto' },
     { label: 'Serif Clásico', value: 'Lora' },
     { label: 'Serif Moderno', value: 'Playfair Display' },
@@ -46,14 +47,6 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         const newValues = { ...values, [key]: value };
         setValues(newValues);
         onUpdate({ [key]: value });
-    };
-
-    const handleNestedTextChange = (textKey: 'title' | 'description', property: keyof StyledText, value: any) => {
-        const textObject = values[textKey] as StyledText;
-        const newTextObject = { ...textObject, [property]: value };
-        const newValues = { ...values, [textKey]: newTextObject };
-        setValues(newValues);
-        onUpdate({ [textKey]: newTextObject });
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,12 +67,17 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
       return (
         <>
             <div className="space-y-2">
-                <Label>Alineación</Label>
+                <Label>Alineación y Estilo</Label>
                  <ToggleGroup 
-                    type="single" 
-                    defaultValue={data.textAlign || 'left'} 
-                    onValueChange={(value: TextAlign) => {if (value) onValueChange('textAlign', value)}}
-                    className="w-full grid grid-cols-3"
+                    type="multiple" 
+                    defaultValue={data.textAlign ? [data.textAlign] : []}
+                    onValueChange={(newValues: (TextAlign | 'bold')[]) => {
+                        const newAlign = newValues.find(v => v !== 'bold');
+                        const newWeight = newValues.includes('bold') ? 'bold' : 'normal';
+                        onValueChange('textAlign', newAlign || 'left')
+                        onValueChange('fontWeight', newWeight)
+                    }}
+                    className="w-full grid grid-cols-4"
                  >
                     <ToggleGroupItem value="left" aria-label="Alinear a la izquierda">
                         <AlignLeft className="h-4 w-4" />
@@ -90,16 +88,19 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                     <ToggleGroupItem value="right" aria-label="Alinear a la derecha">
                         <AlignRight className="h-4 w-4" />
                     </ToggleGroupItem>
+                     <ToggleGroupItem value="bold" aria-label="Negrita">
+                        <Bold className="h-4 w-4" />
+                    </ToggleGroupItem>
                 </ToggleGroup>
             </div>
             <div className="space-y-2">
-                <Label>Tamaño ({(data.fontSize || 1).toFixed(2)}rem)</Label>
-                <Slider
-                    value={[data.fontSize || 1]}
-                    onValueChange={(val) => onValueChange('fontSize', val[0])}
-                    min={0.5}
-                    max={10}
+                <Label>Tamaño de Fuente (rem)</Label>
+                <Input
+                    type="number"
+                    value={data.fontSize || 1}
+                    onChange={(e) => onValueChange('fontSize', parseFloat(e.target.value))}
                     step={0.1}
+                    min={0.5}
                 />
             </div>
             {'position' in data && (
@@ -116,7 +117,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
             )}
             <div className="space-y-2">
                 <Label>Familia de Fuente</Label>
-                 <Select value={data.fontFamily || 'Roboto'} onValueChange={(val: FontFamily) => onValueChange('fontFamily', val)}>
+                 <Select value={data.fontFamily || 'Poppins'} onValueChange={(val: FontFamily) => onValueChange('fontFamily', val)}>
                     <SelectTrigger>
                         <SelectValue placeholder="Selecciona una fuente" />
                     </SelectTrigger>
@@ -168,10 +169,10 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
             <IconPicker label="Icono" value={values.icon} onChange={(icon) => handleChange('icon', icon)} />
             <hr />
             <p className="text-xs font-bold text-muted-foreground uppercase">Título</p>
-            {renderTextControls(values.title, (key, value) => handleNestedTextChange('title', key as keyof StyledText, value))}
+            {renderTextControls(values.title, (key, value) => handleChange('title', { ...values.title, [key]: value }))}
             <hr />
             <p className="text-xs font-bold text-muted-foreground uppercase">Descripción</p>
-            {renderTextControls(values.description, (key, value) => handleNestedTextChange('description', key as keyof StyledText, value))}
+            {renderTextControls(values.description, (key, value) => handleChange('description', { ...values.description, [key]: value }))}
             <hr />
             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                 <Icon name="camera" className="mr-2" />
@@ -189,28 +190,36 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
 
     const renderPricingTierControls = () => (
         <>
-            <div className="space-y-2">
-                <Label>Título</Label>
-                <Input value={values.title} onChange={(e) => handleChange('title', e.target.value)} />
-            </div>
-             <div className="space-y-2">
-                <Label>Precio</Label>
-                <Input value={values.price} onChange={(e) => handleChange('price', e.target.value)} />
-            </div>
-             <div className="space-y-2">
-                <Label>Precio Anterior (Opcional)</Label>
-                <Input value={values.oldPrice || ''} onChange={(e) => handleChange('oldPrice', e.target.value)} />
-            </div>
-             <div className="space-y-2">
-                <Label>Moneda</Label>
-                <Input value={values.currency} onChange={(e) => handleChange('currency', e.target.value)} />
-            </div>
-             <div className="space-y-2">
-                <Label>Descripción</Label>
-                <Input value={values.description} onChange={(e) => handleChange('description', e.target.value)} />
-            </div>
+            <p className="text-xs font-bold text-muted-foreground uppercase">Título</p>
+            {renderTextControls(values.title, (key, value) => handleChange('title', { ...values.title, [key]: value }))}
+            <hr/>
+             <p className="text-xs font-bold text-muted-foreground uppercase">Precio</p>
+             {renderTextControls(values.price, (key, value) => handleChange('price', { ...values.price, [key]: value }))}
+             <hr/>
+             {values.oldPrice && (
+                 <>
+                    <p className="text-xs font-bold text-muted-foreground uppercase">Precio Anterior</p>
+                    {renderTextControls(values.oldPrice, (key, value) => handleChange('oldPrice', { ...values.oldPrice, [key]: value }))}
+                    <hr/>
+                 </>
+             )}
+             <p className="text-xs font-bold text-muted-foreground uppercase">Moneda</p>
+             {renderTextControls(values.currency, (key, value) => handleChange('currency', { ...values.currency, [key]: value }))}
+             <hr/>
+             <p className="text-xs font-bold text-muted-foreground uppercase">Descripción</p>
+             {renderTextControls(values.description, (key, value) => handleChange('description', { ...values.description, [key]: value }))}
         </>
     )
+
+    const renderNearbyPlaceControls = () => (
+        <>
+             <IconPicker label="Icono" value={values.icon} onChange={(icon) => handleChange('icon', icon)} />
+             <div className="space-y-2">
+                <Label>Texto del Lugar</Label>
+                <Input value={values.text} onChange={(e) => handleChange('text', e.target.value)} />
+            </div>
+        </>
+    );
 
     const renderControls = () => {
         switch (element.type) {
@@ -225,6 +234,8 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 return renderFeatureControls();
             case 'pricingTier':
                 return renderPricingTierControls();
+            case 'nearbyPlace':
+                return renderNearbyPlaceControls();
             default:
                 return <p className="text-sm text-muted-foreground">No hay opciones de edición para este elemento.</p>;
         }

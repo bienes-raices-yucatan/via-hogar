@@ -46,11 +46,12 @@ export const EditableText: React.FC<EditableTextProps> = ({
         }
     };
     
-    const textStyle = {
+    const textStyle: React.CSSProperties = {
         fontSize: `${value.fontSize}rem`,
         color: value.color,
         fontFamily: value.fontFamily,
         textAlign: value.textAlign || 'left',
+        fontWeight: value.fontWeight || 'normal',
     };
 
     if (!isAdminMode) {

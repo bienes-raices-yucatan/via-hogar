@@ -23,7 +23,8 @@ import {
     AmenityItem,
     FeatureItem,
     TextAlign,
-    PricingTier
+    PricingTier,
+    FontWeight
 } from '@/lib/types';
 
 // Import constants
@@ -63,8 +64,8 @@ import { useToast } from '@/hooks/use-toast';
 
 // Type for the state that tracks the currently selected element for editing
 type SelectedElementForToolbar = {
-    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier';
-    data: Partial<StyledText & DraggableTextData & { backgroundColor: string } & AmenityItem & FeatureItem & PricingTier>;
+    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier' | 'nearbyPlace';
+    data: Partial<StyledText & DraggableTextData & { backgroundColor: string } & AmenityItem & FeatureItem & PricingTier & NearbyPlace>;
 };
 
 export default function Home() {
@@ -341,7 +342,7 @@ export default function Home() {
     const selectedElementForToolbar: SelectedElementForToolbar | null = useMemo(() => {
         if (!selectedElement || !selectedProperty) return null;
 
-        const { sectionId, elementKey, subElementId } = selectedElement;
+        const { sectionId, elementKey, subElementId, property } = selectedElement;
         const section = selectedProperty.sections.find(s => s.id === sectionId);
         if (!section) return null;
 
@@ -361,27 +362,38 @@ export default function Home() {
             data = section.amenities.find(a => a.id === subElementId);
             if (data) return { type: 'amenity', data };
         } else if (elementKey === 'features' && subElementId && 'features' in section) {
-            data = section.features.find(f => f.id === subElementId);
-            if (data) return { type: 'feature', data };
+            const feature = section.features.find(f => f.id === subElementId);
+            if (feature) {
+                 if (property && (property === 'title' || property === 'description')) {
+                     data = feature[property];
+                 } else {
+                     return { type: 'feature', data: feature };
+                 }
+            }
         } else if (elementKey === 'tier' && 'tier' in section) {
-            data = section.tier;
-            if (data) return { type: 'pricingTier', data };
+            const tier = section.tier;
+            if (property && property in tier) {
+                data = tier[property as keyof PricingTier];
+            } else {
+                return { type: 'pricingTier', data: tier };
+            }
+        } else if (elementKey === 'nearbyPlaces' && subElementId && 'nearbyPlaces' in section && section.nearbyPlaces) {
+            data = section.nearbyPlaces.find(p => p.id === subElementId);
+            if (data) return { type: 'nearbyPlace', data };
         }
         
-        if (data && 'position' in data) {
-            return { type: 'draggableText', data };
-        } else if (data && 'fontSize' in data) {
-            return { type: 'styledText', data };
-        } else if (data && elementKey === 'tier') {
-            return { type: 'pricingTier', data }
+        if (data) {
+            if ('position' in data) return { type: 'draggableText', data };
+            if ('fontSize' in data) return { type: 'styledText', data };
         }
+
         return null;
     }, [selectedElement, selectedProperty]);
 
 
   const handleToolbarUpdate = async (changes: any) => {
     if (!selectedElement || !selectedProperty) return;
-    const { sectionId, elementKey, subElementId } = selectedElement;
+    const { sectionId, elementKey, subElementId, property } = selectedElement;
 
     const sectionIndex = selectedProperty.sections.findIndex(s => s.id === sectionId);
     if (sectionIndex === -1) return;
@@ -400,31 +412,48 @@ export default function Home() {
     }
     
     const newSections = [...selectedProperty.sections];
-    let sectionToUpdate = { ...newSections[sectionIndex] };
+    let sectionToUpdate: AnySectionData = { ...newSections[sectionIndex] };
+
+    const updateNestedObject = (obj: any, keys: string[], value: any): any => {
+      const key = keys[0];
+      if (keys.length === 1) {
+          if (Array.isArray(obj)) {
+              return obj.map(item => item.id === subElementId ? { ...item, ...value } : item);
+          }
+          return { ...obj, ...value };
+      }
+
+      if (Array.isArray(obj)) {
+          return obj.map(item => item.id === subElementId ? { ...item, [key]: updateNestedObject(item[key], keys.slice(1), value) } : item);
+      }
+      return { ...obj, [key]: updateNestedObject(obj[key], keys.slice(1), value) };
+    };
 
     if (elementKey === 'style' || elementKey === 'backgroundImageUrl') {
         sectionToUpdate.style = { ...sectionToUpdate.style, ...processedChanges };
-        if(elementKey === 'backgroundImageUrl' && 'backgroundImageUrl' in sectionToUpdate) {
+        if (elementKey === 'backgroundImageUrl' && 'backgroundImageUrl' in sectionToUpdate) {
             (sectionToUpdate as any).backgroundImageUrl = processedChanges.backgroundImageUrl;
         }
-    } else if (elementKey === 'floatingTexts' && subElementId && 'floatingTexts' in sectionToUpdate && sectionToUpdate.floatingTexts) {
-        sectionToUpdate.floatingTexts = sectionToUpdate.floatingTexts.map(t =>
-            t.id === subElementId ? { ...t, ...processedChanges } : t
+    } else if (subElementId && property) {
+        // Deeply nested update, e.g., pricing tier title or feature description
+        (sectionToUpdate as any)[elementKey] = (sectionToUpdate as any)[elementKey].map((item: any) => {
+            if (item.id === subElementId) {
+                return { ...item, [property]: { ...item[property], ...processedChanges } };
+            }
+            return item;
+        });
+    } else if (subElementId) {
+        // Update a specific item in an array, e.g., an amenity or a feature
+         (sectionToUpdate as any)[elementKey] = (sectionToUpdate as any)[elementKey].map((item: any) => 
+            item.id === subElementId ? { ...item, ...processedChanges } : item
         );
-    } else if (elementKey === 'title' && 'title' in sectionToUpdate && sectionToUpdate.title) {
-        sectionToUpdate.title = { ...(sectionToUpdate.title as DraggableTextData | StyledText), ...processedChanges };
-    } else if (elementKey === 'subtitle' && 'subtitle' in sectionToUpdate && sectionToUpdate.subtitle) {
-        sectionToUpdate.subtitle = { ...sectionToUpdate.subtitle, ...processedChanges };
-    } else if (elementKey === 'amenities' && subElementId && 'amenities' in sectionToUpdate && sectionToUpdate.amenities) {
-        sectionToUpdate.amenities = sectionToUpdate.amenities.map(a => a.id === subElementId ? { ...a, ...processedChanges } : a);
-    } else if (elementKey === 'features' && subElementId && 'features' in sectionToUpdate && 'featureTexts' in sectionToUpdate) {
-        sectionToUpdate.features = sectionToUpdate.features.map(f => f.id === subElementId ? { ...f, ...processedChanges } : f);
-        (sectionToUpdate as any).featureTexts = (sectionToUpdate as any).featureTexts.map((ft: any) => ft.id === subElementId ? { ...ft, ...processedChanges } : ft);
-
-    } else if (elementKey === 'tier' && 'tier' in sectionToUpdate) {
-        sectionToUpdate.tier = { ...sectionToUpdate.tier, ...processedChanges };
-    } else if (elementKey === 'media' && 'media' in sectionToUpdate) {
-        sectionToUpdate.media = { ...sectionToUpdate.media, ...processedChanges };
+    } else if (property) {
+        // Update a property of a direct object, e.g. tier.title
+        (sectionToUpdate as any)[elementKey][property] = { ...(sectionToUpdate as any)[elementKey][property], ...processedChanges };
+    }
+    else {
+        // Update a direct property of the section, e.g., title or a whole object like 'tier'
+        (sectionToUpdate as any)[elementKey] = { ...(sectionToUpdate as any)[elementKey], ...processedChanges };
     }
 
     newSections[sectionIndex] = sectionToUpdate;
@@ -525,5 +554,3 @@ export default function Home() {
     </div>
   );
 };
-
-    

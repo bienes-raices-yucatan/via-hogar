@@ -15,7 +15,7 @@ import { Skeleton } from '../ui/skeleton';
 
 interface PricingSectionProps {
   data: PricingSectionData;
-  onUpdate: (data: PricingSectionData) => void;
+  onUpdate: (data: Partial<PricingSectionData>) => void;
   onDelete: (sectionId: string) => void;
   isAdminMode: boolean;
   selectedElement: SelectedElement | null;
@@ -34,12 +34,9 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { imageUrl, isLoading } = useImageLoader(data.backgroundImageUrl);
 
-  const handleTierUpdate = (updatedProps: Partial<StyledText>) => {
-    // This is tricky because we don't know which field is being updated.
-    // The parent component (`page.tsx`) and `EditingToolbar` now handle this logic.
-    // This function can be simplified or removed if the parent handles everything.
-    // For now, let's assume the parent update logic is sufficient.
-  };
+  const handleTierUpdate = (property: keyof PricingTier, value: StyledText) => {
+      onUpdate({ tier: { ...tier, [property]: value }})
+  }
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
@@ -54,7 +51,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
       reader.readAsDataURL(file);
   };
 
-  const handleSelectTierElement = (property: 'title' | 'price' | 'oldPrice' | 'currency' | 'description') => {
+  const handleSelectTierElement = (property: keyof Omit<PricingTier, 'id' | 'buttonText'>) => {
       if(!isAdminMode) return;
       onSelectElement({ sectionId: data.id, elementKey: 'tier', subElementId: tier.id, property });
   }
@@ -94,7 +91,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
               as="h2"
               id={`${data.id}-tier-title`}
               isAdminMode={isAdminMode}
-              onUpdate={(val) => onUpdate({ ...data, tier: { ...tier, title: val as StyledText }})}
+              onUpdate={(val) => handleTierUpdate('title', {...tier.title, ...val})}
               className="text-xl font-bold text-foreground mb-4"
               value={tier.title}
               onSelect={() => handleSelectTierElement('title')}
@@ -107,7 +104,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                   as="p"
                   id={`${data.id}-tier-oldprice`}
                   isAdminMode={isAdminMode}
-                  onUpdate={(val) => onUpdate({ ...data, tier: { ...tier, oldPrice: val as StyledText }})}
+                  onUpdate={(val) => handleTierUpdate('oldPrice', {...tier.oldPrice, ...val})}
                   className="text-2xl text-red-500"
                   value={tier.oldPrice}
                   onSelect={() => handleSelectTierElement('oldPrice')}
@@ -122,7 +119,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                 as="p"
                 id={`${data.id}-tier-price`}
                 isAdminMode={isAdminMode}
-                onUpdate={(val) => onUpdate({ ...data, tier: { ...tier, price: val as StyledText }})}
+                onUpdate={(val) => handleTierUpdate('price', {...tier.price, ...val})}
                 className="text-4xl font-bold text-foreground"
                 value={tier.price}
                 onSelect={() => handleSelectTierElement('price')}
@@ -132,7 +129,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                 as="span"
                 id={`${data.id}-tier-currency`}
                 isAdminMode={isAdminMode}
-                onUpdate={(val) => onUpdate({ ...data, tier: { ...tier, currency: val as StyledText }})}
+                onUpdate={(val) => handleTierUpdate('currency', {...tier.currency, ...val})}
                 className="ml-2 text-3xl font-semibold text-foreground"
                 value={tier.currency}
                 onSelect={() => handleSelectTierElement('currency')}
@@ -144,7 +141,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
               as="p"
               id={`${data.id}-tier-description`}
               isAdminMode={isAdminMode}
-              onUpdate={(val) => onUpdate({ ...data, tier: { ...tier, description: val as StyledText }})}
+              onUpdate={(val) => handleTierUpdate('description', {...tier.description, ...val})}
               className="text-muted-foreground mb-6"
               value={tier.description}
               onSelect={() => handleSelectTierElement('description')}
@@ -160,5 +157,3 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
     </section>
   );
 };
-
-    

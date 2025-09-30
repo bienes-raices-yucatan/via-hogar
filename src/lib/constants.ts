@@ -7,14 +7,16 @@ const defaultTitleStyle: Omit<StyledText, 'text'> = {
     color: '#1e293b', // slate-800
     fontFamily: 'Montserrat',
     textAlign: 'center',
+    fontWeight: 'bold',
 };
 
 // Default styled text for subtitles
 const defaultSubtitleStyle: Omit<StyledText, 'text'> = {
     fontSize: 1.125, // text-lg
     color: '#475569', // slate-600
-    fontFamily: 'Roboto',
+    fontFamily: 'Poppins',
     textAlign: 'center',
+    fontWeight: 'normal'
 };
 
 // Utility functions to create default styled text objects
@@ -58,17 +60,18 @@ export const createSectionData = (
                     color: '#FFFFFF',
                     fontFamily: 'Montserrat',
                     textAlign: 'center',
+                    fontWeight: 'bold'
                 },
                 backgroundImageUrl: 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
             };
         case 'imageWithFeatures':
              const defaultFeatures: FeatureItem[] = [
-                { id: `feat-1-${uniqueSuffix}`, icon: 'bed', title: { text: '3 Dormitorios', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left' }, description: { text: 'Todos con su propio baño y guardarropa.', fontSize: 1, color: '#475569', fontFamily: 'Roboto', textAlign: 'left' } },
-                { id: `feat-2-${uniqueSuffix}`, icon: 'bath', title: { text: '5 baños', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left' }, description: { text: 'Baños con acabados de alta calidad.', fontSize: 1, color: '#475569', fontFamily: 'Roboto', textAlign: 'left' } },
-                { id: `feat-3-${uniqueSuffix}`, icon: 'pool', title: { text: 'Piscina totalmente equipada', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left' }, description: { text: 'Con cascada, sistema de filtrado automático y calentador de agua.', fontSize: 1, color: '#475569', fontFamily: 'Roboto', textAlign: 'left' } },
-                { id: `feat-4-${uniqueSuffix}`, icon: 'parking', title: { text: '2 espacios de estacionamiento', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left' }, description: { text: 'Techados y cerrados, para que tus vehículos estén a resguardo.', fontSize: 1, color: '#475569', fontFamily: 'Roboto', textAlign: 'left' } },
-                { id: `feat-5-${uniqueSuffix}`, icon: 'solar-panel', title: { text: 'Paneles solares', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left' }, description: { text: '18 paneles solares, suficientes para abastecer toda la casa.', fontSize: 1, color: '#475569', fontFamily: 'Roboto', textAlign: 'left' } },
-                { id: `feat-6-${uniqueSuffix}`, icon: 'laundry', title: { text: 'Lavandería equipada', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left' }, description: { text: 'Cuarto de lavado con lavadora, secadora y gabinetes.', fontSize: 1, color: '#475569', fontFamily: 'Roboto', textAlign: 'left' } },
+                { id: `feat-1-${uniqueSuffix}`, icon: 'bed', title: { text: '3 Dormitorios', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left', fontWeight: 'bold' }, description: { text: 'Todos con su propio baño y guardarropa.', fontSize: 1, color: '#475569', fontFamily: 'Poppins', textAlign: 'left', fontWeight: 'normal' } },
+                { id: `feat-2-${uniqueSuffix}`, icon: 'bath', title: { text: '5 baños', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left', fontWeight: 'bold' }, description: { text: 'Baños con acabados de alta calidad.', fontSize: 1, color: '#475569', fontFamily: 'Poppins', textAlign: 'left', fontWeight: 'normal' } },
+                { id: `feat-3-${uniqueSuffix}`, icon: 'pool', title: { text: 'Piscina totalmente equipada', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left', fontWeight: 'bold' }, description: { text: 'Con cascada, sistema de filtrado automático y calentador de agua.', fontSize: 1, color: '#475569', fontFamily: 'Poppins', textAlign: 'left', fontWeight: 'normal' } },
+                { id: `feat-4-${uniqueSuffix}`, icon: 'parking', title: { text: '2 espacios de estacionamiento', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left', fontWeight: 'bold' }, description: { text: 'Techados y cerrados, para que tus vehículos estén a resguardo.', fontSize: 1, color: '#475569', fontFamily: 'Poppins', textAlign: 'left', fontWeight: 'normal' } },
+                { id: `feat-5-${uniqueSuffix}`, icon: 'solar-panel', title: { text: 'Paneles solares', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left', fontWeight: 'bold' }, description: { text: '18 paneles solares, suficientes para abastecer toda la casa.', fontSize: 1, color: '#475569', fontFamily: 'Poppins', textAlign: 'left', fontWeight: 'normal' } },
+                { id: `feat-6-${uniqueSuffix}`, icon: 'laundry', title: { text: 'Lavandería equipada', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left', fontWeight: 'bold' }, description: { text: 'Cuarto de lavado con lavadora, secadora y gabinetes.', fontSize: 1, color: '#475569', fontFamily: 'Poppins', textAlign: 'left', fontWeight: 'normal' } },
             ];
             return {
                 ...base,
@@ -101,11 +104,11 @@ export const createSectionData = (
                 backgroundImageUrl: 'https://images.pexels.com/photos/2089698/pexels-photo-2089698.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
                 tier: {
                     id: `tier-${uniqueSuffix}`,
-                    title: { text: 'Precio de la propiedad', fontSize: 1.25, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'center'},
-                    oldPrice: { text: '6,500,000', fontSize: 1.5, color: '#EF4444', fontFamily: 'Montserrat', textAlign: 'center'},
-                    price: { text: '5,500,000', fontSize: 2.25, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'center'},
-                    currency: { text: 'MXN', fontSize: 1.875, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'center'},
-                    description: { text: 'Lista para escriturar y con entrega inmediata.', fontSize: 1, color: '#475569', fontFamily: 'Roboto', textAlign: 'center'},
+                    title: { text: 'Precio de la propiedad', fontSize: 1.25, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'center', fontWeight: 'bold'},
+                    oldPrice: { text: '6,500,000', fontSize: 1.5, color: '#EF4444', fontFamily: 'Poppins', textAlign: 'center', fontWeight: 'normal'},
+                    price: { text: '5,500,000', fontSize: 2.25, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'center', fontWeight: 'bold'},
+                    currency: { text: 'MXN', fontSize: 1.875, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'center', fontWeight: 'normal'},
+                    description: { text: 'Lista para escriturar y con entrega inmediata.', fontSize: 1, color: '#475569', fontFamily: 'Poppins', textAlign: 'center', fontWeight: 'normal'},
                     buttonText: 'Me Interesa',
                 },
             } as PricingSectionData;
@@ -113,8 +116,8 @@ export const createSectionData = (
             return {
                 ...base,
                 type: 'contact',
-                title: { text: '¿Te interesa esta propiedad?', fontSize: 2.5, color: '#FFFFFF', fontFamily: 'Montserrat', textAlign: 'center' },
-                subtitle: { text: 'Contáctanos para obtener más información o para agendar una visita. ¡Estamos listos para ayudarte!', fontSize: 1.25, color: '#E2E8F0', fontFamily: 'Roboto', textAlign: 'center' },
+                title: { text: '¿Te interesa esta propiedad?', fontSize: 2.5, color: '#FFFFFF', fontFamily: 'Montserrat', textAlign: 'center', fontWeight: 'bold' },
+                subtitle: { text: 'Contáctanos para obtener más información o para agendar una visita. ¡Estamos listos para ayudarte!', fontSize: 1.25, color: '#E2E8F0', fontFamily: 'Poppins', textAlign: 'center', fontWeight: 'normal' },
                 backgroundImageUrl: 'https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
             };
         case 'location':

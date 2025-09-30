@@ -3,8 +3,9 @@
 // A type for the icon names available in the Icon component
 export type IconName = 'bed' | 'bath' | 'area' | 'map-pin' | 'school' | 'store' | 'bus' | 'sparkles' | 'x-mark' | 'chevron-down' | 'plus' | 'pencil' | 'trash' | 'nearby' | 'logo' | 'drag-handle' | 'chevron-left' | 'chevron-right' | 'copyright' | 'solar-panel' | 'parking' | 'laundry' | 'pool' | 'generic-feature' | 'street-view' | 'gym' | 'park' | 'whatsapp' | 'arrows-move' | 'check' | 'list' | 'camera';
 
-export type FontFamily = 'Roboto' | 'Montserrat' | 'Lora' | 'Playfair Display';
+export type FontFamily = 'Roboto' | 'Montserrat' | 'Lora' | 'Playfair Display' | 'Poppins';
 export type TextAlign = 'left' | 'center' | 'right';
+export type FontWeight = 'normal' | 'bold';
 
 export interface StyledText {
     text: string;
@@ -12,6 +13,7 @@ export interface StyledText {
     color: string;
     fontFamily: FontFamily;
     textAlign?: TextAlign;
+    fontWeight?: FontWeight;
 }
 
 // Data for an editable text field that is also draggable and resizable
@@ -144,9 +146,9 @@ export interface Property {
 // Represents the currently selected UI element for editing
 export type SelectedElement = {
     sectionId: string;
-    elementKey: 'title' | 'subtitle' | 'media' | 'features' | 'amenities' | 'tier' | 'floatingTexts' | 'style' | 'backgroundImageUrl' | 'mainImageUrl';
+    elementKey: 'title' | 'subtitle' | 'media' | 'features' | 'amenities' | 'tier' | 'floatingTexts' | 'style' | 'backgroundImageUrl' | 'mainImageUrl' | 'nearbyPlaces';
     subElementId?: string; // For items within an array (e.g., a specific feature ID)
-    property?: 'icon' | 'title' | 'description' | 'price' | 'oldPrice' | 'currency' | 'text'; // For nested properties within an item
+    property?: keyof (FeatureItem | PricingTier); // For nested properties within an item
 };
 
 // Data structure for a contact form submission
