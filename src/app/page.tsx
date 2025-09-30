@@ -57,7 +57,6 @@ import { AddSectionControl } from '@/components/add-section-control';
 import { AddSectionModal } from '@/components/add-section-modal';
 import { AdminToolbar } from '@/components/admin-toolbar';
 import { EditingToolbar } from '@/components/editing-toolbar';
-import { ContactModal } from '@/components/contact-modal';
 import { SubmissionsModal } from '@/components/submissions-modal';
 import { ConfirmationModal } from '@/components/confirmation-modal';
 import { DraggableEditableText } from '@/components/draggable-editable-text';
@@ -81,7 +80,6 @@ export default function Home() {
   const [isNewPropertyModalOpen, setIsNewPropertyModalOpen] = useState(false);
   const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = useState(false);
   const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState<{ open: boolean; index: number }>({ open: false, index: 0 });
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [confirmationModalState, setConfirmationModalState] = useState<{isOpen: boolean; onConfirm: () => void; title: string; message: string}>({isOpen: false, onConfirm: () => {}, title: '', message: ''});
@@ -327,6 +325,10 @@ export default function Home() {
       submittedAt: new Date().toISOString(),
     };
     setSubmissions(prev => [...prev, newSubmission]);
+     toast({
+        title: "¡Gracias por tu interés!",
+        description: `Hemos recibido tu información para la propiedad "${selectedProperty.name}". Te contactaremos pronto.`,
+    });
   };
   
   const getSubmissionsForCurrentProperty = () => {
@@ -558,7 +560,7 @@ export default function Home() {
       case 'amenities':
           return <AmenitiesSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
       case 'contact':
-          return <ContactSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} onOpenContactForm={() => setIsContactModalOpen(true)} isDraggingMode={isDraggingMode}/>;
+          return <ContactSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} onSubmit={handleContactSubmit} isDraggingMode={isDraggingMode}/>;
       case 'location':
           return <LocationSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} propertyAddress={selectedProperty?.address || ''} onUpdateAddress={handleUpdateAddress} />;
       case 'pricing':
@@ -612,7 +614,6 @@ export default function Home() {
         }} />}
         {isAdminLoginModalOpen && <AdminLoginModal onClose={() => setIsAdminLoginModalOpen(false)} onLogin={handleAdminLogin} />}
         {isAddSectionModalOpen.open && <AddSectionModal onClose={() => setIsAddSectionModalOpen({ open: false, index: 0 })} onSelect={(type) => handleAddSection(type, isAddSectionModalOpen.index)} />}
-        {isContactModalOpen && selectedProperty && <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} onSubmit={handleContactSubmit} property={selectedProperty} />}
         {isSubmissionsModalOpen && <SubmissionsModal isOpen={isSubmissionsModalOpen} onClose={() => setIsSubmissionsModalOpen(false)} submissions={getSubmissionsForCurrentProperty()} />}
         <ConfirmationModal {...confirmationModalState} onClose={closeConfirmationModal} />
         {isExportModalOpen && (
@@ -643,5 +644,3 @@ export default function Home() {
     </div>
   );
 };
-
-    

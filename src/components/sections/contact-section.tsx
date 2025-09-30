@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { useRef } from 'react';
-import { ContactSectionData, SelectedElement } from '@/lib/types';
+import React, { useRef, useState } from 'react';
+import { ContactSectionData, SelectedElement, ContactSubmission } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { EditableText } from '../editable-text';
 import { SectionToolbar } from '../section-toolbar';
@@ -11,29 +11,36 @@ import { Icon } from '../icon';
 import { saveImage } from '@/lib/storage';
 import { useImageLoader } from '@/hooks/use-image-loader';
 import { Skeleton } from '../ui/skeleton';
+import { Card, CardContent, CardHeader } from '../ui/card';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 
 interface ContactSectionProps {
   data: ContactSectionData;
-  onUpdate: (data: ContactSectionData) => void;
+  onUpdate: (data: Partial<ContactSectionData>) => void;
   onDelete: (sectionId: string) => void;
+  onSubmit: (formData: Omit<ContactSubmission, 'id' | 'propertyId' | 'propertyName' | 'submittedAt'>) => void;
   isAdminMode: boolean;
   isDraggingMode: boolean;
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
-  onOpenContactForm: () => void;
 }
 
 export const ContactSection: React.FC<ContactSectionProps> = ({
   data,
   onUpdate,
   onDelete,
+  onSubmit,
   isAdminMode,
   selectedElement,
   onSelectElement,
-  onOpenContactForm,
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { imageUrl, isLoading } = useImageLoader(data.backgroundImageUrl);
+
+    const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [error, setError] = useState('');
 
     const handleTitleUpdate = (newTitle: any) => {
         if (data.title) {
@@ -59,25 +66,39 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
         };
         reader.readAsDataURL(file);
     };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!name || !phone) {
+            setError('Por favor, completa todos los campos.');
+            return;
+        }
+        setError('');
+        onSubmit({ name, phone, userType: 'buyer' }); // userType is fixed now
+        setName('');
+        setPhone('');
+    };
     
     const isSelected = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'backgroundImageUrl' || selectedElement.elementKey === 'style');
 
-
   return (
     <section 
-        className="relative group text-white"
+        className="relative group py-20 md:py-28 text-foreground"
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
       <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
-      {isAdminMode && <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={isSelected} />}
       
       {isLoading ? <Skeleton className="absolute inset-0 h-full w-full" /> : (
         <div 
-          className="py-24 md:py-32 bg-cover bg-center bg-no-repeat relative"
-          style={{ backgroundImage: imageUrl ? `url(${imageUrl})` : 'none', backgroundColor: !imageUrl ? '#ccc' : undefined }}
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: imageUrl ? `url(${imageUrl})` : 'none', backgroundColor: !imageUrl ? '#f1f5f9' : undefined }}
         >
-         <div className="absolute inset-0 bg-black/20"></div>
-         {isAdminMode && (
+         <div className="absolute inset-0 bg-black/10"></div>
+        </div>
+      )}
+
+      {isAdminMode && <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={isSelected} />}
+      {isAdminMode && (
           <Button
             variant="secondary"
             className="absolute top-2 right-14 z-20"
@@ -91,41 +112,70 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               Cambiar Fondo
           </Button>
       )}
-          <div className="container mx-auto px-4 text-center relative z-10">
-              {data.title && (data.title.text || isAdminMode) && (
-                   <EditableText
-                      as="h2"
-                      id={`${data.id}-title`}
-                      value={data.title}
-                      onUpdate={handleTitleUpdate}
-                      className="font-bold mb-4"
-                      isAdminMode={isAdminMode}
-                      onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'title' })}
-                      isSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'title'}
-                  />
-              )}
-             
-              {data.subtitle && (data.subtitle.text || isAdminMode) && (
-                   <EditableText
-                      as="p"
-                      id={`${data.id}-subtitle`}
-                      value={data.subtitle}
-                      onUpdate={handleSubtitleUpdate}
-                      className="max-w-2xl mx-auto mb-8"
-                      isAdminMode={isAdminMode}
-                      onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'subtitle' })}
-                      isSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'subtitle'}
-                  />
-              )}
-            
-            <Button size="lg" onClick={onOpenContactForm}>
-              Contactar Ahora
-            </Button>
-          </div>
-        </div>
-      )}
+
+      <div className="container mx-auto px-4 relative z-10 flex flex-col items-center">
+            {data.title && (data.title.text || isAdminMode) && (
+                 <EditableText
+                    as="h2"
+                    id={`${data.id}-title`}
+                    value={data.title}
+                    onUpdate={handleTitleUpdate}
+                    className="font-bold text-center text-white"
+                    isAdminMode={isAdminMode}
+                    onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'title' })}
+                    isSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'title'}
+                />
+            )}
+           
+            {data.subtitle && (data.subtitle.text || isAdminMode) && (
+                 <EditableText
+                    as="p"
+                    id={`${data.id}-subtitle`}
+                    value={data.subtitle}
+                    onUpdate={handleSubtitleUpdate}
+                    className="max-w-2xl mx-auto text-center text-gray-200 mt-4 mb-8"
+                    isAdminMode={isAdminMode}
+                    onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'subtitle' })}
+                    isSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'subtitle'}
+                />
+            )}
+          
+          <Card className="w-full max-w-lg bg-background/90 backdrop-blur-sm shadow-2xl rounded-2xl">
+              <CardContent className="p-6 sm:p-8">
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Nombre</Label>
+                        <Input 
+                            id="name" 
+                            placeholder="Tu nombre completo" 
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Teléfono</Label>
+                        <Input 
+                            id="phone" 
+                            type="tel" 
+                            placeholder="Tu número de teléfono"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            required
+                        />
+                      </div>
+                      {error && (
+                        <p className="text-sm text-destructive">
+                            {error}
+                        </p>
+                      )}
+                      <Button type="submit" className="w-full" size="lg">
+                          Enviar
+                      </Button>
+                  </form>
+              </CardContent>
+          </Card>
+      </div>
     </section>
   );
 };
-
-    

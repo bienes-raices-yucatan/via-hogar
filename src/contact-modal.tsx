@@ -1,4 +1,3 @@
-
 import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission, FeatureItem } from './types';
 
 // Default styled text for titles
