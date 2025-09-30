@@ -3,7 +3,7 @@
 
 import React, { useRef } from 'react';
 import Image from 'next/image';
-import { ImageWithFeaturesSectionData, SelectedElement, FeatureItem } from '@/lib/types';
+import { ImageWithFeaturesSectionData, SelectedElement, FeatureItem, StyledText } from '@/lib/types';
 import { SectionToolbar } from '@/components/section-toolbar';
 import { EditableText } from '@/components/editable-text';
 import { Button } from '@/components/ui/button';
@@ -32,18 +32,28 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleTitleUpdate = (newTitle: any) => {
+  const handleTitleUpdate = (newTitle: Partial<StyledText>) => {
     if (data.title) {
         onUpdate({ ...data, title: { ...data.title, ...newTitle } });
     }
+  };
+  
+  const handleFeatureTextUpdate = (featureId: string, textKey: 'title' | 'description', newText: Partial<StyledText>) => {
+    const newFeatures = data.features.map(f => {
+        if (f.id === featureId) {
+            return { ...f, [textKey]: { ...(f[textKey] as StyledText), ...newText } };
+        }
+        return f;
+    });
+    onUpdate({ ...data, features: newFeatures });
   };
 
   const handleAddFeature = () => {
     const newFeature: FeatureItem = {
       id: `feat-${Date.now()}`,
       icon: 'generic-feature',
-      title: 'Nueva Característica',
-      description: 'Descripción breve',
+      title: { text: 'Nueva Característica', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat' },
+      description: { text: 'Descripción breve', fontSize: 1, color: '#475569', fontFamily: 'Roboto' },
     };
     onUpdate({ ...data, features: [...data.features, newFeature] });
   };
@@ -66,9 +76,9 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
       reader.readAsDataURL(file);
   };
 
-  const handleSelectFeature = (featureId: string) => {
+  const handleSelectFeature = (featureId: string, element: 'icon' | 'title' | 'description') => {
       if(!isAdminMode) return;
-      onSelectElement({ sectionId: data.id, elementKey: 'features', subElementId: featureId });
+      onSelectElement({ sectionId: data.id, elementKey: 'features', subElementId: featureId, property: element });
   };
 
   const MediaComponent = () => {
@@ -89,8 +99,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     
     return (
         <div className={cn(
-            "relative w-full rounded-lg overflow-hidden shadow-lg group/media",
-            "aspect-[4/5]",
+            "relative w-full h-full rounded-lg overflow-hidden shadow-lg group/media",
             isAdminMode && "cursor-pointer",
             isSelected && "ring-2 ring-primary ring-offset-2"
         )}
@@ -123,7 +132,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
             isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
           />
         )}
-        {data.title && (
+        {data.title && (data.title.text || isAdminMode) && (
           <EditableText
             id={`${data.id}-title`}
             as="h2"
@@ -136,8 +145,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-start">
-          <div className="flex justify-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-stretch">
+          <div className="flex justify-center min-h-[400px]">
              <MediaComponent />
           </div>
           <div className="space-y-8">
@@ -145,19 +154,35 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 {data.features.map((feature) => (
                 <div 
                   key={feature.id} 
-                  className={cn(
-                    "flex items-start gap-4 relative group/feature p-2 rounded-lg transition-colors",
-                    isAdminMode && "cursor-pointer hover:bg-accent/50",
-                    selectedElement?.subElementId === feature.id && "bg-accent/50 ring-2 ring-primary"
-                  )}
-                  onClick={(e) => { e.stopPropagation(); handleSelectFeature(feature.id); }}
+                  className="flex items-start gap-4 relative group/feature"
                 >
-                    <div className="bg-primary/10 text-primary p-3 rounded-lg flex-shrink-0">
+                    <div 
+                        className={cn("bg-primary/10 text-primary p-3 rounded-lg flex-shrink-0", isAdminMode && "cursor-pointer", selectedElement?.subElementId === feature.id && selectedElement.property === 'icon' && "ring-2 ring-primary")}
+                        onClick={(e) => { e.stopPropagation(); handleSelectFeature(feature.id, 'icon')}}
+                    >
                       <Icon name={feature.icon} className="w-6 h-6" />
                     </div>
-                    <div>
-                    <h4 className="font-bold text-lg text-foreground">{feature.title}</h4>
-                    <p className="text-muted-foreground mt-1">{feature.description}</p>
+                    <div className="flex-grow">
+                        <EditableText
+                            as="h4"
+                            id={`${feature.id}-title`}
+                            value={feature.title}
+                            isAdminMode={isAdminMode}
+                            onUpdate={(val) => handleFeatureTextUpdate(feature.id, 'title', val)}
+                            onSelect={() => handleSelectFeature(feature.id, 'title')}
+                            isSelected={selectedElement?.subElementId === feature.id && selectedElement.property === 'title'}
+                            className="font-bold text-lg text-foreground"
+                        />
+                         <EditableText
+                            as="p"
+                            id={`${feature.id}-desc`}
+                            value={feature.description}
+                            isAdminMode={isAdminMode}
+                            onUpdate={(val) => handleFeatureTextUpdate(feature.id, 'description', val)}
+                            onSelect={() => handleSelectFeature(feature.id, 'description')}
+                            isSelected={selectedElement?.subElementId === feature.id && selectedElement.property === 'description'}
+                            className="text-muted-foreground mt-1"
+                        />
                     </div>
                     {isAdminMode && (
                         <div className="absolute -top-1 -right-1 opacity-0 group-hover/feature:opacity-100 transition-opacity">
@@ -189,3 +214,5 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     </section>
   );
 };
+
+    

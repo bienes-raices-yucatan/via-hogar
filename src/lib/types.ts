@@ -1,5 +1,4 @@
 
-
 // A type for the icon names available in the Icon component
 export type IconName = 'bed' | 'bath' | 'area' | 'map-pin' | 'school' | 'store' | 'bus' | 'sparkles' | 'x-mark' | 'chevron-down' | 'plus' | 'pencil' | 'trash' | 'nearby' | 'logo' | 'drag-handle' | 'chevron-left' | 'chevron-right' | 'copyright' | 'solar-panel' | 'parking' | 'laundry' | 'pool' | 'generic-feature' | 'street-view' | 'gym' | 'park' | 'whatsapp' | 'arrows-move' | 'check' | 'list' | 'camera';
 
@@ -39,15 +38,14 @@ export interface HeroSectionData extends PageSection {
   type: 'hero';
   title: DraggableTextData;
   backgroundImageUrl: string;
-  parallaxEffect?: boolean;
 }
 
 // Data for a single feature item (e.g., '3 Bedrooms', 'Solar Panels')
 export interface FeatureItem {
   id: string;
   icon: IconName;
-  title: string;
-  description: string;
+  title: StyledText;
+  description: StyledText;
 }
 
 // Data for the section containing an image and a list of features
@@ -59,6 +57,7 @@ export interface ImageWithFeaturesSectionData extends PageSection {
     url: string;
   };
   features: FeatureItem[];
+  featureTexts?: StyledText[];
 }
 
 // Data for a single image in the gallery, with an optional title
@@ -97,7 +96,7 @@ export interface LocationSectionData extends PageSection {
 // Data for a single amenity item in the Amenities section
 export interface AmenityItem {
   id: string;
-  text: string;
+  text: StyledText;
   icon: IconName;
   imageUrl?: string;
 }
@@ -115,18 +114,17 @@ export interface ContactSectionData extends PageSection {
     title?: StyledText;
     subtitle?: StyledText;
     backgroundImageUrl: string;
-    parallaxEffect?: boolean;
 }
 
 // Data for a single pricing tier in the Pricing section
 export interface PricingTier {
     id: string;
-    title: string;
-    price: string;
-    currency: string;
-    description: string;
+    title: StyledText;
+    price: StyledText;
+    currency: StyledText;
+    description: StyledText;
     buttonText: string;
-    oldPrice?: string;
+    oldPrice?: StyledText;
 }
 
 // Data for the section listing pricing plans
@@ -152,8 +150,9 @@ export interface Property {
 // Represents the currently selected UI element for editing
 export type SelectedElement = {
     sectionId: string;
-    elementKey: 'title' | 'subtitle' | 'media' | 'features' | 'amenities' | 'tiers' | 'floatingTexts' | 'style' | 'backgroundImageUrl' | 'mainImageUrl';
+    elementKey: 'title' | 'subtitle' | 'media' | 'features' | 'amenities' | 'tier' | 'floatingTexts' | 'style' | 'backgroundImageUrl' | 'mainImageUrl';
     subElementId?: string; // For items within an array (e.g., a specific feature ID)
+    property?: 'icon' | 'title' | 'description' | 'price' | 'oldPrice' | 'currency' | 'text'; // For nested properties within an item
 };
 
 // Data structure for a contact form submission
@@ -166,3 +165,5 @@ export interface ContactSubmission {
     userType: 'buyer' | 'broker';
     submittedAt: string;
 }
+
+    

@@ -22,7 +22,8 @@ import {
     IconName,
     AmenityItem,
     FeatureItem,
-    TextAlign
+    TextAlign,
+    PricingTier
 } from '@/lib/types';
 
 // Import constants
@@ -62,8 +63,8 @@ import { useToast } from '@/hooks/use-toast';
 
 // Type for the state that tracks the currently selected element for editing
 type SelectedElementForToolbar = {
-    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature';
-    data: Partial<StyledText & DraggableTextData & { backgroundColor: string } & AmenityItem & FeatureItem>;
+    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier';
+    data: Partial<StyledText & DraggableTextData & { backgroundColor: string } & AmenityItem & FeatureItem & PricingTier>;
 };
 
 export default function Home() {
@@ -183,7 +184,7 @@ export default function Home() {
     const handleClickOutside = (event: MouseEvent) => {
         if (isAdminMode && selectedElement) {
             const target = event.target as HTMLElement;
-            if (!target.closest('[class*="outline-dashed"], [class*="ring-primary"], [class*="brightness-50"], [data-radix-popper-content-wrapper]')) {
+            if (!target.closest('[class*="outline-dashed"], [class*="ring-primary"], [class*="brightness-50"], [data-radix-popper-content-wrapper], .fixed')) {
                  setSelectedElement(null);
             }
         }
@@ -305,7 +306,7 @@ export default function Home() {
              if (selectedPropertyId === id) {
                 setSelectedPropertyId(null);
              }
-             setConfirmationModalState({isOpen: false, onConfirm: () => {}, title: '', message: ''});
+             closeConfirmationModal();
         }
     });
   };
@@ -362,12 +363,17 @@ export default function Home() {
         } else if (elementKey === 'features' && subElementId && 'features' in section) {
             data = section.features.find(f => f.id === subElementId);
             if (data) return { type: 'feature', data };
+        } else if (elementKey === 'tier' && 'tier' in section) {
+            data = section.tier;
+            if (data) return { type: 'pricingTier', data };
         }
         
         if (data && 'position' in data) {
             return { type: 'draggableText', data };
         } else if (data && 'fontSize' in data) {
             return { type: 'styledText', data };
+        } else if (data && elementKey === 'tier') {
+            return { type: 'pricingTier', data }
         }
         return null;
     }, [selectedElement, selectedProperty]);
@@ -383,21 +389,24 @@ export default function Home() {
     let processedChanges = { ...changes };
 
     // If there's an image data URL, we need to save it and get the key
-    if (elementKey === 'amenities' && changes.imageUrl && changes.imageUrl.startsWith('data:')) {
+    if (changes.imageUrl && changes.imageUrl.startsWith('data:')) {
         try {
             processedChanges.imageUrl = await saveImage(changes.imageUrl);
         } catch (error) {
-            console.error("Failed to save amenity image:", error);
+            console.error("Failed to save image:", error);
             toast({ title: 'Error al guardar imagen', variant: 'destructive' });
             delete processedChanges.imageUrl; // Don't apply the change if saving fails
         }
     }
-
+    
     const newSections = [...selectedProperty.sections];
     let sectionToUpdate = { ...newSections[sectionIndex] };
 
-    if (elementKey === 'style') {
+    if (elementKey === 'style' || elementKey === 'backgroundImageUrl') {
         sectionToUpdate.style = { ...sectionToUpdate.style, ...processedChanges };
+        if(elementKey === 'backgroundImageUrl' && 'backgroundImageUrl' in sectionToUpdate) {
+            (sectionToUpdate as any).backgroundImageUrl = processedChanges.backgroundImageUrl;
+        }
     } else if (elementKey === 'floatingTexts' && subElementId && 'floatingTexts' in sectionToUpdate && sectionToUpdate.floatingTexts) {
         sectionToUpdate.floatingTexts = sectionToUpdate.floatingTexts.map(t =>
             t.id === subElementId ? { ...t, ...processedChanges } : t
@@ -408,8 +417,14 @@ export default function Home() {
         sectionToUpdate.subtitle = { ...sectionToUpdate.subtitle, ...processedChanges };
     } else if (elementKey === 'amenities' && subElementId && 'amenities' in sectionToUpdate && sectionToUpdate.amenities) {
         sectionToUpdate.amenities = sectionToUpdate.amenities.map(a => a.id === subElementId ? { ...a, ...processedChanges } : a);
-    } else if (elementKey === 'features' && subElementId && 'features' in sectionToUpdate) {
+    } else if (elementKey === 'features' && subElementId && 'features' in sectionToUpdate && 'featureTexts' in sectionToUpdate) {
         sectionToUpdate.features = sectionToUpdate.features.map(f => f.id === subElementId ? { ...f, ...processedChanges } : f);
+        (sectionToUpdate as any).featureTexts = (sectionToUpdate as any).featureTexts.map((ft: any) => ft.id === subElementId ? { ...ft, ...processedChanges } : ft);
+
+    } else if (elementKey === 'tier' && 'tier' in sectionToUpdate) {
+        sectionToUpdate.tier = { ...sectionToUpdate.tier, ...processedChanges };
+    } else if (elementKey === 'media' && 'media' in sectionToUpdate) {
+        sectionToUpdate.media = { ...sectionToUpdate.media, ...processedChanges };
     }
 
     newSections[sectionIndex] = sectionToUpdate;
@@ -490,8 +505,6 @@ export default function Home() {
 
         {/* --- Modals --- */}
         {isNewPropertyModalOpen && <NewPropertyModal onClose={() => setIsNewPropertyModalOpen(false)} onCreate={() => {
-            // This modal is no longer used for creation, but keeping structure just in case.
-            // Consider removing if it's confirmed to be obsolete.
             setIsNewPropertyModalOpen(false);
         }} />}
         {isAdminLoginModalOpen && <AdminLoginModal onClose={() => setIsAdminLoginModalOpen(false)} onLogin={handleAdminLogin} />}
@@ -512,3 +525,5 @@ export default function Home() {
     </div>
   );
 };
+
+    

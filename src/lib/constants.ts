@@ -1,5 +1,4 @@
 
-
 import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission, FeatureItem } from './types';
 
 // Default styled text for titles
@@ -7,6 +6,7 @@ const defaultTitleStyle: Omit<StyledText, 'text'> = {
     fontSize: 3,
     color: '#1e293b', // slate-800
     fontFamily: 'Montserrat',
+    textAlign: 'center',
 };
 
 // Default styled text for subtitles
@@ -14,6 +14,7 @@ const defaultSubtitleStyle: Omit<StyledText, 'text'> = {
     fontSize: 1.125, // text-lg
     color: '#475569', // slate-600
     fontFamily: 'Roboto',
+    textAlign: 'center',
 };
 
 // Utility functions to create default styled text objects
@@ -56,18 +57,18 @@ export const createSectionData = (
                     position: { x: 50, y: 50 },
                     color: '#FFFFFF',
                     fontFamily: 'Montserrat',
+                    textAlign: 'center',
                 },
                 backgroundImageUrl: 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-                parallaxEffect: false,
             };
         case 'imageWithFeatures':
              const defaultFeatures: FeatureItem[] = [
-                { id: `feat-1-${uniqueSuffix}`, icon: 'bed', title: '3 Dormitorios', description: 'Todos con su propio baño y guardarropa.' },
-                { id: `feat-2-${uniqueSuffix}`, icon: 'bath', title: '5 baños', description: 'Baños con acabados de alta calidad.' },
-                { id: `feat-3-${uniqueSuffix}`, icon: 'pool', title: 'Piscina totalmente equipada', description: 'Con cascada, sistema de filtrado automático y calentador de agua.' },
-                { id: `feat-4-${uniqueSuffix}`, icon: 'parking', title: '2 espacios de estacionamiento', description: 'Techados y cerrados, para que tus vehículos estén a resguardo.' },
-                { id: `feat-5-${uniqueSuffix}`, icon: 'solar-panel', title: 'Paneles solares', description: '18 paneles solares, suficientes para abastecer toda la casa.' },
-                { id: `feat-6-${uniqueSuffix}`, icon: 'laundry', title: 'Lavandería equipada', description: 'Cuarto de lavado con lavadora, secadora y gabinetes.' },
+                { id: `feat-1-${uniqueSuffix}`, icon: 'bed', title: { text: '3 Dormitorios', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat' }, description: { text: 'Todos con su propio baño y guardarropa.', fontSize: 1, color: '#475569', fontFamily: 'Roboto' } },
+                { id: `feat-2-${uniqueSuffix}`, icon: 'bath', title: { text: '5 baños', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat' }, description: { text: 'Baños con acabados de alta calidad.', fontSize: 1, color: '#475569', fontFamily: 'Roboto' } },
+                { id: `feat-3-${uniqueSuffix}`, icon: 'pool', title: { text: 'Piscina totalmente equipada', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat' }, description: { text: 'Con cascada, sistema de filtrado automático y calentador de agua.', fontSize: 1, color: '#475569', fontFamily: 'Roboto' } },
+                { id: `feat-4-${uniqueSuffix}`, icon: 'parking', title: { text: '2 espacios de estacionamiento', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat' }, description: { text: 'Techados y cerrados, para que tus vehículos estén a resguardo.', fontSize: 1, color: '#475569', fontFamily: 'Roboto' } },
+                { id: `feat-5-${uniqueSuffix}`, icon: 'solar-panel', title: { text: 'Paneles solares', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat' }, description: { text: '18 paneles solares, suficientes para abastecer toda la casa.', fontSize: 1, color: '#475569', fontFamily: 'Roboto' } },
+                { id: `feat-6-${uniqueSuffix}`, icon: 'laundry', title: { text: 'Lavandería equipada', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat' }, description: { text: 'Cuarto de lavado con lavadora, secadora y gabinetes.', fontSize: 1, color: '#475569', fontFamily: 'Roboto' } },
             ];
             return {
                 ...base,
@@ -100,11 +101,11 @@ export const createSectionData = (
                 backgroundImageUrl: 'https://images.pexels.com/photos/2089698/pexels-photo-2089698.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
                 tier: {
                     id: `tier-${uniqueSuffix}`,
-                    title: 'Precio de la propiedad',
-                    oldPrice: '6,500,000',
-                    price: '5,500,000',
-                    currency: 'MDP',
-                    description: 'Lista para escriturar y con entrega inmediata.',
+                    title: { text: 'Precio de la propiedad', fontSize: 1.25, color: '#1E293B', fontFamily: 'Montserrat'},
+                    oldPrice: { text: '6,500,000', fontSize: 1.5, color: '#EF4444', fontFamily: 'Montserrat'},
+                    price: { text: '5,500,000', fontSize: 2.25, color: '#1E293B', fontFamily: 'Montserrat'},
+                    currency: { text: 'MXN', fontSize: 1.875, color: '#1E293B', fontFamily: 'Montserrat'},
+                    description: { text: 'Lista para escriturar y con entrega inmediata.', fontSize: 1, color: '#475569', fontFamily: 'Roboto'},
                     buttonText: 'Me Interesa',
                 },
             } as PricingSectionData;
@@ -112,10 +113,9 @@ export const createSectionData = (
             return {
                 ...base,
                 type: 'contact',
-                title: { text: '¿Te interesa esta propiedad?', fontSize: 2.5, color: '#FFFFFF', fontFamily: 'Montserrat' },
-                subtitle: { text: 'Contáctanos para obtener más información o para agendar una visita. ¡Estamos listos para ayudarte!', fontSize: 1.25, color: '#E2E8F0', fontFamily: 'Roboto' },
+                title: { text: '¿Te interesa esta propiedad?', fontSize: 2.5, color: '#FFFFFF', fontFamily: 'Montserrat', textAlign: 'center' },
+                subtitle: { text: 'Contáctanos para obtener más información o para agendar una visita. ¡Estamos listos para ayudarte!', fontSize: 1.25, color: '#E2E8F0', fontFamily: 'Roboto', textAlign: 'center' },
                 backgroundImageUrl: 'https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-                parallaxEffect: false,
             };
         case 'location':
             return {
@@ -143,7 +143,6 @@ const DEFAULT_SECTIONS_FOR_NEW_PROPERTY: AnySectionData['type'][] = [
     'location'
 ];
 
-// The initial state for the entire application is an empty list of properties.
 export const INITIAL_PROPERTIES_DATA: Property[] = [];
 export const INITIAL_SUBMISSIONS_DATA: ContactSubmission[] = [];
 
@@ -159,8 +158,10 @@ export const createNewProperty = (address: string, coordinates: { lat: number; l
         id: `prop-${uniqueSuffix}`,
         name: 'Nueva Propiedad',
         address: address,
-        price: '$5,500,000 MDP',
+        price: '$5,500,000 MXN',
         mainImageUrl: 'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
         sections: uniqueSections,
     };
 };
+
+    

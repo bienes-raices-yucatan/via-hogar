@@ -67,10 +67,16 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
     >
       <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
       {isAdminMode && <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'backgroundImageUrl'} />}
-      {isAdminMode && (
+      
+      {isLoading ? <Skeleton className="absolute inset-0 h-full w-full" /> : (
+        <div 
+          className="py-24 md:py-32 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: imageUrl ? `url(${imageUrl})` : 'none', backgroundColor: !imageUrl ? '#ccc' : undefined }}
+        >
+         {isAdminMode && (
           <Button
             variant="secondary"
-            className="absolute top-4 right-14 z-20 opacity-0 group-hover:opacity-100"
+            className="absolute top-4 right-14 z-20"
             onClick={(e) => {
                 e.stopPropagation();
                 fileInputRef.current?.click()
@@ -81,13 +87,8 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               Cambiar Fondo
           </Button>
       )}
-      {isLoading ? <Skeleton className="absolute inset-0" /> : (
-        <div 
-          className="py-24 md:py-32 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${imageUrl})` }}
-        >
           <div className="container mx-auto px-4 text-center">
-              {data.title && (
+              {data.title && (data.title.text || isAdminMode) && (
                    <EditableText
                       as="h2"
                       id={`${data.id}-title`}
@@ -100,7 +101,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                   />
               )}
              
-              {data.subtitle && (
+              {data.subtitle && (data.subtitle.text || isAdminMode) && (
                    <EditableText
                       as="p"
                       id={`${data.id}-subtitle`}
@@ -122,3 +123,5 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
     </section>
   );
 };
+
+    
