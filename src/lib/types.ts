@@ -26,13 +26,20 @@ export interface DraggableTextData extends StyledText {
     width?: number; // percentage of parent
 }
 
+export interface PageSectionStyle {
+  backgroundColor?: string;
+  height?: number; // in vh
+  borderRadiusTopLeft?: number; // in rem
+  borderRadiusTopRight?: number; // in rem
+  borderRadiusBottomLeft?: number; // in rem
+  borderRadiusBottomRight?: number; // in rem
+}
+
 // Base structure for any section on the page
 export interface PageSection {
   id: string;
   type: 'hero' | 'imageWithFeatures' | 'gallery' | 'location' | 'amenities' | 'contact' | 'pricing';
-  style?: {
-    backgroundColor?: string;
-  };
+  style?: PageSectionStyle;
   floatingTexts?: DraggableTextData[];
 }
 

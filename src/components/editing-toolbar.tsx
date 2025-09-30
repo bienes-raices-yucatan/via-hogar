@@ -8,7 +8,7 @@ import { Slider } from './ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Icon } from './icon';
-import { FontFamily, IconName, TextAlign, StyledText, DraggableTextData, FeatureItem, FontWeight } from '@/lib/types';
+import { FontFamily, IconName, TextAlign, StyledText, DraggableTextData, FeatureItem, FontWeight, PageSectionStyle } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
@@ -70,12 +70,12 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 <Label>Alineación y Estilo</Label>
                  <ToggleGroup 
                     type="multiple" 
-                    defaultValue={data.textAlign ? [data.textAlign] : []}
+                    defaultValue={[...(data.textAlign ? [data.textAlign] : []), ...(data.fontWeight === 'bold' ? ['bold'] : [])]}
                     onValueChange={(newValues: (TextAlign | 'bold')[]) => {
-                        const newAlign = newValues.find(v => v !== 'bold');
+                        const newAlign = newValues.find(v => v !== 'bold') || data.textAlign;
                         const newWeight = newValues.includes('bold') ? 'bold' : 'normal';
-                        onValueChange('textAlign', newAlign || 'left')
-                        onValueChange('fontWeight', newWeight)
+                        onValueChange('textAlign', newAlign);
+                        onValueChange('fontWeight', newWeight);
                     }}
                     className="w-full grid grid-cols-4"
                  >
@@ -88,7 +88,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                     <ToggleGroupItem value="right" aria-label="Alinear a la derecha">
                         <AlignRight className="h-4 w-4" />
                     </ToggleGroupItem>
-                     <ToggleGroupItem value="bold" aria-label="Negrita">
+                     <ToggleGroupItem value="bold" aria-label="Negrita" data-state={data.fontWeight === 'bold' ? 'on' : 'off'}>
                         <Bold className="h-4 w-4" />
                     </ToggleGroupItem>
                 </ToggleGroup>
@@ -98,14 +98,14 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 <Input
                     type="number"
                     value={data.fontSize || 1}
-                    onChange={(e) => onValueChange('fontSize', parseFloat(e.target.value))}
+                    onChange={(e) => onValueChange('fontSize', parseFloat(e.target.value) || 1)}
                     step={0.1}
                     min={0.5}
                 />
             </div>
             {'position' in data && (
                  <div className="space-y-2">
-                    <Label>Ancho ({(data.width || 40).toFixed(0)}%)</Label>
+                    <Label>Ancho del Contenedor ({(data.width || 40).toFixed(0)}%)</Label>
                     <Slider
                         value={[data.width || 40]}
                         onValueChange={(val) => onValueChange('width', val[0])}
@@ -135,9 +135,40 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
       )
     };
     
-    const renderSectionStyleControls = () => (
+    const renderSectionStyleControls = (data: PageSectionStyle, onValueChange: (key: string, value: any) => void) => (
         <>
-            <ColorPicker label="Color de Fondo" value={values.backgroundColor} onChange={(c) => handleChange('backgroundColor', c)} />
+            <ColorPicker label="Color de Fondo" value={data.backgroundColor || '#FFFFFF'} onChange={(c) => onValueChange('backgroundColor', c)} />
+            <hr />
+            <div className="space-y-2">
+              <Label>Altura de la Sección ({(data.height || 80).toFixed(0)}vh)</Label>
+              <Slider
+                value={[data.height || 80]}
+                onValueChange={(v) => onValueChange('height', v[0])}
+                min={20}
+                max={100}
+                step={1}
+              />
+            </div>
+            <hr />
+            <Label>Radio de las Esquinas (rem)</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Superior Izquierda</Label>
+                <Input type="number" value={data.borderRadiusTopLeft || 0} onChange={(e) => onValueChange('borderRadiusTopLeft', parseFloat(e.target.value))} step="0.1" min="0"/>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Superior Derecha</Label>
+                <Input type="number" value={data.borderRadiusTopRight || 0} onChange={(e) => onValueChange('borderRadiusTopRight', parseFloat(e.target.value))} step="0.1" min="0"/>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Inferior Izquierda</Label>
+                <Input type="number" value={data.borderRadiusBottomLeft || 0} onChange={(e) => onValueChange('borderRadiusBottomLeft', parseFloat(e.target.value))} step="0.1" min="0"/>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Inferior Derecha</Label>
+                <Input type="number" value={data.borderRadiusBottomRight || 0} onChange={(e) => onValueChange('borderRadiusBottomRight', parseFloat(e.target.value))} step="0.1" min="0"/>
+              </div>
+            </div>
         </>
     );
     
@@ -227,7 +258,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
             case 'draggableText':
                 return renderTextControls(values, handleChange);
             case 'sectionStyle':
-                return renderSectionStyleControls();
+                return renderSectionStyleControls(values, handleChange);
             case 'amenity':
                 return renderAmenityControls();
             case 'feature':

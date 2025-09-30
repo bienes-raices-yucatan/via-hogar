@@ -24,7 +24,8 @@ import {
     FeatureItem,
     TextAlign,
     PricingTier,
-    FontWeight
+    FontWeight,
+    PageSectionStyle
 } from '@/lib/types';
 
 // Import constants
@@ -65,7 +66,7 @@ import { useToast } from '@/hooks/use-toast';
 // Type for the state that tracks the currently selected element for editing
 type SelectedElementForToolbar = {
     type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier' | 'nearbyPlace';
-    data: Partial<StyledText & DraggableTextData & { backgroundColor: string } & AmenityItem & FeatureItem & PricingTier & NearbyPlace>;
+    data: Partial<StyledText & DraggableTextData & PageSectionStyle & AmenityItem & FeatureItem & PricingTier & NearbyPlace>;
 };
 
 export default function Home() {
@@ -347,7 +348,7 @@ export default function Home() {
         if (!section) return null;
 
         if (elementKey === 'style' || elementKey === 'backgroundImageUrl') {
-            return { type: 'sectionStyle', data: { backgroundColor: section.style?.backgroundColor || '#FFFFFF' }};
+            return { type: 'sectionStyle', data: section.style || {} };
         }
         
         let data: any;

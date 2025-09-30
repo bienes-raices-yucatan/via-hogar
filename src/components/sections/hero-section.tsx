@@ -51,38 +51,55 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       reader.readAsDataURL(file);
   };
   
+  const sectionStyle: React.CSSProperties = {
+    height: `${data.style?.height || 80}vh`,
+    borderRadius: `${data.style?.borderRadiusTopLeft || 0}rem ${data.style?.borderRadiusTopRight || 0}rem ${data.style?.borderRadiusBottomRight || 0}rem ${data.style?.borderRadiusBottomLeft || 0}rem`,
+    overflow: 'hidden',
+  };
+
+  const backgroundStyle: React.CSSProperties = {
+      backgroundImage: `url(${imageUrl})`,
+  };
+
+  const isSelected = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'backgroundImageUrl' || selectedElement.elementKey === 'style');
+
   return (
     <section 
-        className="relative h-[60vh] md:h-[80vh] w-full text-white group"
-        onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'backgroundImageUrl' })}
+        className="relative w-full text-white group"
+        style={sectionStyle}
+        onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
         <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
-        {isAdminMode && <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'backgroundImageUrl'} />}
+        {isAdminMode && <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={isSelected} />}
+        
         {isAdminMode && (
             <Button
               variant="secondary"
-              className="absolute top-4 right-14 z-20 opacity-0 group-hover:opacity-100"
-              onClick={() => fileInputRef.current?.click()}
+              className="absolute top-4 right-14 z-20"
+              onClick={(e) => {
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
               size="sm"
             >
                 <Icon name="camera" className="mr-2 h-4 w-4" />
                 Cambiar Fondo
             </Button>
         )}
+        
         {isLoading ? (
             <Skeleton className="absolute inset-0" />
         ) : (
             <div
                 className={cn(
                     "absolute inset-0 bg-cover bg-center",
-                    isAdminMode && "group-hover:brightness-75 transition-all",
-                    selectedElement?.sectionId === data.id && selectedElement.elementKey === 'backgroundImageUrl' && "brightness-75"
+                    isAdminMode && "group-hover:brightness-90 transition-all",
+                    isSelected && "brightness-90"
                 )}
-                style={{ 
-                    backgroundImage: `url(${imageUrl})`,
-                }}
+                style={backgroundStyle}
             />
         )}
+
         <div className={cn("relative z-10 h-full w-full", isDraggingMode && 'cursor-move')}>
             <DraggableEditableText
                 id={data.title.id}
@@ -98,3 +115,4 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     </section>
   );
 };
+
