@@ -1,4 +1,5 @@
 
+
 // --- Image Store (IndexedDB) ---
 
 let db: IDBDatabase;
@@ -142,22 +143,34 @@ export const exportData = async (properties: any[], submissions: any[], siteName
 
         const transaction = db.transaction(STORE_NAME, 'readonly');
         const store = transaction.objectStore(STORE_NAME);
-        const images: { [key: string]: string } = {};
+        const getAllRequest: IDBRequest<any[]> = store.getAll();
+        const getAllKeysRequest: IDBRequest<IDBValidKey[]> = store.getAllKeys();
 
-        const cursorRequest = store.openCursor();
+        let blobs: Blob[];
+        let keys: IDBValidKey[];
 
-        cursorRequest.onsuccess = async (event) => {
-            const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
-            if (cursor) {
-                try {
-                    const dataUrl = await blobToDataURL(cursor.value);
-                    images[cursor.key as string] = dataUrl;
-                    cursor.continue();
-                } catch (error) {
-                    reject(error);
-                }
-            } else {
-                // Done reading all images
+        getAllRequest.onsuccess = () => {
+            blobs = getAllRequest.result;
+            if (keys) processBlobs();
+        };
+        getAllRequest.onerror = (event) => reject('Error fetching blobs: ' + (event.target as IDBRequest).error);
+
+        getAllKeysRequest.onsuccess = () => {
+            keys = getAllKeysRequest.result;
+            if (blobs) processBlobs();
+        };
+        getAllKeysRequest.onerror = (event) => reject('Error fetching keys: ' + (event.target as IDBRequest).error);
+
+        const processBlobs = async () => {
+            try {
+                const dataUrlPromises = blobs.map(blob => blobToDataURL(blob));
+                const dataUrls = await Promise.all(dataUrlPromises);
+
+                const images: { [key: string]: string } = {};
+                keys.forEach((key, index) => {
+                    images[key as string] = dataUrls[index];
+                });
+                
                 const exportObject = {
                     properties,
                     submissions,
@@ -166,11 +179,10 @@ export const exportData = async (properties: any[], submissions: any[], siteName
                     customLogo
                 };
                 resolve(JSON.stringify(exportObject, null, 2));
-            }
-        };
 
-        cursorRequest.onerror = (event) => {
-            reject('Error reading from IndexedDB: ' + (event.target as IDBRequest).error);
+            } catch (error) {
+                reject('Failed to convert blobs to data URLs: ' + error);
+            }
         };
     });
 };

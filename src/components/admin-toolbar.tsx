@@ -40,19 +40,19 @@ export const AdminToolbar: React.FC<AdminToolbarProps> = ({ isDraggingMode, setI
          variant="outline"
          size="sm"
          onClick={handleImportClick}
-         title="Importar Propiedades"
+         title="Cargar copia de seguridad desde un archivo"
        >
         <Icon name="upload" className="mr-2 h-4 w-4" />
-        Importar
+        Cargar
        </Button>
        <Button 
          variant="outline"
          size="sm"
          onClick={onExport}
-         title="Exportar Propiedades"
+         title="Guardar una copia de seguridad de todas las propiedades"
        >
         <Icon name="download" className="mr-2 h-4 w-4" />
-        Exportar
+        Guardar
        </Button>
        <Button 
          variant={isDraggingMode ? "default" : "outline"} 
