@@ -14,6 +14,7 @@ import { Skeleton } from '../ui/skeleton';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 
 interface ContactSectionProps {
   data: ContactSectionData;
@@ -40,6 +41,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
 
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
+    const [userType, setUserType] = useState<'buyer' | 'broker'>('buyer');
     const [error, setError] = useState('');
 
     const handleTitleUpdate = (newTitle: any) => {
@@ -74,7 +76,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
             return;
         }
         setError('');
-        onSubmit({ name, phone, userType: 'buyer' }); // userType is fixed now
+        onSubmit({ name, phone, userType });
         setName('');
         setPhone('');
     };
@@ -164,6 +166,25 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                             required
                         />
                       </div>
+                      <div className="space-y-3">
+                          <Label>Soy</Label>
+                          <RadioGroup
+                            defaultValue="buyer"
+                            className="flex gap-4"
+                            onValueChange={(value: 'buyer' | 'broker') => setUserType(value)}
+                            value={userType}
+                          >
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="buyer" id="r-buyer" />
+                                <Label htmlFor="r-buyer" className="font-normal">Comprador</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="broker" id="r-broker" />
+                                <Label htmlFor="r-broker" className="font-normal">Bróker</Label>
+                            </div>
+                         </RadioGroup>
+                      </div>
+
                       {error && (
                         <p className="text-sm text-destructive">
                             {error}
