@@ -57,6 +57,7 @@ import { ContactModal } from '@/components/contact-modal';
 import { SubmissionsModal } from '@/components/submissions-modal';
 import { ConfirmationModal } from '@/components/confirmation-modal';
 import { DraggableEditableText } from '@/components/draggable-editable-text';
+import { useToast } from '@/hooks/use-toast';
 
 // Type for the state that tracks the currently selected element for editing
 type SelectedElementForToolbar = {
@@ -85,6 +86,7 @@ export default function Home() {
   const [isDraggingMode, setIsDraggingMode] = useState(false);
   const [siteName, setSiteName] = useState('Vía Hogar');
   const [customLogo, setCustomLogo] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Derived state for the currently selected property
   const selectedProperty = useMemo(() => {
@@ -241,6 +243,36 @@ export default function Home() {
       newSections.splice(hoverIndex, 0, draggedSection);
       handleUpdateProperty({ ...selectedProperty, sections: newSections });
   };
+  
+    const handleUpdateAddress = useCallback(async (newAddress: string) => {
+        if (!selectedProperty) return;
+        
+        toast({ title: "Actualizando ubicación...", description: "Geolocalizando la nueva dirección." });
+        
+        try {
+            const newCoords = await geocodeAddress(newAddress);
+            
+            // Find the location section and update its coordinates
+            const newSections = selectedProperty.sections.map(section => {
+                if (section.type === 'location') {
+                    return { ...section, coordinates: newCoords };
+                }
+                return section;
+            });
+
+            // Update the property with the new address and sections
+            const updatedProperty = { ...selectedProperty, address: newAddress, sections: newSections };
+            handleUpdateProperty(updatedProperty);
+            
+            toast({ title: "¡Ubicación actualizada!", description: "El mapa ahora muestra la nueva dirección.", variant: "default" });
+
+        } catch (error) {
+            console.error("Failed to geocode address:", error);
+            toast({ title: "Error al actualizar", description: "No se pudo encontrar la dirección. Inténtalo de nuevo.", variant: "destructive" });
+        }
+
+    }, [selectedProperty, handleUpdateProperty, toast]);
+
 
   // --- Property Management Handlers ---
   const handleAddProperty = () => {
@@ -394,7 +426,7 @@ export default function Home() {
       case 'contact':
           return <ContactSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} onOpenContactForm={() => setIsContactModalOpen(true)} isDraggingMode={isDraggingMode}/>;
       case 'location':
-          return <LocationSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} propertyAddress={selectedProperty?.address || ''}/>;
+          return <LocationSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} propertyAddress={selectedProperty?.address || ''} onUpdateAddress={handleUpdateAddress} />;
       case 'pricing':
           return <PricingSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
       default:
