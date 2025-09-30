@@ -7,6 +7,39 @@ import { SectionToolbar } from '@/components/section-toolbar';
 import { Icon } from '@/components/icon';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
+import Image from 'next/image';
+import { useImageLoader } from '@/hooks/use-image-loader';
+import { saveImage } from '@/lib/storage';
+
+interface AmenityDisplayProps {
+    amenity: AmenityItem;
+}
+
+const AmenityDisplay: React.FC<AmenityDisplayProps> = ({ amenity }) => {
+    // Use the useImageLoader hook for Amenity Images. We'll pass the raw data URL or key.
+    const { imageUrl, isLoading } = useImageLoader(amenity.imageUrl);
+
+    if (imageUrl) {
+        return (
+            <div className="relative w-12 h-12">
+                <Image 
+                    src={imageUrl} 
+                    alt={amenity.text} 
+                    fill 
+                    className="object-contain rounded-md"
+                />
+            </div>
+        )
+    }
+
+    // Fallback to icon if no image
+    return (
+        <div className="bg-primary/10 p-4 rounded-full">
+            <Icon name={amenity.icon} className="w-8 h-8 text-primary" />
+        </div>
+    );
+};
+
 
 interface AmenitiesSectionProps {
   data: AmenitiesSectionData;
@@ -45,13 +78,23 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
     onUpdate({ ...data, amenities: newAmenities });
   };
 
-  const handleUpdateAmenity = (id: string, updates: Partial<AmenityItem>) => {
+  const handleUpdateAmenity = async (id: string, updates: Partial<AmenityItem>) => {
+    // If imageUrl is a data URL, save it to IndexedDB and replace with key
+    if (updates.imageUrl && updates.imageUrl.startsWith('data:')) {
+        try {
+            updates.imageUrl = await saveImage(updates.imageUrl);
+        } catch (error) {
+            console.error("Failed to save amenity image", error);
+            // Optionally handle error, e.g., show a toast
+        }
+    }
     const newAmenities = data.amenities.map(a => a.id === id ? { ...a, ...updates } : a);
     onUpdate({ ...data, amenities: newAmenities });
   };
 
   const handleSelectAmenity = (amenityId: string) => {
     if (!isAdminMode) return;
+    const amenityData = data.amenities.find(a => a.id === amenityId);
     onSelectElement({ sectionId: data.id, elementKey: 'amenities', subElementId: amenityId });
   };
 
@@ -96,8 +139,8 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
                     }}
                 >
                      <div className="flex flex-col items-center text-center">
-                        <div className="bg-primary/10 p-4 rounded-full mb-4">
-                            <Icon name={amenity.icon} className="w-8 h-8 text-primary" />
+                        <div className="mb-4 flex items-center justify-center h-12 w-12">
+                           <AmenityDisplay amenity={amenity} />
                         </div>
                         <EditableText
                             as="p"
@@ -107,7 +150,6 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
                             className="font-semibold text-foreground"
                             value={{
                                 text: amenity.text,
-                                // Provide dummy style values, they aren't used for amenity text styling via toolbar
                                 color: '#000', 
                                 fontFamily: 'Roboto', 
                                 fontSize: 1

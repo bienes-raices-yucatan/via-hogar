@@ -373,30 +373,43 @@ export default function Home() {
     }, [selectedElement, selectedProperty]);
 
 
-  const handleToolbarUpdate = (changes: any) => {
+  const handleToolbarUpdate = async (changes: any) => {
     if (!selectedElement || !selectedProperty) return;
     const { sectionId, elementKey, subElementId } = selectedElement;
 
     const sectionIndex = selectedProperty.sections.findIndex(s => s.id === sectionId);
     if (sectionIndex === -1) return;
     
+    let processedChanges = { ...changes };
+
+    // If there's an image data URL, we need to save it and get the key
+    if (elementKey === 'amenities' && changes.imageUrl && changes.imageUrl.startsWith('data:')) {
+        try {
+            processedChanges.imageUrl = await saveImage(changes.imageUrl);
+        } catch (error) {
+            console.error("Failed to save amenity image:", error);
+            toast({ title: 'Error al guardar imagen', variant: 'destructive' });
+            delete processedChanges.imageUrl; // Don't apply the change if saving fails
+        }
+    }
+
     const newSections = [...selectedProperty.sections];
     let sectionToUpdate = { ...newSections[sectionIndex] };
 
     if (elementKey === 'style') {
-        sectionToUpdate.style = { ...sectionToUpdate.style, ...changes };
+        sectionToUpdate.style = { ...sectionToUpdate.style, ...processedChanges };
     } else if (elementKey === 'floatingTexts' && subElementId && 'floatingTexts' in sectionToUpdate && sectionToUpdate.floatingTexts) {
         sectionToUpdate.floatingTexts = sectionToUpdate.floatingTexts.map(t =>
-            t.id === subElementId ? { ...t, ...changes } : t
+            t.id === subElementId ? { ...t, ...processedChanges } : t
         );
     } else if (elementKey === 'title' && 'title' in sectionToUpdate && sectionToUpdate.title) {
-        sectionToUpdate.title = { ...(sectionToUpdate.title as DraggableTextData | StyledText), ...changes };
+        sectionToUpdate.title = { ...(sectionToUpdate.title as DraggableTextData | StyledText), ...processedChanges };
     } else if (elementKey === 'subtitle' && 'subtitle' in sectionToUpdate && sectionToUpdate.subtitle) {
-        sectionToUpdate.subtitle = { ...sectionToUpdate.subtitle, ...changes };
+        sectionToUpdate.subtitle = { ...sectionToUpdate.subtitle, ...processedChanges };
     } else if (elementKey === 'amenities' && subElementId && 'amenities' in sectionToUpdate && sectionToUpdate.amenities) {
-        sectionToUpdate.amenities = sectionToUpdate.amenities.map(a => a.id === subElementId ? { ...a, ...changes } : a);
+        sectionToUpdate.amenities = sectionToUpdate.amenities.map(a => a.id === subElementId ? { ...a, ...processedChanges } : a);
     } else if (elementKey === 'features' && subElementId && 'features' in sectionToUpdate) {
-        sectionToUpdate.features = sectionToUpdate.features.map(f => f.id === subElementId ? { ...f, ...changes } : f);
+        sectionToUpdate.features = sectionToUpdate.features.map(f => f.id === subElementId ? { ...f, ...processedChanges } : f);
     }
 
     newSections[sectionIndex] = sectionToUpdate;

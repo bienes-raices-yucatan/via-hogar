@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Slider } from './ui/slider';
@@ -48,6 +48,20 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         setValues(newValues);
         onUpdate({ [key]: value });
     };
+    
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const dataUrl = event.target?.result as string;
+            handleChange('imageUrl', dataUrl); // We'll save it as a data URL for now
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const renderTextControls = (isDraggable: boolean) => (
         <>
@@ -119,12 +133,25 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
 
     const renderIconControls = (isAmenity = false) => (
         <>
+             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
              <IconPicker label="Icono" value={values.icon} onChange={(icon) => handleChange('icon', icon)} />
              {isAmenity && (
-                 <div className="space-y-2">
-                    <Label>Texto de la amenidad</Label>
-                    <Input value={values.text} onChange={(e) => handleChange('text', e.target.value)} />
-                 </div>
+                 <>
+                    <div className="space-y-2">
+                        <Label>Texto de la amenidad</Label>
+                        <Input value={values.text} onChange={(e) => handleChange('text', e.target.value)} />
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                        <Icon name="camera" className="mr-2" />
+                        Subir Imagen
+                    </Button>
+                    {values.imageUrl && (
+                        <Button variant="destructive" size="sm" onClick={() => handleChange('imageUrl', null)}>
+                            <Icon name="trash" className="mr-2" />
+                            Quitar Imagen
+                        </Button>
+                    )}
+                 </>
              )}
         </>
     );
