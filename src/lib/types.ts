@@ -1,6 +1,6 @@
 
 // A type for the icon names available in the Icon component
-export type IconName = 'bed' | 'bath' | 'area' | 'map-pin' | 'school' | 'store' | 'bus' | 'sparkles' | 'x-mark' | 'chevron-down' | 'plus' | 'pencil' | 'trash' | 'nearby' | 'logo' | 'drag-handle' | 'chevron-left' | 'chevron-right' | 'copyright' | 'solar-panel' | 'parking' | 'laundry' | 'pool' | 'generic-feature' | 'street-view' | 'gym' | 'park' | 'whatsapp' | 'arrows-move' | 'check' | 'list' | 'camera';
+export type IconName = 'bed' | 'bath' | 'area' | 'map-pin' | 'school' | 'store' | 'bus' | 'sparkles' | 'x-mark' | 'chevron-down' | 'plus' | 'pencil' | 'trash' | 'nearby' | 'logo' | 'drag-handle' | 'chevron-left' | 'chevron-right' | 'copyright' | 'solar-panel' | 'parking' | 'laundry' | 'pool' | 'generic-feature' | 'street-view' | 'gym' | 'park' | 'whatsapp' | 'arrows-move' | 'check' | 'list' | 'camera' | 'upload' | 'download';
 
 export type FontFamily = 'Roboto' | 'Montserrat' | 'Lora' | 'Playfair Display' | 'Poppins';
 export type TextAlign = 'left' | 'center' | 'right';
@@ -168,5 +168,3 @@ export interface ContactSubmission {
     userType: 'buyer' | 'broker';
     submittedAt: string;
 }
-
-    

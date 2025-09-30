@@ -53,7 +53,9 @@ export const Icon: React.FC<IconProps> = ({ name, className = 'w-6 h-6', strokeW
     'arrows-move': <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m0 0l-3.75-3.75M12 19.5l3.75-3.75M12 4.5L8.25 8.25M12 4.5l3.75 3.75M4.5 12h15m0 0l-3.75 3.75M19.5 12l-3.75-3.75" />,
     check: <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />,
     list: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />,
-    camera: <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.75a2.25 2.25 0 002.25-2.25v-1.125A12.75 12.75 0 0012 15.75a12.75 12.75 0 00-2.25 2.625v1.125a2.25 2.25 0 002.25 2.25zM12 2.25a2.25 2.25 0 012.25 2.25v1.125A12.75 12.75 0 0112 8.25a12.75 12.75 0 01-2.25-2.625V4.5A2.25 2.25 0 0112 2.25z" />
+    camera: <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.75a2.25 2.25 0 002.25-2.25v-1.125A12.75 12.75 0 0012 15.75a12.75 12.75 0 00-2.25 2.625v1.125a2.25 2.25 0 002.25 2.25zM12 2.25a2.25 2.25 0 012.25 2.25v1.125A12.75 12.75 0 0112 8.25a12.75 12.75 0 01-2.25-2.625V4.5A2.25 2.25 0 0112 2.25z" />,
+    upload: <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />,
+    download: <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
   };
 
   const iconSvg = icons[name as IconName];

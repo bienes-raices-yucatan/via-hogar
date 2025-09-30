@@ -127,3 +127,90 @@ export const deleteImage = (key: string): Promise<void> => {
     });
 };
 
+const blobToDataURL = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+};
+
+export const exportData = async (properties: any[], submissions: any[], siteName: string, customLogo: string | null): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        if (!db) return reject('DB not initialized');
+
+        const transaction = db.transaction(STORE_NAME, 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const images: { [key: string]: string } = {};
+
+        const cursorRequest = store.openCursor();
+
+        cursorRequest.onsuccess = async (event) => {
+            const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+            if (cursor) {
+                try {
+                    const dataUrl = await blobToDataURL(cursor.value);
+                    images[cursor.key as string] = dataUrl;
+                    cursor.continue();
+                } catch (error) {
+                    reject(error);
+                }
+            } else {
+                // Done reading all images
+                const exportObject = {
+                    properties,
+                    submissions,
+                    images,
+                    siteName,
+                    customLogo
+                };
+                resolve(JSON.stringify(exportObject, null, 2));
+            }
+        };
+
+        cursorRequest.onerror = (event) => {
+            reject('Error reading from IndexedDB: ' + (event.target as IDBRequest).error);
+        };
+    });
+};
+
+
+export const importData = async (jsonString: string): Promise<{ properties: any[], submissions: any[], siteName: string, customLogo: string | null }> => {
+    return new Promise(async (resolve, reject) => {
+        if (!db) return reject('DB not initialized');
+        
+        try {
+            const data = JSON.parse(jsonString);
+            const { properties, submissions, images, siteName, customLogo } = data;
+            
+            if (!properties || !images) {
+                return reject('Invalid import file format.');
+            }
+
+            const transaction = db.transaction(STORE_NAME, 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            
+            // Clear existing images first
+            store.clear();
+
+            // Save new images
+            for (const key in images) {
+                const dataUrl = images[key];
+                const blob = dataURLToBlob(dataUrl);
+                store.put(blob, key);
+            }
+
+            transaction.oncomplete = () => {
+                resolve({ properties, submissions, siteName, customLogo });
+            };
+
+            transaction.onerror = (event) => {
+                reject('Error writing to IndexedDB: ' + (event.target as IDBTransaction).error);
+            };
+
+        } catch (error) {
+            reject('Failed to parse or import data: ' + error);
+        }
+    });
+};

@@ -38,7 +38,7 @@ import {
 
 // Import services
 import { geocodeAddress, generateNearbyPlaces } from '@/ai/gemini-service';
-import { initDB, getImageBlob, saveImage } from '@/lib/storage';
+import { initDB, saveImage, exportData, importData } from '@/lib/storage';
 
 // Import all components
 import { Header } from '@/components/header';
@@ -106,17 +106,7 @@ export default function Home() {
             const savedProps = localStorage.getItem('propertiesData');
             if (savedProps) {
                 const parsedProps: Property[] = JSON.parse(savedProps);
-                // This is a temporary solution to migrate old image URLs to new ones
-                const migratedProps = await Promise.all(parsedProps.map(async (prop) => {
-                    if (prop.mainImageUrl && prop.mainImageUrl.startsWith('blob:')) {
-                        const mainImageBlob = await fetch(prop.mainImageUrl).then(r => r.blob()).catch(() => null);
-                        if(mainImageBlob){
-                            prop.mainImageUrl = await saveImage(URL.createObjectURL(mainImageBlob));
-                        }
-                    }
-                    return prop;
-                }));
-                setProperties(migratedProps);
+                setProperties(parsedProps);
             } else {
                 setProperties([]); // Start with empty if nothing is saved
             }
@@ -339,6 +329,61 @@ export default function Home() {
       return submissions.filter(sub => sub.propertyId === selectedPropertyId);
   };
   
+    // --- Import/Export Handlers ---
+    const handleExport = async () => {
+        try {
+            toast({ title: "Exportando...", description: "Recopilando datos de propiedades e imágenes." });
+            const jsonString = await exportData(properties, submissions, siteName, customLogo);
+            const blob = new Blob([jsonString], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "via-hogar-backup.json";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            toast({ title: "¡Exportación Completa!", description: "El archivo de respaldo se ha descargado." });
+        } catch (error) {
+            console.error("Export failed:", error);
+            toast({ title: "Error de Exportación", description: String(error), variant: "destructive" });
+        }
+    };
+
+    const handleImport = (file: File) => {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const jsonString = event.target?.result as string;
+                if (!jsonString) {
+                    throw new Error("El archivo está vacío.");
+                }
+                toast({ title: "Importando...", description: "Restaurando propiedades e imágenes." });
+                const { properties, submissions, siteName, customLogo } = await importData(jsonString);
+
+                // This logic forces a re-render of all image components
+                // by temporarily setting properties to an empty array.
+                setProperties([]);
+                setSubmissions([]);
+                
+                setTimeout(() => {
+                    setProperties(properties);
+                    setSubmissions(submissions || []);
+                    setSiteName(siteName || 'Vía Hogar');
+                    setCustomLogo(customLogo || null);
+                    setSelectedPropertyId(null); // Go back to property list
+                    toast({ title: "¡Importación Completa!", description: "Los datos han sido restaurados exitosamente." });
+                }, 100);
+
+
+            } catch (error) {
+                console.error("Import failed:", error);
+                toast({ title: "Error de Importación", description: String(error), variant: "destructive" });
+            }
+        };
+        reader.readAsText(file);
+    };
+
   // --- Toolbar Logic ---
     const selectedElementForToolbar: SelectedElementForToolbar | null = useMemo(() => {
         if (!selectedElement || !selectedProperty) return null;
@@ -544,7 +589,14 @@ export default function Home() {
         <ConfirmationModal {...confirmationModalState} onClose={closeConfirmationModal} />
         
         {/* --- Admin Tools --- */}
-        {isAdminMode && <AdminToolbar isDraggingMode={isDraggingMode} setIsDraggingMode={setIsDraggingMode} />}
+        {isAdminMode && (
+            <AdminToolbar 
+                isDraggingMode={isDraggingMode} 
+                setIsDraggingMode={setIsDraggingMode}
+                onExport={handleExport}
+                onImport={handleImport}
+            />
+        )}
         {isAdminMode && selectedElementForToolbar && (
             <EditingToolbar
                 element={selectedElementForToolbar}
@@ -555,5 +607,3 @@ export default function Home() {
     </div>
   );
 };
-
-    
