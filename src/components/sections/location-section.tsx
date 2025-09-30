@@ -9,6 +9,24 @@ import { SectionToolbar } from '@/components/section-toolbar';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
+import { useImageLoader } from '@/hooks/use-image-loader';
+
+
+const PlaceDisplay: React.FC<{ place: NearbyPlace }> = ({ place }) => {
+    const { imageUrl } = useImageLoader(place.imageUrl);
+
+    if (imageUrl) {
+        return (
+            <div className="relative w-5 h-5">
+                <Image src={imageUrl} alt={place.text} fill className="object-contain rounded-sm" />
+            </div>
+        )
+    }
+
+    return <Icon name={place.icon || 'generic-feature'} className="w-5 h-5 text-primary" />;
+};
+
 
 interface LocationSectionProps {
   data: LocationSectionData;
@@ -98,7 +116,7 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
             isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
           />
         )}
-        {data.title && (
+        {data.title && (data.title.text || isAdminMode) && (
           <EditableText
             id={`${data.id}-title`}
             as="h2"
@@ -173,8 +191,8 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
                     )}
                     onClick={(e) => {e.stopPropagation(); handleSelectPlace(place.id)}}
                   >
-                    <div className="bg-primary/10 p-2 rounded-full">
-                      <Icon name={place.icon || 'generic-feature'} className="w-5 h-5 text-primary" />
+                    <div className="bg-primary/10 p-2 rounded-full flex items-center justify-center w-8 h-8">
+                      <PlaceDisplay place={place} />
                     </div>
                     <EditableText
                         as="span"
@@ -215,3 +233,5 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
     </section>
   );
 };
+
+    

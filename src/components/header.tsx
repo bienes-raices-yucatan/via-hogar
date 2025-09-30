@@ -1,11 +1,13 @@
 
 "use client";
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Icon } from './icon';
 import { Button } from './ui/button';
 import { useImageLoader } from '@/hooks/use-image-loader';
 import { Skeleton } from './ui/skeleton';
+import ContentEditable from 'react-contenteditable';
+import { cn } from '@/lib/utils';
 
 interface HeaderProps {
     isAdminMode: boolean;
@@ -21,12 +23,18 @@ export const Header: React.FC<HeaderProps> = ({
     isAdminMode,
     setIsAdminMode,
     siteName,
+    onSiteNameChange,
     customLogo,
     onLogoUpload,
     onNavigateHome 
 }) => {
     const logoInputRef = useRef<HTMLInputElement>(null);
     const { imageUrl: logoUrl, isLoading: isLogoLoading } = useImageLoader(customLogo);
+    const [currentSiteName, setCurrentSiteName] = useState(siteName);
+
+    useEffect(() => {
+        setCurrentSiteName(siteName);
+    }, [siteName]);
 
     const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -39,6 +47,14 @@ export const Header: React.FC<HeaderProps> = ({
             onLogoUpload(dataUrl);
         };
         reader.readAsDataURL(file);
+    };
+
+    const handleSiteNameChange = (e: React.FormEvent<HTMLDivElement>) => {
+        setCurrentSiteName((e.currentTarget as HTMLElement).innerText);
+    };
+
+    const handleSiteNameBlur = () => {
+        onSiteNameChange(currentSiteName);
     };
 
     return (
@@ -54,7 +70,18 @@ export const Header: React.FC<HeaderProps> = ({
                 ) : (
                     <Icon name="logo" className="w-8 h-8 text-primary" />
                 )}
-                <h1 className="text-xl font-bold text-foreground">{siteName}</h1>
+                {isAdminMode ? (
+                     <ContentEditable
+                        html={currentSiteName}
+                        tagName="h1"
+                        onChange={handleSiteNameChange}
+                        onBlur={handleSiteNameBlur}
+                        className={cn("text-xl font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary rounded-sm px-1")}
+                     />
+                ) : (
+                    <h1 className="text-xl font-bold text-foreground">{siteName}</h1>
+                )}
+               
                 {isAdminMode && (
                     <>
                         <Button
@@ -89,3 +116,5 @@ export const Header: React.FC<HeaderProps> = ({
         </header>
     );
 };
+
+    

@@ -59,24 +59,28 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
         };
         reader.readAsDataURL(file);
     };
+    
+    const isSelected = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'backgroundImageUrl' || selectedElement.elementKey === 'style');
+
 
   return (
     <section 
         className="relative group text-white"
-        onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'backgroundImageUrl' })}
+        onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
       <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
-      {isAdminMode && <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'backgroundImageUrl'} />}
+      {isAdminMode && <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={isSelected} />}
       
       {isLoading ? <Skeleton className="absolute inset-0 h-full w-full" /> : (
         <div 
-          className="py-24 md:py-32 bg-cover bg-center bg-no-repeat"
+          className="py-24 md:py-32 bg-cover bg-center bg-no-repeat relative"
           style={{ backgroundImage: imageUrl ? `url(${imageUrl})` : 'none', backgroundColor: !imageUrl ? '#ccc' : undefined }}
         >
+         <div className="absolute inset-0 bg-black/20"></div>
          {isAdminMode && (
           <Button
             variant="secondary"
-            className="absolute top-4 right-14 z-20"
+            className="absolute top-2 right-14 z-20"
             onClick={(e) => {
                 e.stopPropagation();
                 fileInputRef.current?.click()
@@ -87,7 +91,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
               Cambiar Fondo
           </Button>
       )}
-          <div className="container mx-auto px-4 text-center">
+          <div className="container mx-auto px-4 text-center relative z-10">
               {data.title && (data.title.text || isAdminMode) && (
                    <EditableText
                       as="h2"

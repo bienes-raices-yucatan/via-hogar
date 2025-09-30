@@ -26,6 +26,11 @@ export const EditableText: React.FC<EditableTextProps> = ({
     onSelect,
     isSelected,
 }) => {
+    // If there is no text and we're not in admin mode, render nothing.
+    if (!isAdminMode && !value.text) {
+        return null;
+    }
+
     const [currentText, setCurrentText] = useState(value.text);
     const hasChangedRef = useRef(false);
 
@@ -84,9 +89,12 @@ export const EditableText: React.FC<EditableTextProps> = ({
                 className,
                 'transition-all duration-200 focus:outline-none whitespace-pre-wrap w-full',
                 isAdminMode && 'cursor-pointer hover:outline-dashed hover:outline-1 hover:outline-primary',
-                isSelected && 'outline-dashed outline-2 outline-primary'
+                isSelected && 'outline-dashed outline-2 outline-primary',
+                !currentText && 'h-8' // Placeholder height when empty
             )}
             style={textStyle}
         />
     );
 };
+
+    

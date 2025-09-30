@@ -75,7 +75,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         {isAdminMode && (
             <Button
               variant="secondary"
-              className="absolute top-4 right-14 z-20"
+              className="absolute top-2 right-14 z-20"
               onClick={(e) => {
                 e.stopPropagation();
                 fileInputRef.current?.click();
@@ -99,6 +99,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 style={backgroundStyle}
             />
         )}
+        <div className="absolute inset-0 bg-black/20 z-0"></div>
 
         <div className={cn("relative z-10 h-full w-full", isDraggingMode && 'cursor-move')}>
             <DraggableEditableText
@@ -116,3 +117,4 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   );
 };
 
+    

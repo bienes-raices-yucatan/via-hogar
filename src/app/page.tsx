@@ -186,7 +186,7 @@ export default function Home() {
     const handleClickOutside = (event: MouseEvent) => {
         if (isAdminMode && selectedElement) {
             const target = event.target as HTMLElement;
-            if (!target.closest('[class*="outline-dashed"], [class*="ring-primary"], [class*="brightness-50"], [data-radix-popper-content-wrapper], .fixed')) {
+            if (!target.closest('[class*="outline-dashed"], [class*="ring-primary"], [class*="brightness-90"], [data-radix-popper-content-wrapper], .fixed')) {
                  setSelectedElement(null);
             }
         }
@@ -555,3 +555,5 @@ export default function Home() {
     </div>
   );
 };
+
+    

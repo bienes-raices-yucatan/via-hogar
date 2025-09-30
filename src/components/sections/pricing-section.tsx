@@ -12,6 +12,27 @@ import { cn } from '@/lib/utils';
 import { saveImage } from '@/lib/storage';
 import { useImageLoader } from '@/hooks/use-image-loader';
 import { Skeleton } from '../ui/skeleton';
+import Image from 'next/image';
+
+const PricingIconDisplay: React.FC<{ tier: PricingTier }> = ({ tier }) => {
+    const { imageUrl, isLoading } = useImageLoader(tier.iconUrl);
+
+    if (imageUrl) {
+        return (
+             <div className="relative w-12 h-12">
+                <Image 
+                    src={imageUrl} 
+                    alt={tier.title.text} 
+                    fill 
+                    className="object-contain rounded-md"
+                />
+            </div>
+        );
+    }
+    
+    return <Icon name="logo" className="w-12 h-12 text-primary mb-4" />;
+}
+
 
 interface PricingSectionProps {
   data: PricingSectionData;
@@ -51,16 +72,21 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
       reader.readAsDataURL(file);
   };
 
-  const handleSelectTierElement = (property: keyof Omit<PricingTier, 'id' | 'buttonText'>) => {
+  const handleSelectTierElement = (property: keyof Omit<PricingTier, 'id' | 'buttonText' | 'iconUrl'>) => {
       if(!isAdminMode) return;
       onSelectElement({ sectionId: data.id, elementKey: 'tier', subElementId: tier.id, property });
+  }
+
+  const handleSelectTierIcon = () => {
+    if (!isAdminMode) return;
+    onSelectElement({ sectionId: data.id, elementKey: 'tier' });
   }
 
   return (
     <section 
         className="py-12 md:py-20 relative group bg-cover bg-center"
-        style={!isLoading && imageUrl ? { backgroundImage: `url(${imageUrl})` } : {}}
-        onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'backgroundImageUrl' })}
+        style={!isLoading && imageUrl ? { backgroundImage: `url(${imageUrl})` } : { backgroundColor: data.style?.backgroundColor }}
+        onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
         {isLoading && <Skeleton className="absolute inset-0" />}
       <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
@@ -75,7 +101,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
          {isAdminMode && (
           <Button
             variant="secondary"
-            className="absolute top-4 right-14 z-20"
+            className="absolute top-2 right-14 z-20"
             onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
           >
               <Icon name="camera" className="mr-2" />
@@ -85,7 +111,12 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
         
         <Card className="max-w-md w-full bg-background/90 backdrop-blur-sm shadow-2xl rounded-2xl">
           <CardContent className="p-8 text-center flex flex-col items-center">
-            <Icon name="logo" className="w-12 h-12 text-primary mb-4" />
+            <div 
+                className={cn("mb-4", isAdminMode && "cursor-pointer rounded-lg p-2 hover:bg-accent/50", selectedElement?.elementKey === 'tier' && selectedElement?.subElementId === undefined && "bg-accent/50 ring-2 ring-primary")}
+                onClick={(e) => { e.stopPropagation(); handleSelectTierIcon(); }}
+            >
+                <PricingIconDisplay tier={tier} />
+            </div>
             
              {(tier.title.text || isAdminMode) && <EditableText
               as="h2"
@@ -157,3 +188,5 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
     </section>
   );
 };
+
+    
