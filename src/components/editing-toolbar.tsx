@@ -8,13 +8,13 @@ import { Slider } from './ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Icon } from './icon';
-import { FontFamily, IconName, TextAlign, StyledText, DraggableTextData, FeatureItem, FontWeight, PageSectionStyle } from '@/lib/types';
+import { FontFamily, IconName, TextAlign, StyledText, DraggableTextData, FeatureItem, FontWeight, PageSectionStyle, AmenityItem, PricingTier, NearbyPlace } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
-import { AlignCenter, AlignLeft, AlignRight, Bold } from 'lucide-react';
+import { AlignCenter, AlignLeft, AlignRight, Bold, Italic } from 'lucide-react';
 
-const allIcons: IconName[] = ['bed' , 'bath' , 'area' , 'map-pin' , 'school' , 'store' , 'bus' , 'sparkles' , 'x-mark' , 'chevron-down' , 'plus' , 'pencil' , 'trash' , 'nearby' , 'logo' , 'drag-handle' , 'chevron-left' , 'chevron-right' , 'copyright' , 'solar-panel' , 'parking' , 'laundry' , 'pool' , 'generic-feature' , 'street-view' , 'gym' , 'park' , 'whatsapp' , 'arrows-move' , 'check' , 'list', 'camera'];
+const allIcons: IconName[] = ['bed' , 'bath' , 'area' , 'map-pin' , 'school' , 'store' , 'bus' , 'sparkles' , 'x-mark' , 'chevron-down' , 'plus' , 'pencil' , 'trash' , 'nearby' , 'logo' , 'drag-handle' , 'chevron-left' , 'chevron-right' , 'copyright' , 'solar-panel' , 'parking' , 'laundry' , 'pool' , 'generic-feature' , 'street-view' , 'gym' , 'park' , 'whatsapp' , 'arrows-move' , 'check' , 'list', 'camera', 'upload', 'download'];
 
 // Type definitions for what the toolbar can edit
 type EditableElement = {
@@ -56,7 +56,9 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         const reader = new FileReader();
         reader.onload = (event) => {
             const dataUrl = event.target?.result as string;
-            handleChange('imageUrl', dataUrl);
+            // The onUpdate will trigger the saveImage logic in the parent component
+            const keyToUpdate = element.type === 'amenity' || element.type === 'feature' ? 'imageUrl' : 'backgroundImageUrl';
+            onUpdate({ [keyToUpdate]: dataUrl });
         };
         reader.readAsDataURL(file);
     };
@@ -70,12 +72,11 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 <Label>Alineación y Estilo</Label>
                  <ToggleGroup 
                     type="multiple" 
-                    defaultValue={[...(data.textAlign ? [data.textAlign] : []), ...(data.fontWeight === 'bold' ? ['bold'] : [])]}
+                    defaultValue={[...(data.textAlign ? [data.textAlign] : ['left']), ...(data.fontWeight === 'bold' ? ['bold'] : [])]}
                     onValueChange={(newValues: (TextAlign | 'bold')[]) => {
-                        const newAlign = newValues.find(v => v !== 'bold') || data.textAlign;
+                        const newAlign = newValues.find(v => v === 'left' || v === 'center' || v === 'right') || 'left';
                         const newWeight = newValues.includes('bold') ? 'bold' : 'normal';
-                        onValueChange('textAlign', newAlign);
-                        onValueChange('fontWeight', newWeight);
+                        onUpdate({ textAlign: newAlign, fontWeight: newWeight });
                     }}
                     className="w-full grid grid-cols-4"
                  >
@@ -88,7 +89,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                     <ToggleGroupItem value="right" aria-label="Alinear a la derecha">
                         <AlignRight className="h-4 w-4" />
                     </ToggleGroupItem>
-                     <ToggleGroupItem value="bold" aria-label="Negrita" data-state={data.fontWeight === 'bold' ? 'on' : 'off'}>
+                     <ToggleGroupItem value="bold" aria-label="Negrita">
                         <Bold className="h-4 w-4" />
                     </ToggleGroupItem>
                 </ToggleGroup>
@@ -98,7 +99,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 <Input
                     type="number"
                     value={data.fontSize || 1}
-                    onChange={(e) => onValueChange('fontSize', parseFloat(e.target.value) || 1)}
+                    onChange={(e) => onUpdate({ fontSize: parseFloat(e.target.value) || 1})}
                     step={0.1}
                     min={0.5}
                 />
@@ -108,7 +109,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                     <Label>Ancho del Contenedor ({(data.width || 40).toFixed(0)}%)</Label>
                     <Slider
                         value={[data.width || 40]}
-                        onValueChange={(val) => onValueChange('width', val[0])}
+                        onValueChange={(val) => onUpdate({ width: val[0] })}
                         min={10}
                         max={100}
                         step={1}
@@ -117,7 +118,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
             )}
             <div className="space-y-2">
                 <Label>Familia de Fuente</Label>
-                 <Select value={data.fontFamily || 'Poppins'} onValueChange={(val: FontFamily) => onValueChange('fontFamily', val)}>
+                 <Select value={data.fontFamily || 'Poppins'} onValueChange={(val: FontFamily) => onUpdate({fontFamily: val})}>
                     <SelectTrigger>
                         <SelectValue placeholder="Selecciona una fuente" />
                     </SelectTrigger>
@@ -130,13 +131,19 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                     </SelectContent>
                 </Select>
             </div>
-            <ColorPicker label="Color de Texto" value={data.color} onChange={(c) => onValueChange('color', c)} />
+            <ColorPicker label="Color de Texto" value={data.color} onChange={(c) => onUpdate({ color: c })} />
         </>
       )
     };
     
     const renderSectionStyleControls = (data: PageSectionStyle, onValueChange: (key: string, value: any) => void) => (
         <>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                <Icon name="camera" className="mr-2" />
+                Cambiar Imagen de Fondo
+            </Button>
+            <hr />
             <ColorPicker label="Color de Fondo" value={data.backgroundColor || '#FFFFFF'} onChange={(c) => onValueChange('backgroundColor', c)} />
             <hr />
             <div className="space-y-2">
@@ -153,40 +160,40 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
             <Label>Radio de las Esquinas (rem)</Label>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label className="text-xs">Superior Izquierda</Label>
+                <Label className="text-xs">Sup. Izquierda</Label>
                 <Input type="number" value={data.borderRadiusTopLeft || 0} onChange={(e) => onValueChange('borderRadiusTopLeft', parseFloat(e.target.value))} step="0.1" min="0"/>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Superior Derecha</Label>
+                <Label className="text-xs">Sup. Derecha</Label>
                 <Input type="number" value={data.borderRadiusTopRight || 0} onChange={(e) => onValueChange('borderRadiusTopRight', parseFloat(e.target.value))} step="0.1" min="0"/>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Inferior Izquierda</Label>
+                <Label className="text-xs">Inf. Izquierda</Label>
                 <Input type="number" value={data.borderRadiusBottomLeft || 0} onChange={(e) => onValueChange('borderRadiusBottomLeft', parseFloat(e.target.value))} step="0.1" min="0"/>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Inferior Derecha</Label>
+                <Label className="text-xs">Inf. Derecha</Label>
                 <Input type="number" value={data.borderRadiusBottomRight || 0} onChange={(e) => onValueChange('borderRadiusBottomRight', parseFloat(e.target.value))} step="0.1" min="0"/>
               </div>
             </div>
         </>
     );
     
-    const renderAmenityControls = () => (
+    const renderAmenityControls = (data: AmenityItem) => (
         <>
-             <IconPicker label="Icono" value={values.icon} onChange={(icon) => handleChange('icon', icon)} />
-             <div className="space-y-2">
+            <IconPicker label="Icono" value={data.icon} onChange={(icon) => onUpdate({ icon })} />
+            <div className="space-y-2">
                 <Label>Texto de la amenidad</Label>
-                <Input value={values.text} onChange={(e) => handleChange('text', e.target.value)} />
+                <Input value={data.text} onChange={(e) => onUpdate({ text: e.target.value })} />
             </div>
             <hr/>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                 <Icon name="camera" className="mr-2" />
                 Usar Imagen en vez de icono
             </Button>
-            {values.imageUrl && (
-                <Button variant="destructive" size="sm" onClick={() => handleChange('imageUrl', null)}>
+            {data.imageUrl && (
+                <Button variant="destructive" size="sm" onClick={() => onUpdate({ imageUrl: null })}>
                     <Icon name="trash" className="mr-2" />
                     Quitar Imagen
                 </Button>
@@ -194,23 +201,23 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         </>
     );
 
-    const renderFeatureControls = () => (
+    const renderFeatureControls = (data: FeatureItem) => (
         <>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-            <IconPicker label="Icono" value={values.icon} onChange={(icon) => handleChange('icon', icon)} />
+            <IconPicker label="Icono" value={data.icon} onChange={(icon) => onUpdate({ icon })} />
             <hr />
             <p className="text-xs font-bold text-muted-foreground uppercase">Título</p>
-            {renderTextControls(values.title, (key, value) => handleChange('title', { ...values.title, [key]: value }))}
+            {renderTextControls(data.title, (key, value) => onUpdate({ title: { ...data.title, [key]: value } }))}
             <hr />
             <p className="text-xs font-bold text-muted-foreground uppercase">Descripción</p>
-            {renderTextControls(values.description, (key, value) => handleChange('description', { ...values.description, [key]: value }))}
+            {renderTextControls(data.description, (key, value) => onUpdate({ description: { ...data.description, [key]: value } }))}
             <hr />
             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                 <Icon name="camera" className="mr-2" />
                 Usar Imagen en vez de icono
             </Button>
-            {values.imageUrl && (
-                <Button variant="destructive" size="sm" onClick={() => handleChange('imageUrl', null)}>
+            {data.imageUrl && (
+                <Button variant="destructive" size="sm" onClick={() => onUpdate({ imageUrl: null })}>
                     <Icon name="trash" className="mr-2" />
                     Quitar Imagen
                 </Button>
@@ -219,36 +226,60 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
     );
 
 
-    const renderPricingTierControls = () => (
+    const renderPricingTierControls = (data: PricingTier) => (
         <>
-            <p className="text-xs font-bold text-muted-foreground uppercase">Título</p>
-            {renderTextControls(values.title, (key, value) => handleChange('title', { ...values.title, [key]: value }))}
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                <Icon name="camera" className="mr-2" />
+                Cambiar Imagen/Icono
+            </Button>
+            {data.iconUrl && (
+                <Button variant="destructive" size="sm" onClick={() => onUpdate({ iconUrl: null })}>
+                    <Icon name="trash" className="mr-2" />
+                    Quitar Imagen
+                </Button>
+            )}
             <hr/>
-             <p className="text-xs font-bold text-muted-foreground uppercase">Precio</p>
-             {renderTextControls(values.price, (key, value) => handleChange('price', { ...values.price, [key]: value }))}
-             <hr/>
-             {values.oldPrice && (
-                 <>
+            <p className="text-xs font-bold text-muted-foreground uppercase">Título</p>
+            {renderTextControls(data.title, (key, value) => onUpdate({ title: { ...data.title, [key]: value } }))}
+            <hr/>
+            <p className="text-xs font-bold text-muted-foreground uppercase">Precio</p>
+            {renderTextControls(data.price, (key, value) => onUpdate({ price: { ...data.price, [key]: value } }))}
+            <hr/>
+            {data.oldPrice && (
+                <>
                     <p className="text-xs font-bold text-muted-foreground uppercase">Precio Anterior</p>
-                    {renderTextControls(values.oldPrice, (key, value) => handleChange('oldPrice', { ...values.oldPrice, [key]: value }))}
+                    {renderTextControls(data.oldPrice, (key, value) => onUpdate({ oldPrice: { ...data.oldPrice, [key]: value } }))}
                     <hr/>
-                 </>
-             )}
-             <p className="text-xs font-bold text-muted-foreground uppercase">Moneda</p>
-             {renderTextControls(values.currency, (key, value) => handleChange('currency', { ...values.currency, [key]: value }))}
-             <hr/>
-             <p className="text-xs font-bold text-muted-foreground uppercase">Descripción</p>
-             {renderTextControls(values.description, (key, value) => handleChange('description', { ...values.description, [key]: value }))}
+                </>
+            )}
+            <p className="text-xs font-bold text-muted-foreground uppercase">Moneda</p>
+            {renderTextControls(data.currency, (key, value) => onUpdate({ currency: { ...data.currency, [key]: value } }))}
+            <hr/>
+            <p className="text-xs font-bold text-muted-foreground uppercase">Descripción</p>
+            {renderTextControls(data.description, (key, value) => onUpdate({ description: { ...data.description, [key]: value } }))}
         </>
     )
 
-    const renderNearbyPlaceControls = () => (
+    const renderNearbyPlaceControls = (data: NearbyPlace) => (
         <>
-             <IconPicker label="Icono" value={values.icon} onChange={(icon) => handleChange('icon', icon)} />
-             <div className="space-y-2">
+            <IconPicker label="Icono" value={data.icon} onChange={(icon) => onUpdate({ icon })} />
+            <div className="space-y-2">
                 <Label>Texto del Lugar</Label>
-                <Input value={values.text} onChange={(e) => handleChange('text', e.target.value)} />
+                <Input value={data.text} onChange={(e) => onUpdate({ text: e.target.value })} />
             </div>
+            <hr/>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                <Icon name="camera" className="mr-2" />
+                Usar Imagen en vez de icono
+            </Button>
+            {data.imageUrl && (
+                <Button variant="destructive" size="sm" onClick={() => onUpdate({ imageUrl: null })}>
+                    <Icon name="trash" className="mr-2" />
+                    Quitar Imagen
+                </Button>
+            )}
         </>
     );
 
@@ -256,24 +287,24 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         switch (element.type) {
             case 'styledText':
             case 'draggableText':
-                return renderTextControls(values, handleChange);
+                return renderTextControls(values, (key, value) => onUpdate({ [key]: value }));
             case 'sectionStyle':
-                return renderSectionStyleControls(values, handleChange);
+                return renderSectionStyleControls(values, (key, value) => onUpdate({ [key]: value }));
             case 'amenity':
-                return renderAmenityControls();
+                return renderAmenityControls(values);
             case 'feature':
-                return renderFeatureControls();
+                return renderFeatureControls(values);
             case 'pricingTier':
-                return renderPricingTierControls();
+                return renderPricingTierControls(values);
             case 'nearbyPlace':
-                return renderNearbyPlaceControls();
+                return renderNearbyPlaceControls(values);
             default:
                 return <p className="text-sm text-muted-foreground">No hay opciones de edición para este elemento.</p>;
         }
     };
 
     return (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-72 bg-background border rounded-lg shadow-lg">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-80 bg-background border rounded-lg shadow-lg">
             <div className="flex justify-between items-center p-2 border-b">
                 <span className="text-sm font-medium">Editar Elemento</span>
                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}>
@@ -302,6 +333,7 @@ const ColorPicker: React.FC<{ label: string; value: string; onChange: (color: st
         setColor(value);
     }, [value]);
 
+    // Debounce updates to avoid performance issues
     useEffect(() => {
         const handler = setTimeout(() => {
             if (color !== value) {
@@ -314,26 +346,27 @@ const ColorPicker: React.FC<{ label: string; value: string; onChange: (color: st
     return (
         <div className="space-y-2">
             <Label>{label}</Label>
-            <Popover>
-                <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal">
-                        <div className="flex items-center gap-2">
-                            <div className="h-4 w-4 rounded !bg-center !bg-cover transition-all" style={{ background: color }}></div>
-                            <div className="truncate flex-1">{color}</div>
-                        </div>
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                    <div className="p-2">
+            <div className="flex items-center gap-2">
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline" className="h-8 w-8 p-0 border-2" style={{ backgroundColor: color }} />
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
                         <Input
-                            type="text"
-                            value={color || ''}
+                            type="color"
+                            value={color || '#000000'}
                             onChange={(e) => setColor(e.target.value)}
-                            className="w-full"
+                            className="w-16 h-10 p-1 border-none"
                         />
-                    </div>
-                </PopoverContent>
-            </Popover>
+                    </PopoverContent>
+                </Popover>
+                <Input
+                    type="text"
+                    value={color || ''}
+                    onChange={(e) => setColor(e.target.value)}
+                    className="w-full h-8"
+                />
+            </div>
         </div>
     );
 };
@@ -348,13 +381,13 @@ const IconPicker: React.FC<{ label: string; value: IconName; onChange: (icon: Ic
                     <Button variant="outline" className="w-full justify-start text-left font-normal">
                         <div className="flex items-center gap-2">
                             {value && <Icon name={value} className="h-4 w-4" />}
-                            <span className="capitalize">{value ? value.replace('-', ' ') : "Seleccionar Icono"}</span>
+                            <span className="capitalize">{value ? value.replace(/-/g, ' ') : "Seleccionar Icono"}</span>
                         </div>
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-64 p-0" align="start">
                     <ScrollArea className="h-72">
-                        <div className="p-2 grid grid-cols-4 gap-2">
+                        <div className="p-2 grid grid-cols-5 gap-1">
                             {allIcons.map((icon) => (
                                 <Button
                                     key={icon}
@@ -373,3 +406,5 @@ const IconPicker: React.FC<{ label: string; value: IconName; onChange: (icon: Ic
         </div>
     );
 };
+
+    

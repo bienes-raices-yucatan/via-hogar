@@ -178,6 +178,7 @@ export default function Home() {
     const handleClickOutside = (event: MouseEvent) => {
         if (isAdminMode && selectedElement) {
             const target = event.target as HTMLElement;
+            // The fixed toolbar has a class 'fixed'
             if (!target.closest('[class*="outline-dashed"], [class*="ring-primary"], [class*="brightness-90"], [data-radix-popper-content-wrapper], .fixed')) {
                  setSelectedElement(null);
             }
@@ -404,40 +405,47 @@ export default function Home() {
         const section = selectedProperty.sections.find(s => s.id === sectionId);
         if (!section) return null;
 
-        if (elementKey === 'style' || elementKey === 'backgroundImageUrl') {
-            return { type: 'sectionStyle', data: section.style || {} };
+        // Handle section-level style selections
+        if (elementKey === 'style') {
+            return { type: 'sectionStyle', data: { ...section.style, backgroundImageUrl: (section as any).backgroundImageUrl }};
         }
         
         let data: any;
 
-        if (elementKey === 'floatingTexts' && subElementId && 'floatingTexts' in section && section.floatingTexts) {
-            data = section.floatingTexts.find(t => t.id === subElementId);
-        } else if (elementKey === 'title' && 'title' in section) {
-            data = section.title;
-        } else if (elementKey === 'subtitle' && 'subtitle' in section) {
-            data = section.subtitle;
-        } else if (elementKey === 'amenities' && subElementId && 'amenities' in section && section.amenities) {
-            data = section.amenities.find(a => a.id === subElementId);
-            if (data) return { type: 'amenity', data };
-        } else if (elementKey === 'features' && subElementId && 'features' in section) {
-            const feature = section.features.find(f => f.id === subElementId);
-            if (feature) {
-                 if (property && (property === 'title' || property === 'description')) {
-                     data = feature[property];
-                 } else {
-                     return { type: 'feature', data: feature };
-                 }
-            }
-        } else if (elementKey === 'tier' && 'tier' in section) {
-            const tier = section.tier;
-            if (property && property in tier) {
-                data = tier[property as keyof PricingTier];
-            } else {
-                return { type: 'pricingTier', data: tier };
-            }
-        } else if (elementKey === 'nearbyPlaces' && subElementId && 'nearbyPlaces' in section && section.nearbyPlaces) {
-            data = section.nearbyPlaces.find(p => p.id === subElementId);
-            if (data) return { type: 'nearbyPlace', data };
+        switch(elementKey) {
+            case 'floatingTexts':
+                data = (section as HeroSectionData)?.floatingTexts?.find(t => t.id === subElementId);
+                break;
+            case 'title':
+            case 'subtitle':
+                data = (section as any)[elementKey];
+                break;
+            case 'amenities':
+                data = (section as AmenitiesSectionData)?.amenities?.find(a => a.id === subElementId);
+                if (data) return { type: 'amenity', data };
+                break;
+            case 'features':
+                const feature = (section as ImageWithFeaturesSectionData)?.features?.find(f => f.id === subElementId);
+                if (feature) {
+                    if (property === 'title' || property === 'description') {
+                        data = feature[property];
+                    } else {
+                        return { type: 'feature', data: feature };
+                    }
+                }
+                break;
+            case 'tier':
+                 const tier = (section as PricingSectionData)?.tier;
+                if (subElementId === tier.id && property && (property === 'title' || property === 'price' || property === 'oldPrice' || property === 'currency' || property === 'description')) {
+                    data = tier[property];
+                } else {
+                     return { type: 'pricingTier', data: tier };
+                }
+                break;
+            case 'nearbyPlaces':
+                data = (section as LocationSectionData)?.nearbyPlaces?.find(p => p.id === subElementId);
+                if (data) return { type: 'nearbyPlace', data };
+                break;
         }
         
         if (data) {
@@ -458,59 +466,67 @@ export default function Home() {
     
     let processedChanges = { ...changes };
 
-    // If there's an image data URL, we need to save it and get the key
-    if (changes.imageUrl && changes.imageUrl.startsWith('data:')) {
-        try {
-            processedChanges.imageUrl = await saveImage(changes.imageUrl);
-        } catch (error) {
-            console.error("Failed to save image:", error);
-            toast({ title: 'Error al guardar imagen', variant: 'destructive' });
-            delete processedChanges.imageUrl; // Don't apply the change if saving fails
+    // Centralized image saving logic
+    const imageKeys: (keyof typeof processedChanges)[] = ['imageUrl', 'backgroundImageUrl', 'iconUrl'];
+    for (const key of imageKeys) {
+        if (processedChanges[key] && typeof processedChanges[key] === 'string' && processedChanges[key].startsWith('data:')) {
+            try {
+                processedChanges[key] = await saveImage(processedChanges[key]);
+            } catch (error) {
+                console.error(`Failed to save image for key ${key}:`, error);
+                toast({ title: 'Error al guardar imagen', variant: 'destructive' });
+                delete processedChanges[key];
+            }
         }
     }
     
     const newSections = [...selectedProperty.sections];
-    let sectionToUpdate: AnySectionData = { ...newSections[sectionIndex] };
+    let sectionToUpdate: AnySectionData = JSON.parse(JSON.stringify(newSections[sectionIndex]));
 
-    const updateNestedObject = (obj: any, keys: string[], value: any): any => {
-      const key = keys[0];
-      if (keys.length === 1) {
-          if (Array.isArray(obj)) {
-              return obj.map(item => item.id === subElementId ? { ...item, ...value } : item);
-          }
-          return { ...obj, ...value };
+    const updateNestedObject = (obj: any, keys: (string | number)[], value: any): any => {
+      let current = obj;
+      for (let i = 0; i < keys.length - 1; i++) {
+        current = current[keys[i]];
       }
-
-      if (Array.isArray(obj)) {
-          return obj.map(item => item.id === subElementId ? { ...item, [key]: updateNestedObject(item[key], keys.slice(1), value) } : item);
-      }
-      return { ...obj, [key]: updateNestedObject(obj[key], keys.slice(1), value) };
+      current[keys[keys.length - 1]] = { ...current[keys[keys.length - 1]], ...value };
+      return obj;
     };
 
-    if (elementKey === 'style' || elementKey === 'backgroundImageUrl') {
+    if (elementKey === 'style') {
         sectionToUpdate.style = { ...sectionToUpdate.style, ...processedChanges };
-        if (elementKey === 'backgroundImageUrl' && 'backgroundImageUrl' in sectionToUpdate) {
-            (sectionToUpdate as any).backgroundImageUrl = processedChanges.backgroundImageUrl;
+        if (processedChanges.backgroundImageUrl !== undefined) {
+             (sectionToUpdate as any).backgroundImageUrl = processedChanges.backgroundImageUrl;
         }
-    } else if (subElementId && property) {
-        // Deeply nested update, e.g., pricing tier title or feature description
-        (sectionToUpdate as any)[elementKey] = (sectionToUpdate as any)[elementKey].map((item: any) => {
-            if (item.id === subElementId) {
-                return { ...item, [property]: { ...item[property], ...processedChanges } };
+    } else if (subElementId && property && (sectionToUpdate as any)[elementKey]) {
+        // Deeply nested update (e.g., feature title, pricing tier price)
+        const array = (sectionToUpdate as any)[elementKey];
+        const itemIndex = Array.isArray(array) ? array.findIndex((item: any) => item.id === subElementId) : -1;
+
+        if (itemIndex > -1) {
+            const itemToUpdate = array[itemIndex];
+            if (itemToUpdate && (property in itemToUpdate)) {
+                 (itemToUpdate[property as keyof typeof itemToUpdate] as any) = {
+                    ...(itemToUpdate[property as keyof typeof itemToUpdate] as any),
+                    ...processedChanges
+                 };
             }
-            return item;
-        });
-    } else if (subElementId) {
-        // Update a specific item in an array, e.g., an amenity or a feature
-         (sectionToUpdate as any)[elementKey] = (sectionToUpdate as any)[elementKey].map((item: any) => 
-            item.id === subElementId ? { ...item, ...processedChanges } : item
-        );
-    } else if (property) {
-        // Update a property of a direct object, e.g. tier.title
-        (sectionToUpdate as any)[elementKey][property] = { ...(sectionToUpdate as any)[elementKey][property], ...processedChanges };
-    }
-    else {
-        // Update a direct property of the section, e.g., title or a whole object like 'tier'
+        } else if (!Array.isArray(array) && array.id === subElementId) { // For non-array objects like 'tier'
+            const itemToUpdate = (sectionToUpdate as any)[elementKey];
+             (itemToUpdate[property as keyof typeof itemToUpdate] as any) = {
+                    ...(itemToUpdate[property as keyof typeof itemToUpdate] as any),
+                    ...processedChanges
+                 };
+        }
+
+    } else if (subElementId && (sectionToUpdate as any)[elementKey]) {
+        // Update a specific item in an array (e.g., an amenity, a feature object)
+        const array = (sectionToUpdate as any)[elementKey];
+        const itemIndex = array.findIndex((item: any) => item.id === subElementId);
+        if (itemIndex > -1) {
+            array[itemIndex] = { ...array[itemIndex], ...processedChanges };
+        }
+    } else {
+        // Update a direct property of the section or a whole object like 'tier'
         (sectionToUpdate as any)[elementKey] = { ...(sectionToUpdate as any)[elementKey], ...processedChanges };
     }
 
@@ -565,7 +581,7 @@ export default function Home() {
             onNavigateHome={() => setSelectedPropertyId(null)}
         />
 
-        <main className="flex-grow">
+        <main className="flex-grow pt-16">
             {selectedProperty ? (
             <div>
                 {isAdminMode && <AddSectionControl index={0} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
@@ -627,3 +643,5 @@ export default function Home() {
     </div>
   );
 };
+
+    

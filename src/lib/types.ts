@@ -153,9 +153,9 @@ export interface Property {
 // Represents the currently selected UI element for editing
 export type SelectedElement = {
     sectionId: string;
-    elementKey: 'title' | 'subtitle' | 'media' | 'features' | 'amenities' | 'tier' | 'floatingTexts' | 'style' | 'backgroundImageUrl' | 'mainImageUrl' | 'nearbyPlaces';
+    elementKey: keyof AnySectionData | 'style' | 'backgroundImageUrl';
     subElementId?: string; // For items within an array (e.g., a specific feature ID)
-    property?: keyof (FeatureItem | PricingTier); // For nested properties within an item
+    property?: keyof (FeatureItem | PricingTier | StyledText); // For nested properties within an item
 };
 
 // Data structure for a contact form submission
@@ -168,3 +168,5 @@ export interface ContactSubmission {
     userType: 'buyer' | 'broker';
     submittedAt: string;
 }
+
+    
