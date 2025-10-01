@@ -13,6 +13,27 @@ import Image from 'next/image';
 import { useImageLoader } from '@/hooks/use-image-loader';
 
 
+const NearbyPlaceItem: React.FC<{ place: NearbyPlace; isAdminMode: boolean; onSelect: () => void; isSelected: boolean }> = ({ place, isAdminMode, onSelect, isSelected }) => {
+    const { imageUrl } = useImageLoader(place.imageUrl);
+
+    return (
+        <div 
+            className={cn(
+                "flex items-center gap-4 p-2 rounded-lg",
+                isAdminMode && "cursor-pointer hover:bg-accent/50",
+                isSelected && "bg-accent/50 ring-2 ring-primary"
+            )}
+            onClick={onSelect}
+        >
+            <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                {imageUrl ? <Image src={imageUrl} alt={place.text} width={24} height={24} className="object-contain" /> : <Icon name={place.icon} className="w-5 h-5" />}
+            </div>
+            <p className="text-sm text-foreground">{place.text}</p>
+        </div>
+    );
+};
+
+
 interface LocationSectionProps {
   data: LocationSectionData;
   onUpdate: (data: Partial<LocationSectionData>) => void;
@@ -126,6 +147,21 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
                 </div>
             )}
             
+            <h3 className="text-xl font-bold mb-4 text-foreground">Puntos de Interés</h3>
+             <div className="space-y-4">
+                {data.nearbyPlaces.map(place => (
+                    <NearbyPlaceItem 
+                        key={place.id}
+                        place={place}
+                        isAdminMode={isAdminMode}
+                        isSelected={selectedElement?.elementKey === 'nearbyPlaces' && selectedElement.subElementId === place.id}
+                        onSelect={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'nearbyPlaces', subElementId: place.id })}
+                    />
+                ))}
+                {data.nearbyPlaces.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No se generaron lugares cercanos.</p>
+                )}
+            </div>
           </div>
         </div>
       </div>

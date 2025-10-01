@@ -38,7 +38,7 @@ import {
 } from '@/lib/constants';
 
 // Import services
-import { geocodeAddress } from '@/ai/gemini-service';
+import { geocodeAddress, generateNearbyPlaces } from '@/ai/gemini-service';
 import { initDB, saveImage, exportData, importData } from '@/lib/storage';
 
 // Import all components
@@ -206,9 +206,12 @@ export default function Home() {
     
     const locationSection = selectedProperty.sections.find(s => s.type === 'location') as LocationSectionData | undefined;
     const coordinates = locationSection?.coordinates || { lat: 19.4326, lng: -99.1332 };
+    const nearbyPlaces = locationSection?.nearbyPlaces || [];
+
 
     const newSection = createSectionData(type, uniqueSuffix, {
       coordinates: coordinates,
+      nearbyPlaces: nearbyPlaces,
     });
 
     const newSections = [...selectedProperty.sections];
@@ -248,11 +251,12 @@ export default function Home() {
         
         try {
             const newCoords = await geocodeAddress(newAddress);
+            const newNearbyPlaces = await generateNearbyPlaces(newCoords.lat, newCoords.lng);
             
             // Find the location section and update its coordinates
             const newSections = selectedProperty.sections.map(section => {
                 if (section.type === 'location') {
-                    return { ...section, coordinates: newCoords };
+                    return { ...section, coordinates: newCoords, nearbyPlaces: newNearbyPlaces };
                 }
                 return section;
             });
@@ -278,18 +282,20 @@ export default function Home() {
   
   const handleCreateProperty = useCallback(async (address: string) => {
       let coordinates: { lat: number; lng: number; };
+      let nearbyPlaces: NearbyPlace[];
       
       toast({ title: "Creando propiedad...", description: "Generando detalles con IA." });
 
       try {
         coordinates = await geocodeAddress(address);
+        nearbyPlaces = await generateNearbyPlaces(coordinates.lat, coordinates.lng);
       } catch (error) {
-          console.error("AI service failed (geocode), aborting.", error);
-          toast({ title: "Error de Geolocalización", description: "No se pudo encontrar la dirección. Por favor, inténtalo con una dirección más específica.", variant: "destructive" });
+          console.error("AI service failed (geocode or nearby), aborting.", error);
+          toast({ title: "Error de IA", description: `No se pudo procesar la dirección: ${error instanceof Error ? error.message : 'Error desconocido'}`, variant: "destructive" });
           throw error; // Propagate error to stop execution in NewPropertyModal
       }
 
-      const newProp = createNewProperty(address, coordinates);
+      const newProp = createNewProperty(address, coordinates, nearbyPlaces);
       setProperties(prev => [...prev, newProp]);
       setSelectedPropertyId(newProp.id);
       setIsNewPropertyModalOpen(false);

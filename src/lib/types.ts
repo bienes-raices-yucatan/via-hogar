@@ -99,7 +99,7 @@ export interface LocationSectionData extends PageSection {
     lat: number; // Represents geographic latitude
     lng: number; // Represents geographic longitude
   };
-  nearbyPlaces: []; // Removed functionality
+  nearbyPlaces: NearbyPlace[];
 }
 
 // Data for a single amenity item in the Amenities section
