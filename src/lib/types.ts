@@ -99,7 +99,7 @@ export interface LocationSectionData extends PageSection {
     lat: number; // Represents geographic latitude
     lng: number; // Represents geographic longitude
   };
-  nearbyPlaces: NearbyPlace[];
+  nearbyPlaces?: NearbyPlace[];
 }
 
 // Data for a single amenity item in the Amenities section
@@ -182,3 +182,5 @@ export interface ContactSubmission {
     userType: 'buyer' | 'broker';
     submittedAt: string;
 }
+
+    

@@ -206,12 +206,9 @@ export default function Home() {
     
     const locationSection = selectedProperty.sections.find(s => s.type === 'location') as LocationSectionData | undefined;
     const coordinates = locationSection?.coordinates || { lat: 19.4326, lng: -99.1332 };
-    const nearbyPlaces = locationSection?.nearbyPlaces || [];
-
-
+    
     const newSection = createSectionData(type, uniqueSuffix, {
       coordinates: coordinates,
-      nearbyPlaces: nearbyPlaces,
     });
 
     const newSections = [...selectedProperty.sections];
@@ -247,30 +244,12 @@ export default function Home() {
     const handleUpdateAddress = useCallback(async (newAddress: string) => {
         if (!selectedProperty) return;
         
-        toast({ title: "Actualizando ubicación...", description: "Geolocalizando la nueva dirección." });
+        toast({ title: "Actualizando dirección...", description: "Cambiando la dirección de la propiedad." });
         
-        try {
-            const newCoords = await geocodeAddress(newAddress);
-            const newNearbyPlaces = await generateNearbyPlaces(newCoords.lat, newCoords.lng);
-            
-            // Find the location section and update its coordinates
-            const newSections = selectedProperty.sections.map(section => {
-                if (section.type === 'location') {
-                    return { ...section, coordinates: newCoords, nearbyPlaces: newNearbyPlaces };
-                }
-                return section;
-            });
-
-            // Update the property with the new address and sections
-            const updatedProperty = { ...selectedProperty, address: newAddress, sections: newSections };
-            handleUpdateProperty(updatedProperty);
-            
-            toast({ title: "¡Ubicación actualizada!", description: "El mapa ahora muestra la nueva dirección.", variant: "default" });
-
-        } catch (error) {
-            console.error("Failed to geocode address:", error);
-            toast({ title: "Error al actualizar", description: "No se pudo encontrar la dirección. Inténtalo de nuevo.", variant: "destructive" });
-        }
+        const updatedProperty = { ...selectedProperty, address: newAddress };
+        handleUpdateProperty(updatedProperty);
+        
+        toast({ title: "¡Dirección actualizada!", description: "La dirección ha sido cambiada.", variant: "default" });
 
     }, [selectedProperty, handleUpdateProperty, toast]);
 
@@ -280,22 +259,9 @@ export default function Home() {
       setIsNewPropertyModalOpen(true);
   };
   
-  const handleCreateProperty = useCallback(async (address: string) => {
-      let coordinates: { lat: number; lng: number; };
-      let nearbyPlaces: NearbyPlace[];
-      
-      toast({ title: "Creando propiedad...", description: "Generando detalles con IA." });
-
-      try {
-        coordinates = await geocodeAddress(address);
-        nearbyPlaces = await generateNearbyPlaces(coordinates.lat, coordinates.lng);
-      } catch (error) {
-          console.error("AI service failed (geocode or nearby), aborting.", error);
-          toast({ title: "Error de IA", description: `No se pudo procesar la dirección: ${error instanceof Error ? error.message : 'Error desconocido'}`, variant: "destructive" });
-          throw error; // Propagate error to stop execution in NewPropertyModal
-      }
-
-      const newProp = createNewProperty(address, coordinates, nearbyPlaces);
+  const handleCreateProperty = useCallback(async (address: string, coordinates: { lat: number, lng: number }) => {
+      toast({ title: "Creando propiedad...", description: "Generando detalles." });
+      const newProp = createNewProperty(address, coordinates);
       setProperties(prev => [...prev, newProp]);
       setSelectedPropertyId(newProp.id);
       setIsNewPropertyModalOpen(false);
@@ -475,8 +441,8 @@ export default function Home() {
             case 'location':
                 if (elementKey === 'title') data = section.title;
                 if (elementKey === 'nearbyPlaces') {
-                    data = section.nearbyPlaces.find(p => p.id === subElementId);
-                    if (data) return { type: 'nearbyPlace', data };
+                    const place = section.nearbyPlaces?.find(p => p.id === subElementId);
+                    if (place) return { type: 'nearbyPlace', data: place };
                 }
                 break;
             case 'contact':
@@ -556,7 +522,7 @@ export default function Home() {
 
     } else if (subElementId && (sectionToUpdate as any)[elementKey]) {
         // Update a specific item in an array (e.g., an amenity, a feature object)
-        const array = (sectionToUpdate as any)[elementKey];
+        const array = (sectionToUpdate as any)[elementKey] as any[];
         const itemIndex = array.findIndex((item: any) => item.id === subElementId);
         if (itemIndex > -1) {
             array[itemIndex] = { ...array[itemIndex], ...processedChanges };
@@ -679,3 +645,5 @@ export default function Home() {
     </div>
   );
 };
+
+    

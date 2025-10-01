@@ -147,24 +147,27 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
                 </div>
             )}
             
-            <h3 className="text-xl font-bold mb-4 text-foreground">Puntos de Interés</h3>
-             <div className="space-y-4">
-                {data.nearbyPlaces.map(place => (
-                    <NearbyPlaceItem 
-                        key={place.id}
-                        place={place}
-                        isAdminMode={isAdminMode}
-                        isSelected={selectedElement?.elementKey === 'nearbyPlaces' && selectedElement.subElementId === place.id}
-                        onSelect={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'nearbyPlaces', subElementId: place.id })}
-                    />
-                ))}
-                {data.nearbyPlaces.length === 0 && (
-                    <p className="text-sm text-muted-foreground">No se generaron lugares cercanos.</p>
-                )}
-            </div>
+            {(data.nearbyPlaces && data.nearbyPlaces.length > 0) && (
+              <>
+                <h3 className="text-xl font-bold mb-4 text-foreground">Puntos de Interés</h3>
+                 <div className="space-y-4">
+                    {data.nearbyPlaces.map(place => (
+                        <NearbyPlaceItem 
+                            key={place.id}
+                            place={place}
+                            isAdminMode={isAdminMode}
+                            isSelected={selectedElement?.elementKey === 'nearbyPlaces' && selectedElement.subElementId === place.id}
+                            onSelect={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'nearbyPlaces', subElementId: place.id })}
+                        />
+                    ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
     </section>
   );
 };
+
+    

@@ -1,6 +1,6 @@
 
 
-import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission, FeatureItem, AmenitiesSectionData, HeroSectionData, ButtonSectionData } from './types';
+import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission, FeatureItem, AmenitiesSectionData, HeroSectionData, ButtonSectionData, LocationSectionData } from './types';
 
 // Default styled text for titles
 const defaultTitleStyle: Omit<StyledText, 'text'> = {
@@ -38,7 +38,6 @@ export const createSectionData = (
     uniqueSuffix: string,
     options: {
         coordinates?: { lat: number; lng: number };
-        nearbyPlaces?: NearbyPlace[];
     } = {}
 ): AnySectionData => {
     const base = { 
@@ -52,7 +51,7 @@ export const createSectionData = (
             return {
                 ...base,
                 type: 'hero',
-                style: { height: 80 }, // Default height for new hero sections
+                style: { height: 80, borderRadiusBottomLeft: 3, borderRadiusBottomRight: 3 },
                 title: { 
                     id: `title-${uniqueSuffix}`,
                     text: 'Título Impactante de la Propiedad', 
@@ -128,8 +127,8 @@ export const createSectionData = (
                 style: { backgroundColor: '#FFFFFF' },
                 title: getDefaultTitle('Ubicación y Alrededores'),
                 coordinates: options.coordinates || { lat: 19.4326, lng: -99.1332 },
-                nearbyPlaces: options.nearbyPlaces || [],
-            };
+                nearbyPlaces: [],
+            } as LocationSectionData;
         case 'button':
             return {
                 ...base,
@@ -159,11 +158,11 @@ export const INITIAL_PROPERTIES_DATA: Property[] = [];
 export const INITIAL_SUBMISSIONS_DATA: ContactSubmission[] = [];
 
 // Utility function to create a new property object with a unique ID and default content.
-export const createNewProperty = (address: string, coordinates: { lat: number; lng: number }, nearbyPlaces: NearbyPlace[]): Property => {
+export const createNewProperty = (address: string, coordinates: { lat: number; lng: number }): Property => {
     const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
     const uniqueSections = DEFAULT_SECTIONS_FOR_NEW_PROPERTY.map(type => 
-        createSectionData(type, uniqueSuffix, { coordinates, nearbyPlaces })
+        createSectionData(type, uniqueSuffix, { coordinates })
     );
 
     return {
@@ -175,3 +174,5 @@ export const createNewProperty = (address: string, coordinates: { lat: number; l
         sections: uniqueSections,
     };
 };
+
+    

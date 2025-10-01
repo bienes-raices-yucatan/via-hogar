@@ -16,11 +16,13 @@ import Spinner from './spinner';
 
 interface NewPropertyModalProps {
   onClose: () => void;
-  onCreate: (address: string) => Promise<void>;
+  onCreate: (address: string, coordinates: { lat: number; lng: number; }) => Promise<void>;
 }
 
 export const NewPropertyModal: React.FC<NewPropertyModalProps> = ({ onClose, onCreate }) => {
   const [address, setAddress] = useState('');
+  const [lat, setLat] = useState('19.4326'); // Default to Mexico City
+  const [lng, setLng] = useState('-99.1332'); // Default to Mexico City
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -30,10 +32,18 @@ export const NewPropertyModal: React.FC<NewPropertyModalProps> = ({ onClose, onC
       setError('La dirección no puede estar vacía.');
       return;
     }
+    const latNum = parseFloat(lat);
+    const lngNum = parseFloat(lng);
+
+    if (isNaN(latNum) || isNaN(lngNum)) {
+        setError('Las coordenadas deben ser números válidos.');
+        return;
+    }
+
     setError('');
     setIsLoading(true);
     try {
-      await onCreate(address);
+      await onCreate(address, { lat: latNum, lng: lngNum });
       onClose(); // Close on success
     } catch (err) {
       console.error(err);
@@ -46,11 +56,11 @@ export const NewPropertyModal: React.FC<NewPropertyModalProps> = ({ onClose, onC
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Añadir Nueva Propiedad</DialogTitle>
           <DialogDescription>
-            Ingresa la dirección completa de la nueva propiedad. La IA generará los detalles iniciales.
+            Ingresa la dirección y las coordenadas (puedes obtenerlas de Google Maps).
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -65,6 +75,32 @@ export const NewPropertyModal: React.FC<NewPropertyModalProps> = ({ onClose, onC
                 onChange={(e) => setAddress(e.target.value)}
                 className="col-span-3"
                 placeholder="Ej: Av. Reforma 222, CDMX"
+                disabled={isLoading}
+              />
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="lat" className="text-right">
+                Latitud
+              </Label>
+              <Input
+                id="lat"
+                value={lat}
+                onChange={(e) => setLat(e.target.value)}
+                className="col-span-3"
+                placeholder="Ej: 19.4326"
+                disabled={isLoading}
+              />
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="lng" className="text-right">
+                Longitud
+              </Label>
+              <Input
+                id="lng"
+                value={lng}
+                onChange={(e) => setLng(e.target.value)}
+                className="col-span-3"
+                placeholder="Ej: -99.1332"
                 disabled={isLoading}
               />
             </div>
