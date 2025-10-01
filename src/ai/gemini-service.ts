@@ -21,15 +21,19 @@ export async function geocodeAddress(address: string): Promise<GeocodeOutput> {
     input: { schema: z.string() },
     output: { schema: GeocodeSchema },
     prompt: `
-      Eres un experto en geolocalización. Convierte la siguiente dirección en coordenadas geográficas (latitud y longitud) basándote en tu conocimiento del mundo.
+      Eres un asistente experto en geolocalización. Tu tarea es convertir una dirección proporcionada por el usuario en coordenadas geográficas (latitud y longitud).
+      Actúa como si estuvieras introduciendo la dirección en la barra de búsqueda de Google Maps. Utiliza tu conocimiento del mundo para encontrar la ubicación más probable y precisa.
+
       Dirección: "{{prompt}}"
-      Responde únicamente con el objeto JSON que se adhiere al esquema. No incluyas markdown. Si la dirección es ambigua, no se puede encontrar, o no es una dirección válida, DEBES lanzar un error y no devolver ninguna coordenada.
+
+      Tu respuesta DEBE ser únicamente un objeto JSON que se adhiere al esquema de salida. No incluyas markdown, texto introductorio ni explicaciones.
+      Si la dirección es muy ambigua o imposible de localizar, haz tu mejor esfuerzo para inferir la ubicación o, como último recurso, devuelve coordenadas para una ubicación central relevante si es posible (por ejemplo, el centro de una ciudad mencionada). No lances un error a menos que la entrada sea completamente incomprensible.
     `,
   });
 
   const { output } = await geocodePrompt(address);
   if (!output) {
-    throw new Error('No se pudo convertir la dirección a coordenadas.');
+    throw new Error('No se pudo convertir la dirección a coordenadas. Inténtalo de nuevo con una dirección más específica.');
   }
   return output;
 }
