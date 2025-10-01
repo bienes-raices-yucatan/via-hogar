@@ -279,21 +279,29 @@ export default function Home() {
   };
   
   const handleCreateProperty = useCallback(async (address: string) => {
-      let coordinates = { lat: 19.4326, lng: -99.1332 };
+      let coordinates: { lat: number; lng: number; };
       let nearbyPlaces: NearbyPlace[] = [];
+      
+      toast({ title: "Creando propiedad...", description: "Generando detalles con IA." });
 
       try {
-        toast({ title: "Creando propiedad...", description: "Generando detalles con IA." });
         coordinates = await geocodeAddress(address);
+      } catch (error) {
+          console.error("AI service failed (geocode), aborting.", error);
+          toast({ title: "Error de Geolocalización", description: "No se pudo encontrar la dirección. Por favor, inténtalo con una dirección más específica.", variant: "destructive" });
+          throw error; // Propagate error to stop execution in NewPropertyModal
+      }
+
+      try {
         const placesResult = await generateNearbyPlaces(coordinates.lat, coordinates.lng);
         nearbyPlaces = placesResult.places.map((place, index) => ({
             id: `nearby-${Date.now()}-${index}`,
-            icon: place.category === 'transport' ? 'bus' : place.category, // Map category to an existing icon
+            icon: place.category === 'transport' ? 'bus' : place.category,
             text: place.description,
         }));
       } catch (error) {
-          console.error("AI service failed, creating property with default data.", error);
-          toast({ title: "Error de IA", description: "No se pudieron generar detalles. Usando datos por defecto.", variant: "destructive" });
+          console.error("AI service failed (nearby places), continuing with default data.", error);
+          toast({ title: "Advertencia de IA", description: "No se pudieron generar lugares cercanos. Podrás añadirlos manualmente.", variant: "default" });
       }
 
       const newProp = createNewProperty(address, coordinates, nearbyPlaces);
@@ -610,7 +618,7 @@ export default function Home() {
   }, [isAdminMode, isDraggingMode, selectedElement, handleUpdateSection, handleDeleteSection, handleContactSubmit, selectedProperty?.address, handleUpdateAddress]);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-background">
         <Header 
             isAdminMode={isAdminMode} 
             setIsAdminMode={setIsAdminMode}
