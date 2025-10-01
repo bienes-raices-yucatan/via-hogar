@@ -203,8 +203,8 @@ export default function Home() {
     const uniqueSuffix = `${Date.now()}`;
     
     // Simulate placeholder data for now
-    const coordinates = { lat: 19.4326, lng: -99.1332 };
-    const nearbyPlaces: NearbyPlace[] = [];
+    const coordinates = selectedProperty.sections.find(s => s.type === 'location')?.coordinates || { lat: 19.4326, lng: -99.1332 };
+    const nearbyPlaces: NearbyPlace[] = selectedProperty.sections.find(s => s.type === 'location')?.nearbyPlaces || [];
 
     const newSection = createSectionData(type, uniqueSuffix, {
       coordinates: coordinates,
@@ -298,7 +298,7 @@ export default function Home() {
       setProperties(prev => [...prev, newProp]);
       setSelectedPropertyId(newProp.id);
       setIsNewPropertyModalOpen(false);
-  }, []);
+  }, [toast]);
 
   
   const handleDeleteProperty = (id: string) => {
@@ -559,7 +559,7 @@ export default function Home() {
   };
 
   // --- Render Logic ---
-  const renderSection = (section: AnySectionData, index: number) => {
+  const renderSection = useCallback((section: AnySectionData) => {
     const commonProps = {
       key: section.id,
       onDelete: handleDeleteSection,
@@ -585,9 +585,10 @@ export default function Home() {
           return <PricingSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
       default:
         const _exhaustiveCheck: never = section;
+        console.warn("Unknown section type, cannot render:", section);
         return null;
     }
-  };
+  }, [isAdminMode, isDraggingMode, selectedElement, handleUpdateSection, handleDeleteSection, handleContactSubmit, selectedProperty?.address, handleUpdateAddress]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -607,7 +608,7 @@ export default function Home() {
                     {isAdminMode && <AddSectionControl index={0} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
                     {selectedProperty.sections.map((section, index) => (
                         <React.Fragment key={section.id}>
-                            {renderSection(section, index)}
+                            {renderSection(section)}
                             {isAdminMode && <AddSectionControl index={index + 1} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
                         </React.Fragment>
                     ))}
