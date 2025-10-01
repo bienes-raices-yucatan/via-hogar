@@ -176,8 +176,8 @@ export default function Home() {
     const handleClickOutside = (event: MouseEvent) => {
         if (isAdminMode && selectedElement) {
             const target = event.target as HTMLElement;
-            // The fixed toolbar has a class 'fixed'
-            if (!target.closest('[class*="outline-dashed"], [class*="ring-primary"], [class*="brightness-90"], [data-radix-popper-content-wrapper], .fixed')) {
+            // Check for a custom attribute on the toolbar, or if it's inside a popper
+            if (!target.closest('[data-editing-toolbar="true"], [data-radix-popper-content-wrapper]')) {
                  setSelectedElement(null);
             }
         }
@@ -273,15 +273,33 @@ export default function Home() {
 
   // --- Property Management Handlers ---
   const handleAddProperty = () => {
-      const address = "Dirección no especificada";
-      const coordinates = { lat: 19.4326, lng: -99.1332 }; // Default coords
-      const nearbyPlaces: NearbyPlace[] = []; // Empty for now
+      setIsNewPropertyModalOpen(true);
+  };
+  
+  const handleCreateProperty = useCallback(async (address: string) => {
+      let coordinates = { lat: 19.4326, lng: -99.1332 };
+      let nearbyPlaces: NearbyPlace[] = [];
+
+      try {
+        toast({ title: "Creando propiedad...", description: "Generando detalles con IA." });
+        coordinates = await geocodeAddress(address);
+        const placesResult = await generateNearbyPlaces(coordinates.lat, coordinates.lng);
+        nearbyPlaces = placesResult.places.map((place, index) => ({
+            id: `nearby-${Date.now()}-${index}`,
+            icon: place.category === 'transport' ? 'bus' : place.category, // Map category to an existing icon
+            text: place.description,
+        }));
+      } catch (error) {
+          console.error("AI service failed, creating property with default data.", error);
+          toast({ title: "Error de IA", description: "No se pudieron generar detalles. Usando datos por defecto.", variant: "destructive" });
+      }
 
       const newProp = createNewProperty(address, coordinates, nearbyPlaces);
-      newProp.name = "Nueva Propiedad";
       setProperties(prev => [...prev, newProp]);
-      setSelectedPropertyId(newProp.id); // Navigate to the new property
-  };
+      setSelectedPropertyId(newProp.id);
+      setIsNewPropertyModalOpen(false);
+  }, []);
+
   
   const handleDeleteProperty = (id: string) => {
      setConfirmationModalState({
@@ -586,13 +604,13 @@ export default function Home() {
         <main className="flex-grow">
             {selectedProperty ? (
             <div>
-                {isAdminMode && <AddSectionControl index={0} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
                 {selectedProperty.sections.map((section, index) => (
-                    <div key={section.id}>
+                    <React.Fragment key={section.id}>
+                        {isAdminMode && <AddSectionControl index={index} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
                         {renderSection(section, index)}
-                        {isAdminMode && <AddSectionControl index={index + 1} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
-                    </div>
+                    </React.Fragment>
                 ))}
+                {isAdminMode && <AddSectionControl index={selectedProperty.sections.length} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
             </div>
             ) : (
             <PropertyList
@@ -609,9 +627,7 @@ export default function Home() {
         <Footer onAdminLoginClick={() => setIsAdminLoginModalOpen(true)} />
 
         {/* --- Modals --- */}
-        {isNewPropertyModalOpen && <NewPropertyModal onClose={() => setIsNewPropertyModalOpen(false)} onCreate={() => {
-            setIsNewPropertyModalOpen(false);
-        }} />}
+        {isNewPropertyModalOpen && <NewPropertyModal onClose={() => setIsNewPropertyModalOpen(false)} onCreate={handleCreateProperty} />}
         {isAdminLoginModalOpen && <AdminLoginModal onClose={() => setIsAdminLoginModalOpen(false)} onLogin={handleAdminLogin} />}
         {isAddSectionModalOpen.open && <AddSectionModal onClose={() => setIsAddSectionModalOpen({ open: false, index: 0 })} onSelect={(type) => handleAddSection(type, isAddSectionModalOpen.index)} />}
         {isSubmissionsModalOpen && <SubmissionsModal isOpen={isSubmissionsModalOpen} onClose={() => setIsSubmissionsModalOpen(false)} submissions={getSubmissionsForCurrentProperty()} />}
@@ -644,5 +660,3 @@ export default function Home() {
     </div>
   );
 };
-
-    
