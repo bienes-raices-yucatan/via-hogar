@@ -35,7 +35,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   };
   
   const sectionStyle: React.CSSProperties = {
-    height: data.style?.height ? `${data.style.height}vh` : undefined,
+    height: data.style?.height ? `${data.style.height}vh` : '80vh',
+    minHeight: '400px', // Ensure a minimum height
     borderRadius: `${data.style?.borderRadiusTopLeft || 0}rem ${data.style?.borderRadiusTopRight || 0}rem ${data.style?.borderRadiusBottomRight || 0}rem ${data.style?.borderRadiusBottomLeft || 0}rem`,
     overflow: 'hidden',
   };
@@ -85,5 +86,3 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     </section>
   );
 };
-
-    

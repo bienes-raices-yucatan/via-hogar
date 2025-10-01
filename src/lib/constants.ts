@@ -52,6 +52,7 @@ export const createSectionData = (
             return {
                 ...base,
                 type: 'hero',
+                style: { height: 80 }, // Default height for new hero sections
                 title: { 
                     id: `title-${uniqueSuffix}`,
                     text: 'Título Impactante de la Propiedad', 
@@ -63,7 +64,6 @@ export const createSectionData = (
                     fontWeight: 'bold'
                 },
                 backgroundImageUrl: 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-                floatingTexts: [],
             } as HeroSectionData;
         case 'imageWithFeatures':
              const defaultFeatures: FeatureItem[] = [
