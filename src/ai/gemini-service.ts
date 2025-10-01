@@ -21,9 +21,9 @@ export async function geocodeAddress(address: string): Promise<GeocodeOutput> {
     input: { schema: z.string() },
     output: { schema: GeocodeSchema },
     prompt: `
-      Convierte la siguiente dirección en coordenadas geográficas (latitud y longitud).
+      Eres un experto en geolocalización. Convierte la siguiente dirección en coordenadas geográficas (latitud y longitud) basándote en tu conocimiento del mundo.
       Dirección: "{{prompt}}"
-      Responde únicamente con el objeto JSON que se adhiere al esquema. No incluyas markdown. Si la dirección es ambigua o no se puede encontrar, devuelve la ubicación de Ciudad de México (lat: 19.4326, lng: -99.1332).
+      Responde únicamente con el objeto JSON que se adhiere al esquema. No incluyas markdown. Si la dirección es ambigua o no se puede encontrar, devuelve la ubicación de la Ciudad de México (lat: 19.4326, lng: -99.1332).
     `,
   });
 

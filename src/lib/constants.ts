@@ -1,5 +1,6 @@
 
-import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission, FeatureItem, AmenitiesSectionData } from './types';
+
+import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission, FeatureItem, AmenitiesSectionData, HeroSectionData } from './types';
 
 // Default styled text for titles
 const defaultTitleStyle: Omit<StyledText, 'text'> = {
@@ -63,7 +64,7 @@ export const createSectionData = (
                 },
                 backgroundImageUrl: 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
                 floatingTexts: [],
-            };
+            } as HeroSectionData;
         case 'imageWithFeatures':
              const defaultFeatures: FeatureItem[] = [
                 { id: `feat-1-${uniqueSuffix}`, icon: 'bed', title: { text: '3 Dormitorios', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left', fontWeight: 'bold' }, description: { text: 'Todos con su propio baño y guardarropa.', fontSize: 1, color: '#475569', fontFamily: 'Poppins', textAlign: 'left', fontWeight: 'normal' } },

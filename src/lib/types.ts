@@ -1,4 +1,5 @@
 
+
 // A type for the icon names available in the Icon component
 export type IconName = 'bed' | 'bath' | 'area' | 'map-pin' | 'school' | 'store' | 'bus' | 'sparkles' | 'x-mark' | 'chevron-down' | 'plus' | 'pencil' | 'trash' | 'nearby' | 'logo' | 'drag-handle' | 'chevron-left' | 'chevron-right' | 'copyright' | 'solar-panel' | 'parking' | 'laundry' | 'pool' | 'generic-feature' | 'street-view' | 'gym' | 'park' | 'whatsapp' | 'arrows-move' | 'check' | 'list' | 'camera' | 'upload' | 'download';
 
@@ -39,7 +40,6 @@ export interface PageSection {
   id: string;
   type: 'hero' | 'imageWithFeatures' | 'gallery' | 'location' | 'amenities' | 'contact' | 'pricing';
   style?: PageSectionStyle;
-  floatingTexts?: DraggableTextData[];
 }
 
 // Data for the Hero (main banner) section
@@ -47,6 +47,7 @@ export interface HeroSectionData extends PageSection {
   type: 'hero';
   title: DraggableTextData;
   backgroundImageUrl: string;
+  floatingTexts?: DraggableTextData[];
 }
 
 // Data for a single feature item (e.g., '3 Bedrooms', 'Solar Panels')
@@ -108,6 +109,13 @@ export interface AmenityItem {
   text: string;
   icon: IconName;
   imageUrl?: string;
+}
+
+// Data for the amenities section
+export interface AmenitiesSectionData extends PageSection {
+  type: 'amenities';
+  title?: StyledText;
+  amenities: AmenityItem[];
 }
 
 // Data for the contact section
