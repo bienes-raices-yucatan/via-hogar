@@ -38,43 +38,6 @@ export async function geocodeAddress(address: string): Promise<GeocodeOutput> {
   return output;
 }
 
-// --- Nearby Places ---
-
-const NearbyPlaceSchema = z.object({
-  description: z.string(),
-  category: z.enum(['supermarket', 'gym', 'school', 'park', 'transport', 'store', 'restaurant', 'hospital', 'generic']),
-});
-
-const NearbyPlacesSchema = z.object({
-  places: z.array(NearbyPlaceSchema),
-});
-type NearbyPlacesOutput = z.infer<typeof NearbyPlacesSchema>;
-
-export async function generateNearbyPlaces(lat: number, lng: number): Promise<NearbyPlacesOutput> {
-  const nearbyPlacesPrompt = ai.definePrompt({
-    name: 'nearbyPlacesPrompt',
-    input: { schema: z.object({ lat: z.number(), lng: z.number() }) },
-    output: { schema: NearbyPlacesSchema },
-    prompt: `
-      Eres un experto agente inmobiliario local. Utilizando tus herramientas de búsqueda, identifica entre 5 y 7 puntos de interés reales y verificables cercanos a las coordenadas geográficas: latitud {{lat}}, longitud {{lng}}.
-      Concéntrate en servicios importantes: supermercados, gimnasios, escuelas, parques, transporte público y tiendas.
-      Para cada lugar, proporciona una descripción muy concisa que incluya solo el nombre del lugar y el tiempo de viaje o la distancia. Por ejemplo: "Supermercado Chedraui - 5 min en coche", "Parque La Mexicana - 800m". No añadas texto de marketing.
-
-      Tu respuesta DEBE ser únicamente un objeto JSON válido con el formato especificado.
-      No incluyas markdown (como \`\`\`json), comentarios, ni ningún otro texto fuera del objeto JSON.
-      Si no puedes encontrar ningún lugar relevante, devuelve un objeto JSON con una lista de "places" vacía. No respondas con texto explicativo ni disculpas, solo con el JSON.
-    `,
-    config: {
-      // tools: [{ googleSearch: {} }], // This would require a tool definition, let's rely on model knowledge for now
-    }
-  });
-
-  const { output } = await nearbyPlacesPrompt({ lat, lng });
-  if (!output) {
-    throw new Error('No se pudieron generar los puntos de interés cercanos.');
-  }
-  return output;
-}
 
 // --- Image Enhancement ---
 

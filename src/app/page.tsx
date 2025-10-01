@@ -38,7 +38,7 @@ import {
 } from '@/lib/constants';
 
 // Import services
-import { geocodeAddress, generateNearbyPlaces } from '@/ai/gemini-service';
+import { geocodeAddress } from '@/ai/gemini-service';
 import { initDB, saveImage, exportData, importData } from '@/lib/storage';
 
 // Import all components
@@ -206,11 +206,9 @@ export default function Home() {
     
     const locationSection = selectedProperty.sections.find(s => s.type === 'location') as LocationSectionData | undefined;
     const coordinates = locationSection?.coordinates || { lat: 19.4326, lng: -99.1332 };
-    const nearbyPlaces = locationSection?.nearbyPlaces || [];
 
     const newSection = createSectionData(type, uniqueSuffix, {
       coordinates: coordinates,
-      nearbyPlaces: nearbyPlaces,
     });
 
     const newSections = [...selectedProperty.sections];
@@ -280,7 +278,6 @@ export default function Home() {
   
   const handleCreateProperty = useCallback(async (address: string) => {
       let coordinates: { lat: number; lng: number; };
-      let nearbyPlaces: NearbyPlace[] = [];
       
       toast({ title: "Creando propiedad...", description: "Generando detalles con IA." });
 
@@ -292,19 +289,7 @@ export default function Home() {
           throw error; // Propagate error to stop execution in NewPropertyModal
       }
 
-      try {
-        const placesResult = await generateNearbyPlaces(coordinates.lat, coordinates.lng);
-        nearbyPlaces = placesResult.places.map((place, index) => ({
-            id: `nearby-${Date.now()}-${index}`,
-            icon: place.category === 'transport' ? 'bus' : place.category,
-            text: place.description,
-        }));
-      } catch (error) {
-          console.error("AI service failed (nearby places), continuing with default data.", error);
-          toast({ title: "Advertencia de IA", description: "No se pudieron generar lugares cercanos. Podrás añadirlos manualmente.", variant: "default" });
-      }
-
-      const newProp = createNewProperty(address, coordinates, nearbyPlaces);
+      const newProp = createNewProperty(address, coordinates);
       setProperties(prev => [...prev, newProp]);
       setSelectedPropertyId(newProp.id);
       setIsNewPropertyModalOpen(false);
