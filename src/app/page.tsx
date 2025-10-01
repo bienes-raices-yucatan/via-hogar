@@ -14,6 +14,7 @@ import {
     ContactSectionData,
     LocationSectionData,
     PricingSectionData,
+    ButtonSectionData,
     NearbyPlace,
     ContactSubmission,
     SelectedElement,
@@ -53,6 +54,7 @@ import { AmenitiesSection } from '@/components/sections/amenities-section';
 import { ContactSection } from '@/components/sections/contact-section';
 import { LocationSection } from '@/components/sections/location-section';
 import { PricingSection } from '@/components/sections/pricing-section';
+import { ButtonSection } from '@/components/sections/button-section';
 import { AddSectionControl } from '@/components/add-section-control';
 import { AddSectionModal } from '@/components/add-section-modal';
 import { AdminToolbar } from '@/components/admin-toolbar';
@@ -65,8 +67,8 @@ import { useToast } from '@/hooks/use-toast';
 
 // Type for the state that tracks the currently selected element for editing
 type SelectedElementForToolbar = {
-    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier' | 'nearbyPlace';
-    data: Partial<StyledText & DraggableTextData & PageSectionStyle & AmenityItem & FeatureItem & PricingTier & NearbyPlace>;
+    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier' | 'nearbyPlace' | 'button';
+    data: Partial<StyledText & DraggableTextData & PageSectionStyle & AmenityItem & FeatureItem & PricingTier & NearbyPlace & ButtonSectionData>;
 };
 
 export default function Home() {
@@ -202,9 +204,9 @@ export default function Home() {
     if (!selectedProperty) return;
     const uniqueSuffix = `${Date.now()}`;
     
-    // Simulate placeholder data for now
-    const coordinates = selectedProperty.sections.find(s => s.type === 'location')?.coordinates || { lat: 19.4326, lng: -99.1332 };
-    const nearbyPlaces: NearbyPlace[] = selectedProperty.sections.find(s => s.type === 'location')?.nearbyPlaces || [];
+    const locationSection = selectedProperty.sections.find(s => s.type === 'location') as LocationSectionData | undefined;
+    const coordinates = locationSection?.coordinates || { lat: 19.4326, lng: -99.1332 };
+    const nearbyPlaces = locationSection?.nearbyPlaces || [];
 
     const newSection = createSectionData(type, uniqueSuffix, {
       coordinates: coordinates,
@@ -432,39 +434,61 @@ export default function Home() {
         
         let data: any;
 
-        switch(elementKey) {
-            case 'floatingTexts':
-                data = (section as HeroSectionData)?.floatingTexts?.find(t => t.id === subElementId);
+        switch(section.type) {
+            case 'hero':
+                if (elementKey === 'title') {
+                    data = section.title;
+                }
                 break;
-            case 'title':
-            case 'subtitle':
-                data = (section as any)[elementKey];
-                break;
-            case 'amenities':
-                data = (section as AmenitiesSectionData)?.amenities?.find(a => a.id === subElementId);
-                if (data) return { type: 'amenity', data };
-                break;
-            case 'features':
-                const feature = (section as ImageWithFeaturesSectionData)?.features?.find(f => f.id === subElementId);
-                if (feature) {
-                    if (property === 'title' || property === 'description') {
-                        data = feature[property];
-                    } else {
-                        return { type: 'feature', data: feature };
+            case 'imageWithFeatures':
+                if (elementKey === 'title') data = section.title;
+                if (elementKey === 'features') {
+                     const feature = section.features.find(f => f.id === subElementId);
+                     if (feature) {
+                        if (property === 'title' || property === 'description') {
+                            data = feature[property];
+                        } else {
+                            return { type: 'feature', data: feature };
+                        }
                     }
                 }
                 break;
-            case 'tier':
-                 const tier = (section as PricingSectionData)?.tier;
-                if (subElementId === tier.id && property && (property === 'title' || property === 'price' || property === 'oldPrice' || property === 'currency' || property === 'description')) {
-                    data = tier[property];
-                } else {
-                     return { type: 'pricingTier', data: tier };
+            case 'gallery':
+                 if (elementKey === 'title') data = section.title;
+                 break;
+            case 'amenities':
+                 if (elementKey === 'title') data = section.title;
+                 if (elementKey === 'amenities') {
+                     data = section.amenities.find(a => a.id === subElementId);
+                     if (data) return { type: 'amenity', data };
+                 }
+                 break;
+            case 'pricing':
+                if (elementKey === 'tier') {
+                    const tier = section.tier;
+                    if (subElementId === tier.id && property && (property === 'title' || property === 'price' || property === 'oldPrice' || property === 'currency' || property === 'description')) {
+                        data = tier[property];
+                    } else {
+                        return { type: 'pricingTier', data: tier };
+                    }
                 }
                 break;
-            case 'nearbyPlaces':
-                data = (section as LocationSectionData)?.nearbyPlaces?.find(p => p.id === subElementId);
-                if (data) return { type: 'nearbyPlace', data };
+            case 'location':
+                if (elementKey === 'title') data = section.title;
+                if (elementKey === 'nearbyPlaces') {
+                    data = section.nearbyPlaces.find(p => p.id === subElementId);
+                    if (data) return { type: 'nearbyPlace', data };
+                }
+                break;
+            case 'contact':
+                if (elementKey === 'title' || elementKey === 'subtitle') {
+                    data = section[elementKey];
+                }
+                break;
+            case 'button':
+                if (elementKey === 'text' || elementKey === 'alignment') {
+                    return { type: 'button', data: section };
+                }
                 break;
         }
         
@@ -503,20 +527,13 @@ export default function Home() {
     const newSections = [...selectedProperty.sections];
     let sectionToUpdate: AnySectionData = JSON.parse(JSON.stringify(newSections[sectionIndex]));
 
-    const updateNestedObject = (obj: any, keys: (string | number)[], value: any): any => {
-      let current = obj;
-      for (let i = 0; i < keys.length - 1; i++) {
-        current = current[keys[i]];
-      }
-      current[keys[keys.length - 1]] = { ...current[keys[keys.length - 1]], ...value };
-      return obj;
-    };
-
     if (elementKey === 'style') {
         sectionToUpdate.style = { ...sectionToUpdate.style, ...processedChanges };
         if (processedChanges.backgroundImageUrl !== undefined) {
              (sectionToUpdate as any).backgroundImageUrl = processedChanges.backgroundImageUrl;
         }
+    } else if (sectionToUpdate.type === 'button') {
+        sectionToUpdate = { ...sectionToUpdate, ...processedChanges };
     } else if (subElementId && property && (sectionToUpdate as any)[elementKey]) {
         // Deeply nested update (e.g., feature title, pricing tier price)
         const array = (sectionToUpdate as any)[elementKey];
@@ -583,6 +600,8 @@ export default function Home() {
           return <LocationSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} propertyAddress={selectedProperty?.address || ''} onUpdateAddress={handleUpdateAddress} />;
       case 'pricing':
           return <PricingSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
+      case 'button':
+          return <ButtonSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
       default:
         const _exhaustiveCheck: never = section;
         console.warn("Unknown section type, cannot render:", section);

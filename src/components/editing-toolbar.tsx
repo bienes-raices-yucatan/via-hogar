@@ -8,17 +8,17 @@ import { Slider } from './ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Icon } from './icon';
-import { FontFamily, IconName, TextAlign, StyledText, DraggableTextData, FeatureItem, FontWeight, PageSectionStyle, AmenityItem, PricingTier, NearbyPlace } from '@/lib/types';
+import { FontFamily, IconName, TextAlign, StyledText, DraggableTextData, FeatureItem, FontWeight, PageSectionStyle, AmenityItem, PricingTier, NearbyPlace, ButtonSectionData } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { AlignCenter, AlignLeft, AlignRight, Bold, Italic } from 'lucide-react';
 
-const allIcons: IconName[] = ['bed' , 'bath' , 'area' , 'map-pin' , 'school' , 'store' , 'bus' , 'sparkles' , 'x-mark' , 'chevron-down' , 'plus' , 'pencil' , 'trash' , 'nearby' , 'logo' , 'drag-handle' , 'chevron-left' , 'chevron-right' , 'copyright' , 'solar-panel' , 'parking' , 'laundry' , 'pool' , 'generic-feature' , 'street-view' , 'gym' , 'park' , 'whatsapp' , 'arrows-move' , 'check' , 'list', 'camera', 'upload', 'download'];
+const allIcons: IconName[] = ['bed' , 'bath' , 'area' , 'map-pin' , 'school' , 'store' , 'bus' , 'sparkles' , 'x-mark' , 'chevron-down' , 'plus' , 'pencil' , 'trash' , 'nearby' , 'logo' , 'drag-handle' , 'chevron-left' , 'chevron-right' , 'copyright' , 'solar-panel' , 'parking' , 'laundry' , 'pool' , 'generic-feature' , 'street-view' , 'gym' , 'park' , 'whatsapp' , 'arrows-move' , 'check' , 'list', 'camera', 'upload', 'download', 'message-circle'];
 
 // Type definitions for what the toolbar can edit
 type EditableElement = {
-    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier' | 'nearbyPlace';
+    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier' | 'nearbyPlace' | 'button';
     data: any;
 };
 
@@ -283,6 +283,36 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         </>
     );
 
+    const renderButtonControls = (data: ButtonSectionData) => (
+        <>
+            <div className="space-y-2">
+                <Label>Texto del Botón</Label>
+                <Input value={data.text} onChange={(e) => onUpdate({ text: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+                <Label>Alineación</Label>
+                <ToggleGroup 
+                    type="single" 
+                    defaultValue={data.alignment || 'center'}
+                    onValueChange={(value: 'left' | 'center' | 'right') => {
+                        if (value) onUpdate({ alignment: value });
+                    }}
+                    className="w-full grid grid-cols-3"
+                >
+                    <ToggleGroupItem value="left" aria-label="Alinear a la izquierda">
+                        <AlignLeft className="h-4 w-4" />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="center" aria-label="Alinear al centro">
+                        <AlignCenter className="h-4 w-4" />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="right" aria-label="Alinear a la derecha">
+                        <AlignRight className="h-4 w-4" />
+                    </ToggleGroupItem>
+                </ToggleGroup>
+            </div>
+        </>
+    );
+
     const renderControls = () => {
         switch (element.type) {
             case 'styledText':
@@ -298,6 +328,8 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 return renderPricingTierControls(values);
             case 'nearbyPlace':
                 return renderNearbyPlaceControls(values);
+            case 'button':
+                return renderButtonControls(values);
             default:
                 return <p className="text-sm text-muted-foreground">No hay opciones de edición para este elemento.</p>;
         }

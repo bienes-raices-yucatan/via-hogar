@@ -1,6 +1,6 @@
 
 
-import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission, FeatureItem, AmenitiesSectionData, HeroSectionData } from './types';
+import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission, FeatureItem, AmenitiesSectionData, HeroSectionData, ButtonSectionData } from './types';
 
 // Default styled text for titles
 const defaultTitleStyle: Omit<StyledText, 'text'> = {
@@ -130,6 +130,14 @@ export const createSectionData = (
                 coordinates: options.coordinates || { lat: 19.4326, lng: -99.1332 },
                 nearbyPlaces: options.nearbyPlaces || [],
             };
+        case 'button':
+            return {
+                ...base,
+                type: 'button',
+                style: { backgroundColor: '#FFFFFF' },
+                text: 'Contáctanos',
+                alignment: 'center',
+            } as ButtonSectionData;
         default:
             const _exhaustiveCheck: never = type;
             throw new Error(`Unknown section type: ${type}`);

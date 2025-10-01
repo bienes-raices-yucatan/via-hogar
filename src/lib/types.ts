@@ -1,7 +1,7 @@
 
 
 // A type for the icon names available in the Icon component
-export type IconName = 'bed' | 'bath' | 'area' | 'map-pin' | 'school' | 'store' | 'bus' | 'sparkles' | 'x-mark' | 'chevron-down' | 'plus' | 'pencil' | 'trash' | 'nearby' | 'logo' | 'drag-handle' | 'chevron-left' | 'chevron-right' | 'copyright' | 'solar-panel' | 'parking' | 'laundry' | 'pool' | 'generic-feature' | 'street-view' | 'gym' | 'park' | 'whatsapp' | 'arrows-move' | 'check' | 'list' | 'camera' | 'upload' | 'download';
+export type IconName = 'bed' | 'bath' | 'area' | 'map-pin' | 'school' | 'store' | 'bus' | 'sparkles' | 'x-mark' | 'chevron-down' | 'plus' | 'pencil' | 'trash' | 'nearby' | 'logo' | 'drag-handle' | 'chevron-left' | 'chevron-right' | 'copyright' | 'solar-panel' | 'parking' | 'laundry' | 'pool' | 'generic-feature' | 'street-view' | 'gym' | 'park' | 'whatsapp' | 'arrows-move' | 'check' | 'list' | 'camera' | 'upload' | 'download' | 'message-circle';
 
 export type FontFamily = 'Roboto' | 'Montserrat' | 'Lora' | 'Playfair Display' | 'Poppins';
 export type TextAlign = 'left' | 'center' | 'right';
@@ -38,7 +38,7 @@ export interface PageSectionStyle {
 // Base structure for any section on the page
 export interface PageSection {
   id: string;
-  type: 'hero' | 'imageWithFeatures' | 'gallery' | 'location' | 'amenities' | 'contact' | 'pricing';
+  type: 'hero' | 'imageWithFeatures' | 'gallery' | 'location' | 'amenities' | 'contact' | 'pricing' | 'button';
   style?: PageSectionStyle;
 }
 
@@ -47,7 +47,6 @@ export interface HeroSectionData extends PageSection {
   type: 'hero';
   title: DraggableTextData;
   backgroundImageUrl: string;
-  floatingTexts?: DraggableTextData[];
 }
 
 // Data for a single feature item (e.g., '3 Bedrooms', 'Solar Panels')
@@ -145,8 +144,15 @@ export interface PricingSectionData extends PageSection {
     tier: PricingTier;
 }
 
+// Data for the button call-to-action section
+export interface ButtonSectionData extends PageSection {
+    type: 'button';
+    text: string;
+    alignment: 'left' | 'center' | 'right';
+}
+
 // Union type for any possible section
-export type AnySectionData = HeroSectionData | ImageWithFeaturesSectionData | GallerySectionData | LocationSectionData | AmenitiesSectionData | ContactSectionData | PricingSectionData;
+export type AnySectionData = HeroSectionData | ImageWithFeaturesSectionData | GallerySectionData | LocationSectionData | AmenitiesSectionData | ContactSectionData | PricingSectionData | ButtonSectionData;
 
 // Represents a full property listing
 export interface Property {
@@ -163,7 +169,7 @@ export type SelectedElement = {
     sectionId: string;
     elementKey: keyof AnySectionData | 'style' | 'backgroundImageUrl';
     subElementId?: string; // For items within an array (e.g., a specific feature ID)
-    property?: keyof (FeatureItem | PricingTier | StyledText); // For nested properties within an item
+    property?: keyof (FeatureItem | PricingTier | StyledText | ButtonSectionData); // For nested properties within an item
 };
 
 // Data structure for a contact form submission
@@ -176,5 +182,3 @@ export interface ContactSubmission {
     userType: 'buyer' | 'broker';
     submittedAt: string;
 }
-
-    

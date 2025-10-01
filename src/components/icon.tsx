@@ -55,7 +55,8 @@ export const Icon: React.FC<IconProps> = ({ name, className = 'w-6 h-6', strokeW
     list: <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />,
     camera: <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.75a2.25 2.25 0 002.25-2.25v-1.125A12.75 12.75 0 0012 15.75a12.75 12.75 0 00-2.25 2.625v1.125a2.25 2.25 0 002.25 2.25zM12 2.25a2.25 2.25 0 012.25 2.25v1.125A12.75 12.75 0 0112 8.25a12.75 12.75 0 01-2.25-2.625V4.5A2.25 2.25 0 0112 2.25z" />,
     upload: <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />,
-    download: <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+    download: <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />,
+    'message-circle': <path d="M7.9 20.1c-1.3.4-2.7.6-4.2.6-4.5 0-8.2-3.7-8.2-8.2S3.4 4.3 7.9 4.3s8.2 3.7 8.2 8.2c0 2.2-.8 4.2-2.4 5.8l-3.6 2.8z"/>,
   };
 
   const iconSvg = icons[name as IconName];
@@ -64,11 +65,11 @@ export const Icon: React.FC<IconProps> = ({ name, className = 'w-6 h-6', strokeW
     return null; // or a default fallback icon
   }
 
-  if (name === 'logo') {
+  if (name === 'logo' || name === 'whatsapp' || name === 'message-circle') {
       return (
           <svg
               xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 17"
+              viewBox="0 0 24 24"
               className={className}
               aria-hidden="true"
               {...props}

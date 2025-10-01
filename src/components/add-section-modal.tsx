@@ -26,6 +26,7 @@ const sectionOptions: { type: AnySectionData['type']; label: string; description
   { type: 'location', label: 'Ubicación', description: 'Mapa y puntos de interés cercanos.', icon: 'map-pin' },
   { type: 'pricing', label: 'Precios', description: 'Tabla o tarjetas de precios.', icon: 'bath' }, // Using 'bath' as a stand-in for pricing
   { type: 'contact', label: 'Contacto', description: 'Formulario o llamada a la acción de contacto.', icon: 'whatsapp' },
+  { type: 'button', label: 'Botón CTA', description: 'Un botón de llamada a la acción.', icon: 'message-circle' },
 ];
 
 export const AddSectionModal: React.FC<AddSectionModalProps> = ({ onClose, onSelect }) => {
