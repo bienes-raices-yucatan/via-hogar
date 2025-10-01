@@ -1,5 +1,5 @@
 
-import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission, FeatureItem } from './types';
+import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission, FeatureItem, AmenitiesSectionData } from './types';
 
 // Default styled text for titles
 const defaultTitleStyle: Omit<StyledText, 'text'> = {
@@ -43,7 +43,6 @@ export const createSectionData = (
     const base = { 
         id: `${type}-${uniqueSuffix}`, 
         type,
-        floatingTexts: [],
         style: {},
     };
 
@@ -63,6 +62,7 @@ export const createSectionData = (
                     fontWeight: 'bold'
                 },
                 backgroundImageUrl: 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+                floatingTexts: [],
             };
         case 'imageWithFeatures':
              const defaultFeatures: FeatureItem[] = [
@@ -96,7 +96,7 @@ export const createSectionData = (
                 style: { backgroundColor: '#F9FAFB' }, // gray-50
                 title: getDefaultTitle('Amenidades Exclusivas'),
                 amenities: [],
-            };
+            } as AmenitiesSectionData;
         case 'pricing':
             return {
                 ...base,
