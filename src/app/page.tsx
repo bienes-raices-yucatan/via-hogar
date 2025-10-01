@@ -559,7 +559,7 @@ export default function Home() {
   };
 
   // --- Render Logic ---
-  const renderSection = useCallback((section: AnySectionData) => {
+  const renderSection = useCallback((section: AnySectionData, index: number) => {
     const commonProps = {
       key: section.id,
       onDelete: handleDeleteSection,
@@ -570,7 +570,7 @@ export default function Home() {
 
     switch (section.type) {
       case 'hero':
-        return <HeroSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} isDraggingMode={isDraggingMode} />;
+        return <HeroSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} isDraggingMode={isDraggingMode} isFirstSection={index === 0} />;
       case 'imageWithFeatures':
         return <ImageWithFeaturesSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
       case 'gallery':
@@ -578,7 +578,7 @@ export default function Home() {
       case 'amenities':
           return <AmenitiesSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
       case 'contact':
-          return <ContactSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} onSubmit={handleContactSubmit} isDraggingMode={isDraggingMode}/>;
+          return <ContactSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} onSubmit={handleContactSubmit} />;
       case 'location':
           return <LocationSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} propertyAddress={selectedProperty?.address || ''} onUpdateAddress={handleUpdateAddress} />;
       case 'pricing':
@@ -608,7 +608,7 @@ export default function Home() {
                     {isAdminMode && <AddSectionControl index={0} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
                     {selectedProperty.sections.map((section, index) => (
                         <React.Fragment key={section.id}>
-                            {renderSection(section)}
+                            {renderSection(section, index)}
                             {isAdminMode && <AddSectionControl index={index + 1} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
                         </React.Fragment>
                     ))}
@@ -661,5 +661,3 @@ export default function Home() {
     </div>
   );
 };
-
-    

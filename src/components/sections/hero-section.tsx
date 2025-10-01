@@ -17,6 +17,7 @@ interface HeroSectionProps {
   isDraggingMode: boolean;
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
+  isFirstSection: boolean;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
@@ -27,6 +28,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   isDraggingMode,
   selectedElement,
   onSelectElement,
+  isFirstSection,
 }) => {
   const { imageUrl, isLoading } = useImageLoader(data.backgroundImageUrl);
 
@@ -37,7 +39,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   const sectionStyle: React.CSSProperties = {
     height: data.style?.height ? `${data.style.height}vh` : '80vh',
     minHeight: '400px', // Ensure a minimum height
-    borderRadius: `${data.style?.borderRadiusTopLeft || 0}rem ${data.style?.borderRadiusTopRight || 0}rem ${data.style?.borderRadiusBottomRight || 0}rem ${data.style?.borderRadiusBottomLeft || 0}rem`,
+    borderRadius: isFirstSection 
+        ? `0 0 ${data.style?.borderRadiusBottomRight || 0}rem ${data.style?.borderRadiusBottomLeft || 0}rem`
+        : `${data.style?.borderRadiusTopLeft || 0}rem ${data.style?.borderRadiusTopRight || 0}rem ${data.style?.borderRadiusBottomRight || 0}rem ${data.style?.borderRadiusBottomLeft || 0}rem`,
     overflow: 'hidden',
   };
 

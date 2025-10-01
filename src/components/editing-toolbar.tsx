@@ -304,7 +304,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
     };
 
     return (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-80 bg-background border rounded-lg shadow-lg">
+        <div data-editing-toolbar="true" className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-80 bg-background border rounded-lg shadow-lg">
             <div className="flex justify-between items-center p-2 border-b">
                 <span className="text-sm font-medium">Editar Elemento</span>
                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}>
@@ -406,5 +406,3 @@ const IconPicker: React.FC<{ label: string; value: IconName; onChange: (icon: Ic
         </div>
     );
 };
-
-    
