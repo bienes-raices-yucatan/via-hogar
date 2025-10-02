@@ -165,17 +165,17 @@ export const INITIAL_PROPERTIES_DATA: Property[] = [];
 export const INITIAL_SUBMISSIONS_DATA: ContactSubmission[] = [];
 
 // Utility function to create a new property object with a unique ID and default content.
-export const createNewProperty = (lat: number, lng: number): Property => {
+export const createNewProperty = (address: string, coordinates: { lat: number; lng: number }, nearbyPlaces: NearbyPlace[]): Property => {
     const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
     const uniqueSections = DEFAULT_SECTIONS_FOR_NEW_PROPERTY.map(type => 
-        createSectionData(type, uniqueSuffix, { coordinates: {lat, lng} })
+        createSectionData(type, uniqueSuffix, { coordinates, nearbyPlaces })
     );
 
     return {
         id: `prop-${uniqueSuffix}`,
         name: 'Nueva Propiedad',
-        address: "Dirección editable",
+        address: address,
         price: '$5,500,000 MXN',
         mainImageUrl: 'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
         sections: uniqueSections,

@@ -39,7 +39,7 @@ import {
 
 // Import services
 import { initDB, saveImage, exportData, importData } from '@/lib/storage';
-import { geocodeAddress } from '@/ai/gemini-service';
+import { geocodeAddress, generateNearbyPlaces } from '@/ai/gemini-service';
 
 
 // Import all components
@@ -271,13 +271,30 @@ export default function Home() {
       setIsNewPropertyModalOpen(true);
   };
   
-    const handleCreateProperty = useCallback(async (lat: number, lng: number) => {
-      toast({ title: "Creando propiedad...", description: "Generando detalles." });
+    const handleCreateProperty = useCallback(async (address: string, lat: number, lng: number) => {
+      toast({ title: "Creando propiedad...", description: "Generando detalles y lugares cercanos." });
       
-      const newProp = createNewProperty(lat, lng);
-      setProperties(prev => [...prev, newProp]);
-      setSelectedPropertyId(newProp.id);
-      setIsNewPropertyModalOpen(false);
+      try {
+        const nearbyPlaces = await generateNearbyPlaces(lat, lng);
+        const newProp = createNewProperty(address, { lat, lng }, nearbyPlaces);
+        
+        setProperties(prev => [...prev, newProp]);
+        setSelectedPropertyId(newProp.id);
+        setIsNewPropertyModalOpen(false);
+
+      } catch (error) {
+        console.error("Failed to create property with AI features:", error);
+        toast({
+            title: "Error de IA",
+            description: "No se pudieron generar los lugares cercanos. Se creará la propiedad con datos de ejemplo.",
+            variant: "destructive"
+        });
+        // Fallback to creating property without AI-generated places
+        const newProp = createNewProperty(address, { lat, lng }, []);
+        setProperties(prev => [...prev, newProp]);
+        setSelectedPropertyId(newProp.id);
+        setIsNewPropertyModalOpen(false);
+      }
   }, [toast]);
 
   
