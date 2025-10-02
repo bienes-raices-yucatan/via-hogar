@@ -13,13 +13,13 @@ import Image from 'next/image';
 import { useImageLoader } from '@/hooks/use-image-loader';
 
 
-const NearbyPlaceItem: React.FC<{ place: NearbyPlace; isAdminMode: boolean; onSelect: () => void; isSelected: boolean }> = ({ place, isAdminMode, onSelect, isSelected }) => {
+const NearbyPlaceItem: React.FC<{ place: NearbyPlace; isAdminMode: boolean; onSelect: () => void; isSelected: boolean, onDelete: () => void; }> = ({ place, isAdminMode, onSelect, isSelected, onDelete }) => {
     const { imageUrl } = useImageLoader(place.imageUrl);
 
     return (
         <div 
             className={cn(
-                "flex items-center gap-4 p-2 rounded-lg",
+                "flex items-center gap-4 p-2 rounded-lg relative group/item",
                 isAdminMode && "cursor-pointer hover:bg-accent/50",
                 isSelected && "bg-accent/50 ring-2 ring-primary"
             )}
@@ -29,6 +29,21 @@ const NearbyPlaceItem: React.FC<{ place: NearbyPlace; isAdminMode: boolean; onSe
                 {imageUrl ? <Image src={imageUrl} alt={place.text} width={24} height={24} className="object-contain" /> : <Icon name={place.icon} className="w-5 h-5" />}
             </div>
             <p className="text-sm text-foreground">{place.text}</p>
+             {isAdminMode && (
+                <div className="absolute top-0 right-0 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                    <Button 
+                        variant="destructive" 
+                        size="icon" 
+                        className="h-6 w-6" 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete();
+                        }}
+                    >
+                        <Icon name="x-mark" className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
         </div>
     );
 };
@@ -76,6 +91,21 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
       await onUpdateAddress(addressDraft);
       setIsLoading(false);
       setIsEditingAddress(false);
+  };
+
+  const handleAddPlace = () => {
+      const newPlace: NearbyPlace = {
+          id: `place-${Date.now()}`,
+          icon: 'map-pin',
+          text: 'Nuevo lugar cercano'
+      };
+      const updatedPlaces = [...(data.nearbyPlaces || []), newPlace];
+      onUpdate({ nearbyPlaces: updatedPlaces });
+  };
+
+  const handleDeletePlace = (id: string) => {
+      const updatedPlaces = data.nearbyPlaces?.filter(p => p.id !== id);
+      onUpdate({ nearbyPlaces: updatedPlaces });
   };
   
 
@@ -147,20 +177,27 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
                 </div>
             )}
             
-            {(data.nearbyPlaces && data.nearbyPlaces.length > 0) && (
+            {(data.nearbyPlaces && data.nearbyPlaces.length > 0 || isAdminMode) && (
               <>
                 <h3 className="text-xl font-bold mb-4 text-foreground">Puntos de Interés</h3>
-                 <div className="space-y-4">
-                    {data.nearbyPlaces.map(place => (
+                 <div className="space-y-2">
+                    {data.nearbyPlaces?.map(place => (
                         <NearbyPlaceItem 
                             key={place.id}
                             place={place}
                             isAdminMode={isAdminMode}
                             isSelected={selectedElement?.elementKey === 'nearbyPlaces' && selectedElement.subElementId === place.id}
                             onSelect={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'nearbyPlaces', subElementId: place.id })}
+                            onDelete={() => handleDeletePlace(place.id)}
                         />
                     ))}
                 </div>
+                {isAdminMode && (
+                    <Button variant="outline" size="sm" onClick={handleAddPlace} className="mt-4 w-full">
+                        <Icon name="plus" className="mr-2" />
+                        Añadir Lugar Cercano
+                    </Button>
+                )}
               </>
             )}
           </div>
@@ -169,5 +206,3 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
     </section>
   );
 };
-
-    
