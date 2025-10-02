@@ -38,7 +38,7 @@ import {
 } from '@/lib/constants';
 
 // Import services
-import { geocodeAddress, generateNearbyPlaces } from '@/ai/gemini-service';
+import { geocodeAddress } from '@/ai/gemini-service';
 import { initDB, saveImage, exportData, importData } from '@/lib/storage';
 
 // Import all components
@@ -586,7 +586,7 @@ export default function Home() {
             onNavigateHome={() => setSelectedPropertyId(null)}
         />
 
-        <main className="flex-grow">
+        <main className="flex-grow pt-20">
             {selectedProperty ? (
                 <div>
                     {isAdminMode && <AddSectionControl index={0} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
@@ -645,5 +645,7 @@ export default function Home() {
     </div>
   );
 };
+
+    
 
     
