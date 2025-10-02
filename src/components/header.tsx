@@ -31,10 +31,19 @@ export const Header: React.FC<HeaderProps> = ({
     const logoInputRef = useRef<HTMLInputElement>(null);
     const { imageUrl: logoUrl, isLoading: isLogoLoading } = useImageLoader(customLogo);
     const [currentSiteName, setCurrentSiteName] = useState(siteName);
+    const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {
         setCurrentSiteName(siteName);
     }, [siteName]);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 10);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -58,7 +67,10 @@ export const Header: React.FC<HeaderProps> = ({
     };
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-40 p-4 flex justify-between items-center transition-colors duration-300">
+        <header className={cn(
+            "fixed top-0 left-0 right-0 z-40 p-4 flex justify-between items-center transition-all duration-300",
+            scrolled ? "bg-background/80 backdrop-blur-sm shadow-md" : "bg-transparent"
+        )}>
             <div 
                 className="flex items-center gap-2 cursor-pointer group relative"
                 onClick={onNavigateHome}
@@ -68,7 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
                 ) : logoUrl ? (
                     <Image src={logoUrl} alt="Custom Logo" width={32} height={32} className="object-contain h-8 w-8" />
                 ) : (
-                    <Icon name="logo" className="w-8 h-8 text-white" />
+                    <Icon name="logo" className={cn("w-8 h-8", scrolled ? "text-foreground" : "text-white")} />
                 )}
                 {isAdminMode ? (
                      <ContentEditable
@@ -76,10 +88,10 @@ export const Header: React.FC<HeaderProps> = ({
                         tagName="h1"
                         onChange={handleSiteNameChange}
                         onBlur={handleSiteNameBlur}
-                        className={cn("text-xl font-bold text-white focus:outline-none focus:ring-2 focus:ring-primary rounded-sm px-1")}
+                        className={cn("text-xl font-bold focus:outline-none focus:ring-2 focus:ring-primary rounded-sm px-1", scrolled ? "text-foreground" : "text-white")}
                      />
                 ) : (
-                    <h1 className="text-xl font-bold text-white">{siteName}</h1>
+                    <h1 className={cn("text-xl font-bold", scrolled ? "text-foreground" : "text-white")}>{siteName}</h1>
                 )}
                
                 {isAdminMode && (
