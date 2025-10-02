@@ -99,7 +99,7 @@ export interface LocationSectionData extends PageSection {
     lat: number; // Represents geographic latitude
     lng: number; // Represents geographic longitude
   };
-  nearbyPlaces?: NearbyPlace[];
+  nearbyPlaces: NearbyPlace[];
 }
 
 // Data for a single amenity item in the Amenities section
@@ -149,6 +149,7 @@ export interface ButtonSectionData extends PageSection {
     type: 'button';
     text: string;
     alignment: 'left' | 'center' | 'right';
+    linkTo: 'contact' | 'location';
 }
 
 // Union type for any possible section

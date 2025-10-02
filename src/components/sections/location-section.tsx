@@ -114,6 +114,7 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
         className="py-12 md:py-20 relative group"
         style={{ backgroundColor: data.style?.backgroundColor }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
+        data-section-type="location"
     >
       <div className="container mx-auto px-4">
         {isAdminMode && (
@@ -206,3 +207,5 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
     </section>
   );
 };
+
+    

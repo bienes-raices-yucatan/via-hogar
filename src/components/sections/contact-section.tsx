@@ -22,7 +22,6 @@ interface ContactSectionProps {
   onDelete: (sectionId: string) => void;
   onSubmit: (formData: Omit<ContactSubmission, 'id' | 'propertyId' | 'propertyName' | 'submittedAt'>) => void;
   isAdminMode: boolean;
-  isDraggingMode: boolean;
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
 }
@@ -85,8 +84,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
 
   return (
     <section 
-        className="relative group py-20 md:py-28 text-foreground"
+        className="relative group h-screen min-h-[700px] text-foreground flex items-center justify-center"
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
+        data-section-type="contact"
     >
       <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
       
@@ -200,3 +200,5 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
     </section>
   );
 };
+
+    

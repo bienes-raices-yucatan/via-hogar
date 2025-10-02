@@ -28,11 +28,12 @@ export const ButtonSection: React.FC<ButtonSectionProps> = ({
   const isSelected = selectedElement?.sectionId === data.id;
 
   const handleButtonClick = () => {
-    const contactSection = document.querySelector('[data-section-type="contact"]');
-    if (contactSection) {
-      contactSection.scrollIntoView({ behavior: 'smooth' });
+    const targetSelector = `[data-section-type="${data.linkTo || 'contact'}"]`;
+    const targetSection = document.querySelector(targetSelector);
+    if (targetSection) {
+      targetSection.scrollIntoView({ behavior: 'smooth' });
     } else {
-      console.warn("Contact section not found to scroll to.");
+      console.warn(`Target section "${data.linkTo}" not found to scroll to.`);
     }
   };
 
@@ -72,3 +73,5 @@ export const ButtonSection: React.FC<ButtonSectionProps> = ({
     </section>
   );
 };
+
+    

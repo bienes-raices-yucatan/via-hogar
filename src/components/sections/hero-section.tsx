@@ -1,13 +1,15 @@
 
 "use client";
 
-import React, { useRef } from 'react';
+import React from 'react';
 import { HeroSectionData, SelectedElement } from '@/lib/types';
 import { SectionToolbar } from '../section-toolbar';
 import { DraggableEditableText } from '../draggable-editable-text';
 import { cn } from '@/lib/utils';
 import { useImageLoader } from '@/hooks/use-image-loader';
 import { Skeleton } from '../ui/skeleton';
+import { Button } from '../ui/button';
+import { Icon } from '../icon';
 
 interface HeroSectionProps {
   data: HeroSectionData;
@@ -55,9 +57,24 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     <section 
         className="relative text-white group w-full"
         style={sectionStyle}
-        onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
-        {isAdminMode && <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={isSelected} />}
+        {isAdminMode && (
+          <>
+            <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={isSelected} />
+            <Button
+              variant="secondary"
+              size="icon"
+              className="absolute top-2 right-14 z-20 h-8 w-8"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectElement({ sectionId: data.id, elementKey: 'style' });
+              }}
+              title="Editar estilo del banner"
+            >
+              <Icon name="pencil" className="h-4 w-4" />
+            </Button>
+          </>
+        )}
         
         {isLoading ? (
             <Skeleton className="absolute inset-0" style={sectionStyle} />
@@ -90,3 +107,5 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     </section>
   );
 };
+
+    

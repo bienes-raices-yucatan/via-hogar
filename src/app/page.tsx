@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 // Import all types
 import { 
@@ -38,7 +38,6 @@ import {
 } from '@/lib/constants';
 
 // Import services
-import { geocodeAddress } from '@/ai/gemini-service';
 import { initDB, saveImage, exportData, importData } from '@/lib/storage';
 
 // Import all components
@@ -64,6 +63,7 @@ import { ConfirmationModal } from '@/components/confirmation-modal';
 import { DraggableEditableText } from '@/components/draggable-editable-text';
 import { ExportModal } from '@/components/export-modal';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 // Type for the state that tracks the currently selected element for editing
 type SelectedElementForToolbar = {
@@ -93,6 +93,11 @@ export default function Home() {
   const [siteName, setSiteName] = useState('Vía Hogar');
   const [customLogo, setCustomLogo] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  // --- Drag & Drop State ---
+  const dragItem = useRef<number | null>(null);
+  const dragOverItem = useRef<number | null>(null);
+
 
   // Derived state for the currently selected property
   const selectedProperty = useMemo(() => {
@@ -232,14 +237,18 @@ export default function Home() {
     });
   }, [selectedProperty, handleUpdateProperty]);
   
-  const handleReorderSections = (dragIndex: number, hoverIndex: number) => {
-      if (!selectedProperty) return;
-      const draggedSection = selectedProperty.sections[dragIndex];
-      const newSections = [...selectedProperty.sections];
-      newSections.splice(dragIndex, 1);
-      newSections.splice(hoverIndex, 0, draggedSection);
-      handleUpdateProperty({ ...selectedProperty, sections: newSections });
-  };
+  const handleReorderSections = useCallback(() => {
+    if (!selectedProperty || dragItem.current === null || dragOverItem.current === null) return;
+    
+    const newSections = [...selectedProperty.sections];
+    const draggedItemContent = newSections.splice(dragItem.current, 1)[0];
+    newSections.splice(dragOverItem.current, 0, draggedItemContent);
+    
+    dragItem.current = null;
+    dragOverItem.current = null;
+    
+    handleUpdateProperty({ ...selectedProperty, sections: newSections });
+  }, [selectedProperty, handleUpdateProperty]);
   
     const handleUpdateAddress = useCallback(async (newAddress: string) => {
         if (!selectedProperty) return;
@@ -259,9 +268,18 @@ export default function Home() {
       setIsNewPropertyModalOpen(true);
   };
   
-  const handleCreateProperty = useCallback(async (address: string, coordinates: { lat: number, lng: number }) => {
+  const handleCreateProperty = useCallback(async (address: string, lat: string, lng: string) => {
       toast({ title: "Creando propiedad...", description: "Generando detalles." });
-      const newProp = createNewProperty(address, coordinates);
+      
+      const latNum = parseFloat(lat);
+      const lngNum = parseFloat(lng);
+
+      if (isNaN(latNum) || isNaN(lngNum)) {
+        toast({ title: "Error", description: "Latitud y Longitud deben ser números.", variant: "destructive"});
+        throw new Error("Invalid coordinates");
+      }
+
+      const newProp = createNewProperty(address, { lat: latNum, lng: lngNum });
       setProperties(prev => [...prev, newProp]);
       setSelectedPropertyId(newProp.id);
       setIsNewPropertyModalOpen(false);
@@ -424,8 +442,8 @@ export default function Home() {
             case 'amenities':
                  if (elementKey === 'title') data = section.title;
                  if (elementKey === 'amenities') {
-                     data = section.amenities.find(a => a.id === subElementId);
-                     if (data) return { type: 'amenity', data };
+                    const amenity = data.amenities.find(a => a.id === subElementId);
+                     if (amenity) return { type: 'amenity', data: amenity };
                  }
                  break;
             case 'pricing':
@@ -451,7 +469,7 @@ export default function Home() {
                 }
                 break;
             case 'button':
-                if (elementKey === 'text' || elementKey === 'alignment') {
+                if (elementKey === 'text' || elementKey === 'alignment' || elementKey === 'linkTo') {
                     return { type: 'button', data: section };
                 }
                 break;
@@ -550,29 +568,50 @@ export default function Home() {
       onSelectElement: setSelectedElement,
     };
 
-    switch (section.type) {
-      case 'hero':
-        return <HeroSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} isDraggingMode={isDraggingMode} isFirstSection={index === 0} />;
-      case 'imageWithFeatures':
-        return <ImageWithFeaturesSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
-      case 'gallery':
-        return <GallerySection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
-      case 'amenities':
-          return <AmenitiesSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
-      case 'contact':
-          return <ContactSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} onSubmit={handleContactSubmit} />;
-      case 'location':
-          return <LocationSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} propertyAddress={selectedProperty?.address || ''} onUpdateAddress={handleUpdateAddress} />;
-      case 'pricing':
-          return <PricingSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
-      case 'button':
-          return <ButtonSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
-      default:
-        const _exhaustiveCheck: never = section;
-        console.warn("Unknown section type, cannot render:", section);
-        return null;
+    const sectionContent = () => {
+        switch (section.type) {
+            case 'hero':
+                return <HeroSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} isDraggingMode={isDraggingMode} isFirstSection={index === 0} />;
+            case 'imageWithFeatures':
+                return <ImageWithFeaturesSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
+            case 'gallery':
+                return <GallerySection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
+            case 'amenities':
+                return <AmenitiesSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
+            case 'contact':
+                return <ContactSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} onSubmit={handleContactSubmit} />;
+            case 'location':
+                return <LocationSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} propertyAddress={selectedProperty?.address || ''} onUpdateAddress={handleUpdateAddress} />;
+            case 'pricing':
+                return <PricingSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
+            case 'button':
+                return <ButtonSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
+            default:
+                const _exhaustiveCheck: never = section;
+                console.warn("Unknown section type, cannot render:", section);
+                return null;
+        }
+    };
+    
+    if (isAdminMode && isDraggingMode) {
+        return (
+            <div 
+                key={section.id}
+                draggable
+                onDragStart={() => dragItem.current = index}
+                onDragEnter={() => dragOverItem.current = index}
+                onDragEnd={handleReorderSections}
+                onDragOver={(e) => e.preventDefault()}
+                className={cn("cursor-move transition-all", dragItem.current === index && "opacity-50 scale-95")}
+            >
+                {sectionContent()}
+            </div>
+        )
     }
-  }, [isAdminMode, isDraggingMode, selectedElement, handleUpdateSection, handleDeleteSection, handleContactSubmit, selectedProperty?.address, handleUpdateAddress]);
+
+    return sectionContent();
+
+  }, [isAdminMode, isDraggingMode, selectedElement, handleUpdateSection, handleDeleteSection, handleContactSubmit, selectedProperty?.address, handleUpdateAddress, handleReorderSections]);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -645,3 +684,5 @@ export default function Home() {
     </div>
   );
 };
+
+    

@@ -289,7 +289,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 <Label>Texto del Botón</Label>
                 <Input value={data.text} onChange={(e) => onUpdate({ text: e.target.value })} />
             </div>
-            <div className="space-y-2">
+             <div className="space-y-2">
                 <Label>Alineación</Label>
                 <ToggleGroup 
                     type="single" 
@@ -309,6 +309,18 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                         <AlignRight className="h-4 w-4" />
                     </ToggleGroupItem>
                 </ToggleGroup>
+            </div>
+             <div className="space-y-2">
+                <Label>Enlazar a</Label>
+                 <Select value={data.linkTo || 'contact'} onValueChange={(val: 'contact' | 'location') => onUpdate({linkTo: val})}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Selecciona una sección" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="contact">Sección de Contacto</SelectItem>
+                        <SelectItem value="location">Sección de Ubicación</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
         </>
     );
@@ -438,3 +450,5 @@ const IconPicker: React.FC<{ label: string; value: IconName; onChange: (icon: Ic
         </div>
     );
 };
+
+    
