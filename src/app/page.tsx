@@ -268,18 +268,17 @@ export default function Home() {
       setIsNewPropertyModalOpen(true);
   };
   
-  const handleCreateProperty = useCallback(async (address: string, lat: string, lng: string) => {
+  const handleCreateProperty = useCallback(async (address: string, coordinates: { lat: number, lng: number }) => {
       toast({ title: "Creando propiedad...", description: "Generando detalles." });
       
-      const latNum = parseFloat(lat);
-      const lngNum = parseFloat(lng);
+      const { lat, lng } = coordinates;
 
-      if (isNaN(latNum) || isNaN(lngNum)) {
+      if (typeof lat !== 'number' || typeof lng !== 'number') {
         toast({ title: "Error", description: "Latitud y Longitud deben ser números.", variant: "destructive"});
         throw new Error("Invalid coordinates");
       }
 
-      const newProp = createNewProperty(address, { lat: latNum, lng: lngNum });
+      const newProp = createNewProperty(address, { lat, lng });
       setProperties(prev => [...prev, newProp]);
       setSelectedPropertyId(newProp.id);
       setIsNewPropertyModalOpen(false);
@@ -684,5 +683,3 @@ export default function Home() {
     </div>
   );
 };
-
-    
