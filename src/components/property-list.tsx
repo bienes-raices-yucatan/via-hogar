@@ -138,7 +138,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
 
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
+    <div className="container mx-auto p-4 md:p-8 pt-24">
       <input 
         type="file" 
         ref={imageInputRef} 
