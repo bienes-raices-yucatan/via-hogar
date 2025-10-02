@@ -14,7 +14,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { AlignCenter, AlignLeft, AlignRight, Bold, Italic } from 'lucide-react';
 
-const allIcons: IconName[] = ['bed' , 'bath' , 'area' , 'map-pin' , 'school' , 'store' , 'bus' , 'sparkles' , 'x-mark' , 'chevron-down' , 'plus' , 'pencil' , 'trash' , 'nearby' , 'logo' , 'drag-handle' , 'chevron-left' , 'chevron-right' , 'copyright' , 'solar-panel' , 'parking' , 'laundry' , 'pool' , 'generic-feature' , 'street-view' , 'gym' , 'park' , 'whatsapp' , 'arrows-move' , 'check' , 'list', 'camera', 'upload', 'download', 'message-circle'];
+const allIcons: IconName[] = ['bed' , 'bath' , 'area' , 'map-pin' , 'school' , 'store' , 'bus' , 'sparkles' , 'x-mark' , 'chevron-down' , 'plus' , 'pencil' , 'trash' , 'nearby' , 'logo' , 'drag-handle' , 'chevron-left' , 'chevron-right' , 'copyright' , 'solar-panel' , 'parking' , 'laundry' , 'pool' , 'generic-feature' , 'street-view' , 'gym' , 'park' , 'whatsapp' , 'arrows-move' , 'check' , 'list', 'camera', 'upload', 'download', 'message-circle', 'grip-vertical'];
 
 // Type definitions for what the toolbar can edit
 type EditableElement = {
@@ -57,7 +57,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         reader.onload = (event) => {
             const dataUrl = event.target?.result as string;
             // The onUpdate will trigger the saveImage logic in the parent component
-            const keyToUpdate = element.type === 'amenity' || element.type === 'feature' ? 'imageUrl' : 'backgroundImageUrl';
+            const keyToUpdate = element.type === 'amenity' || element.type === 'feature' || element.type === 'nearbyPlace' ? 'imageUrl' : 'backgroundImageUrl';
             onUpdate({ [keyToUpdate]: dataUrl });
         };
         reader.readAsDataURL(file);
@@ -158,23 +158,11 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
             </div>
             <hr />
             <Label>Radio de las Esquinas (rem)</Label>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs">Sup. Izquierda</Label>
-                <Input type="number" value={data.borderRadiusTopLeft || 0} onChange={(e) => onValueChange('borderRadiusTopLeft', parseFloat(e.target.value))} step="0.1" min="0"/>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Sup. Derecha</Label>
-                <Input type="number" value={data.borderRadiusTopRight || 0} onChange={(e) => onValueChange('borderRadiusTopRight', parseFloat(e.target.value))} step="0.1" min="0"/>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Inf. Izquierda</Label>
-                <Input type="number" value={data.borderRadiusBottomLeft || 0} onChange={(e) => onValueChange('borderRadiusBottomLeft', parseFloat(e.target.value))} step="0.1" min="0"/>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Inf. Derecha</Label>
-                <Input type="number" value={data.borderRadiusBottomRight || 0} onChange={(e) => onValueChange('borderRadiusBottomRight', parseFloat(e.target.value))} step="0.1" min="0"/>
-              </div>
+             <div className="grid grid-cols-2 gap-4">
+                <SliderWithInput label="Sup. Izquierda" value={data.borderRadiusTopLeft} onValueChange={(val) => onValueChange('borderRadiusTopLeft', val)} />
+                <SliderWithInput label="Sup. Derecha" value={data.borderRadiusTopRight} onValueChange={(val) => onValueChange('borderRadiusTopRight', val)} />
+                <SliderWithInput label="Inf. Izquierda" value={data.borderRadiusBottomLeft} onValueChange={(val) => onValueChange('borderRadiusBottomLeft', val)} />
+                <SliderWithInput label="Inf. Derecha" value={data.borderRadiusBottomRight} onValueChange={(val) => onValueChange('borderRadiusBottomRight', val)} />
             </div>
         </>
     );
@@ -265,8 +253,12 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         <>
             <IconPicker label="Icono" value={data.icon} onChange={(icon) => onUpdate({ icon })} />
             <div className="space-y-2">
-                <Label>Texto del Lugar</Label>
-                <Input value={data.text} onChange={(e) => onUpdate({ text: e.target.value })} />
+                <Label>Título del Lugar</Label>
+                <Input value={data.title} onChange={(e) => onUpdate({ title: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+                <Label>Tiempo de Viaje</Label>
+                <Input value={data.travelTime} onChange={(e) => onUpdate({ travelTime: e.target.value })} />
             </div>
             <hr/>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
@@ -451,4 +443,33 @@ const IconPicker: React.FC<{ label: string; value: IconName; onChange: (icon: Ic
     );
 };
 
-    
+const SliderWithInput: React.FC<{
+  label: string;
+  value: number | undefined;
+  onValueChange: (value: number) => void;
+  max?: number;
+  step?: number;
+}> = ({ label, value = 0, onValueChange, max = 5, step = 0.1 }) => {
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs">{label}</Label>
+      <div className="flex items-center gap-2">
+        <Slider
+          value={[value]}
+          onValueChange={(v) => onValueChange(v[0])}
+          max={max}
+          step={step}
+          className="w-[60%]"
+        />
+        <Input
+          type="number"
+          value={value}
+          onChange={(e) => onValueChange(parseFloat(e.target.value) || 0)}
+          className="w-[40%] h-8"
+          max={max}
+          step={step}
+        />
+      </div>
+    </div>
+  );
+};

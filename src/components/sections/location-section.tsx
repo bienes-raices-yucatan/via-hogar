@@ -11,9 +11,10 @@ import { Input } from '../ui/input';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useImageLoader } from '@/hooks/use-image-loader';
+import ContentEditable from 'react-contenteditable';
 
 
-const NearbyPlaceItem: React.FC<{ place: NearbyPlace; isAdminMode: boolean; onSelect: () => void; isSelected: boolean, onDelete: () => void; }> = ({ place, isAdminMode, onSelect, isSelected, onDelete }) => {
+const NearbyPlaceItem: React.FC<{ place: NearbyPlace; isAdminMode: boolean; onSelect: () => void; isSelected: boolean, onDelete: () => void; onUpdate: (updates: Partial<NearbyPlace>) => void }> = ({ place, isAdminMode, onSelect, isSelected, onDelete, onUpdate }) => {
     const { imageUrl } = useImageLoader(place.imageUrl);
 
     return (
@@ -26,11 +27,26 @@ const NearbyPlaceItem: React.FC<{ place: NearbyPlace; isAdminMode: boolean; onSe
             onClick={onSelect}
         >
             <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
-                {imageUrl ? <Image src={imageUrl} alt={place.text} width={24} height={24} className="object-contain" /> : <Icon name={place.icon} className="w-5 h-5" />}
+                {imageUrl ? <Image src={imageUrl} alt={place.title} width={24} height={24} className="object-contain" /> : <Icon name={place.icon} className="w-5 h-5" />}
             </div>
-            <p className="text-sm text-foreground">{place.text}</p>
+            <div className="flex-grow">
+                <ContentEditable
+                    html={place.title}
+                    tagName="p"
+                    disabled={!isAdminMode}
+                    onChange={(e) => onUpdate({ title: e.target.value })}
+                    className={cn("text-sm text-foreground font-semibold outline-none", isAdminMode && "focus:ring-1 focus:ring-primary rounded-sm px-1")}
+                />
+            </div>
+            <ContentEditable
+                html={place.travelTime}
+                tagName="p"
+                disabled={!isAdminMode}
+                onChange={(e) => onUpdate({ travelTime: e.target.value })}
+                className={cn("text-xs text-muted-foreground flex-shrink-0 outline-none", isAdminMode && "focus:ring-1 focus:ring-primary rounded-sm px-1")}
+            />
              {isAdminMode && (
-                <div className="absolute top-0 right-0 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                <div className="absolute -top-1 -right-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
                     <Button 
                         variant="destructive" 
                         size="icon" 
@@ -97,7 +113,8 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
       const newPlace: NearbyPlace = {
           id: `place-${Date.now()}`,
           icon: 'map-pin',
-          text: 'Nuevo lugar cercano'
+          title: 'Nuevo lugar cercano',
+          travelTime: 'X min'
       };
       const updatedPlaces = [...(data.nearbyPlaces || []), newPlace];
       onUpdate({ nearbyPlaces: updatedPlaces });
@@ -107,6 +124,11 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
       const updatedPlaces = data.nearbyPlaces?.filter(p => p.id !== id);
       onUpdate({ nearbyPlaces: updatedPlaces });
   };
+
+  const handleUpdatePlace = (id: string, updates: Partial<NearbyPlace>) => {
+      const updatedPlaces = data.nearbyPlaces.map(p => p.id === id ? { ...p, ...updates } : p);
+      onUpdate({ nearbyPlaces: updatedPlaces });
+  }
   
 
   return (
@@ -190,6 +212,7 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
                             isSelected={selectedElement?.elementKey === 'nearbyPlaces' && selectedElement.subElementId === place.id}
                             onSelect={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'nearbyPlaces', subElementId: place.id })}
                             onDelete={() => handleDeletePlace(place.id)}
+                            onUpdate={(updates) => handleUpdatePlace(place.id, updates)}
                         />
                     ))}
                 </div>
@@ -207,5 +230,3 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
     </section>
   );
 };
-
-    

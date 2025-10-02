@@ -16,11 +16,10 @@ import Spinner from './spinner';
 
 interface NewPropertyModalProps {
   onClose: () => void;
-  onCreate: (address: string, coordinates: { lat: number; lng: number; }) => Promise<void>;
+  onCreate: (lat: number, lng: number) => Promise<void>;
 }
 
 export const NewPropertyModal: React.FC<NewPropertyModalProps> = ({ onClose, onCreate }) => {
-  const [address, setAddress] = useState('');
   const [lat, setLat] = useState('19.4326'); // Default to Mexico City
   const [lng, setLng] = useState('-99.1332'); // Default to Mexico City
   const [isLoading, setIsLoading] = useState(false);
@@ -28,10 +27,7 @@ export const NewPropertyModal: React.FC<NewPropertyModalProps> = ({ onClose, onC
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!address.trim()) {
-      setError('La dirección no puede estar vacía.');
-      return;
-    }
+    
     const latNum = parseFloat(lat);
     const lngNum = parseFloat(lng);
 
@@ -43,7 +39,7 @@ export const NewPropertyModal: React.FC<NewPropertyModalProps> = ({ onClose, onC
     setError('');
     setIsLoading(true);
     try {
-      await onCreate(address, { lat: latNum, lng: lngNum });
+      await onCreate(latNum, lngNum);
       onClose(); // Close on success
     } catch (err) {
       console.error(err);
@@ -60,24 +56,11 @@ export const NewPropertyModal: React.FC<NewPropertyModalProps> = ({ onClose, onC
         <DialogHeader>
           <DialogTitle>Añadir Nueva Propiedad</DialogTitle>
           <DialogDescription>
-            Ingresa la dirección y las coordenadas (puedes obtenerlas de Google Maps).
+            Ingresa la dirección y las coordenadas (puedes obtenerlas de Google Maps). La dirección se puede editar más tarde.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="address" className="text-right">
-                Dirección
-              </Label>
-              <Input
-                id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="col-span-3"
-                placeholder="Ej: Av. Reforma 222, CDMX"
-                disabled={isLoading}
-              />
-            </div>
              <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="lat" className="text-right">
                 Latitud
@@ -123,5 +106,3 @@ export const NewPropertyModal: React.FC<NewPropertyModalProps> = ({ onClose, onC
     </Dialog>
   );
 };
-
-    

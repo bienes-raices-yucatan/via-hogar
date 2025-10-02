@@ -122,13 +122,18 @@ export const createSectionData = (
                 backgroundImageUrl: 'https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
             };
         case 'location':
+             const defaultPlaces: NearbyPlace[] = [
+                { id: 'place-1', icon: 'school', title: 'Escuela Primaria', travelTime: '5 min en coche' },
+                { id: 'place-2', icon: 'store', title: 'Supermercado', travelTime: '10 min caminando' },
+                { id: 'place-3', icon: 'park', title: 'Parque Central', travelTime: '3 min caminando' },
+            ];
             return {
                 ...base,
                 type: 'location',
                 style: { backgroundColor: '#FFFFFF' },
                 title: getDefaultTitle('Ubicación y Alrededores'),
                 coordinates: options.coordinates || { lat: 19.4326, lng: -99.1332 },
-                nearbyPlaces: options.nearbyPlaces || [],
+                nearbyPlaces: options.nearbyPlaces || defaultPlaces,
             } as LocationSectionData;
         case 'button':
             return {
@@ -160,21 +165,19 @@ export const INITIAL_PROPERTIES_DATA: Property[] = [];
 export const INITIAL_SUBMISSIONS_DATA: ContactSubmission[] = [];
 
 // Utility function to create a new property object with a unique ID and default content.
-export const createNewProperty = (address: string, coordinates: { lat: number; lng: number }, nearbyPlaces: NearbyPlace[] = []): Property => {
+export const createNewProperty = (lat: number, lng: number): Property => {
     const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
     const uniqueSections = DEFAULT_SECTIONS_FOR_NEW_PROPERTY.map(type => 
-        createSectionData(type, uniqueSuffix, { coordinates, nearbyPlaces })
+        createSectionData(type, uniqueSuffix, { coordinates: {lat, lng} })
     );
 
     return {
         id: `prop-${uniqueSuffix}`,
         name: 'Nueva Propiedad',
-        address: address,
+        address: "Dirección editable",
         price: '$5,500,000 MXN',
         mainImageUrl: 'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
         sections: uniqueSections,
     };
 };
-
-    

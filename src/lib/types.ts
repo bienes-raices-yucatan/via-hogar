@@ -1,7 +1,7 @@
 
 
 // A type for the icon names available in the Icon component
-export type IconName = 'bed' | 'bath' | 'area' | 'map-pin' | 'school' | 'store' | 'bus' | 'sparkles' | 'x-mark' | 'chevron-down' | 'plus' | 'pencil' | 'trash' | 'nearby' | 'logo' | 'drag-handle' | 'chevron-left' | 'chevron-right' | 'copyright' | 'solar-panel' | 'parking' | 'laundry' | 'pool' | 'generic-feature' | 'street-view' | 'gym' | 'park' | 'whatsapp' | 'arrows-move' | 'check' | 'list' | 'camera' | 'upload' | 'download' | 'message-circle';
+export type IconName = 'bed' | 'bath' | 'area' | 'map-pin' | 'school' | 'store' | 'bus' | 'sparkles' | 'x-mark' | 'chevron-down' | 'plus' | 'pencil' | 'trash' | 'nearby' | 'logo' | 'drag-handle' | 'chevron-left' | 'chevron-right' | 'copyright' | 'solar-panel' | 'parking' | 'laundry' | 'pool' | 'generic-feature' | 'street-view' | 'gym' | 'park' | 'whatsapp' | 'arrows-move' | 'check' | 'list' | 'camera' | 'upload' | 'download' | 'message-circle' | 'grip-vertical';
 
 export type FontFamily = 'Roboto' | 'Montserrat' | 'Lora' | 'Playfair Display' | 'Poppins';
 export type TextAlign = 'left' | 'center' | 'right';
@@ -88,7 +88,8 @@ export interface NearbyPlace {
     id: string;
     icon: IconName;
     imageUrl?: string;
-    text: string;
+    title: string;
+    travelTime: string;
 }
 
 // Data for the map/location section
@@ -170,7 +171,7 @@ export type SelectedElement = {
     sectionId: string;
     elementKey: keyof AnySectionData | 'style' | 'backgroundImageUrl';
     subElementId?: string; // For items within an array (e.g., a specific feature ID)
-    property?: keyof (FeatureItem | PricingTier | StyledText | ButtonSectionData); // For nested properties within an item
+    property?: keyof (FeatureItem | PricingTier | StyledText | ButtonSectionData | NearbyPlace); // For nested properties within an item
 };
 
 // Data structure for a contact form submission
@@ -183,5 +184,3 @@ export interface ContactSubmission {
     userType: 'buyer' | 'broker';
     submittedAt: string;
 }
-
-    

@@ -39,6 +39,8 @@ import {
 
 // Import services
 import { initDB, saveImage, exportData, importData } from '@/lib/storage';
+import { geocodeAddress } from '@/ai/gemini-service';
+
 
 // Import all components
 import { Header } from '@/components/header';
@@ -64,6 +66,7 @@ import { DraggableEditableText } from '@/components/draggable-editable-text';
 import { ExportModal } from '@/components/export-modal';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Icon } from '@/components/icon';
 
 // Type for the state that tracks the currently selected element for editing
 type SelectedElementForToolbar = {
@@ -268,17 +271,10 @@ export default function Home() {
       setIsNewPropertyModalOpen(true);
   };
   
-  const handleCreateProperty = useCallback(async (address: string, coordinates: { lat: number, lng: number }) => {
+    const handleCreateProperty = useCallback(async (lat: number, lng: number) => {
       toast({ title: "Creando propiedad...", description: "Generando detalles." });
       
-      const { lat, lng } = coordinates;
-
-      if (typeof lat !== 'number' || typeof lng !== 'number') {
-        toast({ title: "Error", description: "Latitud y Longitud deben ser números.", variant: "destructive"});
-        throw new Error("Invalid coordinates");
-      }
-
-      const newProp = createNewProperty(address, { lat, lng });
+      const newProp = createNewProperty(lat, lng);
       setProperties(prev => [...prev, newProp]);
       setSelectedPropertyId(newProp.id);
       setIsNewPropertyModalOpen(false);
@@ -538,7 +534,7 @@ export default function Home() {
         }
 
     } else if (subElementId && (sectionToUpdate as any)[elementKey]) {
-        // Update a specific item in an array (e.g., an amenity, a feature object)
+        // Update a specific item in an array (e.g., an amenity, a feature object, a nearby place)
         const array = (sectionToUpdate as any)[elementKey] as any[];
         const itemIndex = array.findIndex((item: any) => item.id === subElementId);
         if (itemIndex > -1) {
@@ -594,15 +590,20 @@ export default function Home() {
     
     if (isAdminMode && isDraggingMode) {
         return (
-            <div 
-                key={section.id}
+             <div 
+                className={cn("relative py-2 transition-opacity", dragItem.current === index && "opacity-30")}
                 draggable
                 onDragStart={() => dragItem.current = index}
                 onDragEnter={() => dragOverItem.current = index}
                 onDragEnd={handleReorderSections}
                 onDragOver={(e) => e.preventDefault()}
-                className={cn("cursor-move transition-all", dragItem.current === index && "opacity-50 scale-95")}
             >
+                <div className={cn(
+                    "absolute top-1/2 left-4 -translate-y-1/2 z-10 cursor-move text-muted-foreground bg-background rounded-full p-1 shadow",
+                )}>
+                    <Icon name="grip-vertical" />
+                </div>
+                 {dragOverItem.current === index && <div className="absolute top-0 left-0 w-full h-1 bg-primary z-20" />}
                 {sectionContent()}
             </div>
         )
@@ -610,7 +611,7 @@ export default function Home() {
 
     return sectionContent();
 
-  }, [isAdminMode, isDraggingMode, selectedElement, handleUpdateSection, handleDeleteSection, handleContactSubmit, selectedProperty?.address, handleUpdateAddress, handleReorderSections]);
+  }, [isAdminMode, isDraggingMode, selectedElement, handleUpdateSection, handleDeleteSection, handleContactSubmit, selectedProperty?.address, handleUpdateAddress, handleReorderSections, dragItem, dragOverItem]);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
