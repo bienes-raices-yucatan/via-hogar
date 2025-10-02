@@ -57,7 +57,10 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         reader.onload = (event) => {
             const dataUrl = event.target?.result as string;
             // The onUpdate will trigger the saveImage logic in the parent component
-            const keyToUpdate = element.type === 'amenity' || element.type === 'feature' || element.type === 'nearbyPlace' ? 'imageUrl' : 'backgroundImageUrl';
+            const keyToUpdate = 
+                element.type === 'amenity' || element.type === 'feature' || element.type === 'nearbyPlace' ? 'imageUrl' 
+                : element.type === 'pricingTier' ? 'iconUrl'
+                : 'backgroundImageUrl';
             onUpdate({ [keyToUpdate]: dataUrl });
         };
         reader.readAsDataURL(file);

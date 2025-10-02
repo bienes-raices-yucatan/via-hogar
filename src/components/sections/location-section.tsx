@@ -26,8 +26,8 @@ const NearbyPlaceItem: React.FC<{ place: NearbyPlace; isAdminMode: boolean; onSe
             )}
             onClick={onSelect}
         >
-            <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
-                {imageUrl ? <Image src={imageUrl} alt={place.title} width={24} height={24} className="object-contain" /> : <Icon name={place.icon} className="w-5 h-5" />}
+            <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary overflow-hidden">
+                {imageUrl ? <div className="relative w-full h-full"><Image src={imageUrl} alt={place.title} fill className="object-contain" /></div> : <Icon name={place.icon} className="w-5 h-5" />}
             </div>
             <div className="flex-grow">
                 <ContentEditable

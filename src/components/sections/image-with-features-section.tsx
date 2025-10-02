@@ -59,14 +59,26 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   };
   
   const handleFeatureUpdate = async (featureId: string, updates: Partial<FeatureItem>) => {
+    let finalUpdates = { ...updates };
     if (updates.imageUrl && updates.imageUrl.startsWith('data:')) {
         try {
-            updates.imageUrl = await saveImage(updates.imageUrl);
+            finalUpdates.imageUrl = await saveImage(updates.imageUrl);
         } catch (error) {
             console.error("Failed to save feature image", error);
+            delete finalUpdates.imageUrl;
         }
     }
-    const newFeatures = data.features.map(f => (f.id === featureId ? { ...f, ...updates } : f));
+    
+    const newFeatures = data.features.map(f => {
+        if (f.id === featureId) {
+            // Check for nested StyledText updates
+            const newTitle = updates.title ? { ...f.title, ...updates.title } : f.title;
+            const newDescription = updates.description ? { ...f.description, ...updates.description } : f.description;
+            return { ...f, ...finalUpdates, title: newTitle, description: newDescription };
+        }
+        return f;
+    });
+
     onUpdate({ ...data, features: newFeatures });
   };
 
@@ -75,8 +87,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     const newFeature: FeatureItem = {
       id: `feat-${Date.now()}`,
       icon: 'generic-feature',
-      title: { text: 'Nueva Característica', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left' },
-      description: { text: 'Descripción breve', fontSize: 1, color: '#475569', fontFamily: 'Roboto', textAlign: 'left' },
+      title: { text: 'Nueva Característica', fontSize: 1.125, color: '#1E293B', fontFamily: 'Montserrat', textAlign: 'left', fontWeight: 'bold' },
+      description: { text: 'Descripción breve', fontSize: 1, color: '#475569', fontFamily: 'Poppins', textAlign: 'left', fontWeight: 'normal' },
     };
     onUpdate({ ...data, features: [...data.features, newFeature] });
   };
@@ -99,9 +111,13 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
       reader.readAsDataURL(file);
   };
 
-  const handleSelectFeature = (featureId: string) => {
+  const handleSelectFeatureProperty = (featureId: string, property: 'title' | 'description' | 'icon') => {
       if(!isAdminMode) return;
-      onSelectElement({ sectionId: data.id, elementKey: 'features', subElementId: featureId });
+      if (property === 'icon') {
+        onSelectElement({ sectionId: data.id, elementKey: 'features', subElementId: featureId });
+      } else {
+        onSelectElement({ sectionId: data.id, elementKey: 'features', subElementId: featureId, property });
+      }
   };
 
   const MediaComponent = () => {
@@ -178,14 +194,15 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 <div 
                   key={feature.id} 
                   className="flex items-start gap-4 relative group/feature"
-                  onClick={(e) => { e.stopPropagation(); handleSelectFeature(feature.id); }}
+                  onClick={(e) => { e.stopPropagation(); }}
                 >
                     <div 
                         className={cn(
                           "bg-primary/10 text-primary p-3 rounded-lg flex-shrink-0 h-12 w-12 flex items-center justify-center", 
                           isAdminMode && "cursor-pointer", 
-                          selectedElement?.subElementId === feature.id && "ring-2 ring-primary"
+                          selectedElement?.subElementId === feature.id && (selectedElement.property === 'icon' || !selectedElement.property) && "ring-2 ring-primary"
                         )}
+                        onClick={(e) => {e.stopPropagation(); handleSelectFeatureProperty(feature.id, 'icon')}}
                     >
                       <FeatureIconDisplay feature={feature} />
                     </div>
@@ -196,8 +213,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                             value={feature.title}
                             isAdminMode={isAdminMode}
                             onUpdate={(val) => handleFeatureUpdate(feature.id, { title: { ...feature.title, ...val} })}
-                            onSelect={() => handleSelectFeature(feature.id)}
-                            isSelected={selectedElement?.subElementId === feature.id}
+                            onSelect={() => handleSelectFeatureProperty(feature.id, 'title')}
+                            isSelected={selectedElement?.subElementId === feature.id && selectedElement.property === 'title'}
                             className="font-bold text-lg text-foreground"
                         />
                          <EditableText
@@ -206,8 +223,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                             value={feature.description}
                             isAdminMode={isAdminMode}
                             onUpdate={(val) => handleFeatureUpdate(feature.id, { description: { ...feature.description, ...val} })}
-                            onSelect={() => handleSelectFeature(feature.id)}
-isSelected={selectedElement?.subElementId === feature.id}
+                            onSelect={() => handleSelectFeatureProperty(feature.id, 'description')}
+                            isSelected={selectedElement?.subElementId === feature.id && selectedElement.property === 'description'}
                             className="text-muted-foreground mt-1"
                         />
                     </div>

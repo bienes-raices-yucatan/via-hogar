@@ -55,8 +55,11 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { imageUrl, isLoading } = useImageLoader(data.backgroundImageUrl);
 
-  const handleTierUpdate = (property: keyof PricingTier, value: StyledText) => {
-      onUpdate({ tier: { ...tier, [property]: value }})
+  const handleTierPropertyUpdate = (updates: Partial<StyledText>, property: keyof PricingTier) => {
+    const currentProperty = tier[property];
+    if (typeof currentProperty === 'object' && currentProperty !== null) {
+        onUpdate({ tier: { ...tier, [property]: { ...currentProperty, ...updates } } });
+    }
   }
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,7 +82,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
 
   const handleSelectTierIcon = () => {
     if (!isAdminMode) return;
-    onSelectElement({ sectionId: data.id, elementKey: 'tier' });
+    onSelectElement({ sectionId: data.id, elementKey: 'tier', subElementId: tier.id, property: 'iconUrl' });
   }
 
   return (
@@ -112,7 +115,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
         <Card className="max-w-md w-full bg-background/90 backdrop-blur-sm shadow-2xl rounded-2xl">
           <CardContent className="p-8 text-center flex flex-col items-center">
             <div 
-                className={cn("mb-4", isAdminMode && "cursor-pointer rounded-lg p-2 hover:bg-accent/50", selectedElement?.elementKey === 'tier' && selectedElement?.subElementId === undefined && "bg-accent/50 ring-2 ring-primary")}
+                className={cn("mb-4", isAdminMode && "cursor-pointer rounded-lg p-2 hover:bg-accent/50", selectedElement?.property === 'iconUrl' && "bg-accent/50 ring-2 ring-primary")}
                 onClick={(e) => { e.stopPropagation(); handleSelectTierIcon(); }}
             >
                 <PricingIconDisplay tier={tier} />
@@ -122,7 +125,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
               as="h2"
               id={`${data.id}-tier-title`}
               isAdminMode={isAdminMode}
-              onUpdate={(val) => handleTierUpdate('title', {...tier.title, ...val})}
+              onUpdate={(val) => handleTierPropertyUpdate(val, 'title')}
               className="text-xl font-bold text-foreground mb-4"
               value={tier.title}
               onSelect={() => handleSelectTierElement('title')}
@@ -135,7 +138,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                   as="p"
                   id={`${data.id}-tier-oldprice`}
                   isAdminMode={isAdminMode}
-                  onUpdate={(val) => handleTierUpdate('oldPrice', {...tier.oldPrice, ...val})}
+                  onUpdate={(val) => handleTierPropertyUpdate(val, 'oldPrice')}
                   className="text-2xl text-red-500"
                   value={tier.oldPrice}
                   onSelect={() => handleSelectTierElement('oldPrice')}
@@ -150,7 +153,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                 as="p"
                 id={`${data.id}-tier-price`}
                 isAdminMode={isAdminMode}
-                onUpdate={(val) => handleTierUpdate('price', {...tier.price, ...val})}
+                onUpdate={(val) => handleTierPropertyUpdate(val, 'price')}
                 className="text-4xl font-bold text-foreground"
                 value={tier.price}
                 onSelect={() => handleSelectTierElement('price')}
@@ -160,7 +163,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                 as="span"
                 id={`${data.id}-tier-currency`}
                 isAdminMode={isAdminMode}
-                onUpdate={(val) => handleTierUpdate('currency', {...tier.currency, ...val})}
+                onUpdate={(val) => handleTierPropertyUpdate(val, 'currency')}
                 className="ml-2 text-3xl font-semibold text-foreground"
                 value={tier.currency}
                 onSelect={() => handleSelectTierElement('currency')}
@@ -172,7 +175,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
               as="p"
               id={`${data.id}-tier-description`}
               isAdminMode={isAdminMode}
-              onUpdate={(val) => handleTierUpdate('description', {...tier.description, ...val})}
+              onUpdate={(val) => handleTierPropertyUpdate(val, 'description')}
               className="text-muted-foreground mb-6"
               value={tier.description}
               onSelect={() => handleSelectTierElement('description')}
@@ -188,5 +191,3 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
     </section>
   );
 };
-
-    

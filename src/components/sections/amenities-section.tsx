@@ -151,8 +151,10 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
                             value={{
                                 text: amenity.text,
                                 color: '#000', 
-                                fontFamily: 'Roboto', 
-                                fontSize: 1
+                                fontFamily: 'Poppins', 
+                                fontSize: 1,
+                                fontWeight: 'normal',
+                                textAlign: 'center'
                             }}
                             onSelect={() => handleSelectAmenity(amenity.id)}
                             isSelected={selectedElement?.subElementId === amenity.id}
