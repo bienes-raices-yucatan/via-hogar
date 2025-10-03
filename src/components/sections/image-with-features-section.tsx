@@ -137,12 +137,12 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
             return <video src={imageUrl} controls className="w-full h-full object-cover" />;
         }
         
-        return <Image src={imageUrl} alt={data.title?.text || 'Property Image'} fill className="object-cover" />;
+        return <Image src={imageUrl} alt={data.title?.text || 'Property Image'} layout="fill" className="object-cover" />;
     };
     
     return (
         <div className={cn(
-            "relative w-full h-full rounded-lg overflow-hidden shadow-lg group/media aspect-[9/16]",
+            "relative w-full h-full rounded-lg overflow-hidden shadow-lg group/media",
             isAdminMode && "cursor-pointer",
             isSelected && "ring-2 ring-primary ring-offset-2"
         )}
@@ -188,12 +188,12 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-16 items-center">
-          <div className="flex justify-center md:col-span-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-start">
+          <div className="flex justify-center items-stretch md:col-span-1">
              <MediaComponent />
           </div>
-          <div className="flex flex-col md:col-span-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10 flex-grow">
+          <div className="flex flex-col md:col-span-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10 flex-grow content-center">
                 {data.features.map((feature) => (
                 <div 
                   key={feature.id} 
@@ -262,3 +262,6 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     </section>
   );
 };
+
+
+    
