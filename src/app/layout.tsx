@@ -1,6 +1,6 @@
 
 import type {Metadata} from 'next';
-import { Poppins, Roboto, Lora, Playfair_Display, Montserrat } from 'next/font/google';
+import { Poppins, Roboto, Lora, Playfair_Display, Montserrat, Oswald } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
@@ -34,6 +34,12 @@ const montserrat = Montserrat({
     variable: '--font-montserrat',
 });
 
+const oswald = Oswald({
+    subsets: ['latin'],
+    weight: ['400', '700'],
+    variable: '--font-oswald',
+});
+
 
 export const metadata: Metadata = {
   title: 'Nuevo Proyecto',
@@ -47,7 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} ${roboto.variable} ${lora.variable} ${playfair.variable} ${montserrat.variable}`}>
+      <body className={`${poppins.variable} ${roboto.variable} ${lora.variable} ${playfair.variable} ${montserrat.variable} ${oswald.variable}`}>
           {children}
           <Toaster />
       </body>

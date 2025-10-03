@@ -23,6 +23,7 @@ export default {
         Lora: ['var(--font-lora)', 'serif'],
         'Playfair Display': ['var(--font-playfair)', 'serif'],
         Montserrat: ['var(--font-montserrat)', 'sans-serif'],
+        Oswald: ['var(--font-oswald)', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

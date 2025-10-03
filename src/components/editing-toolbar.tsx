@@ -34,6 +34,7 @@ const fontOptions: { label: string; value: FontFamily }[] = [
     { label: 'Serif Clásico', value: 'Lora' },
     { label: 'Serif Moderno', value: 'Playfair Display' },
     { label: 'Cabecera', value: 'Montserrat' },
+    { label: 'Display Condensada', value: 'Oswald' },
 ];
 
 export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdate, onClose }) => {
