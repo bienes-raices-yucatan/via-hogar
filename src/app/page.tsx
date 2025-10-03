@@ -454,7 +454,7 @@ export default function Home() {
             case 'amenities':
                  if (elementKey === 'title') data = section.title;
                  if (elementKey === 'amenities') {
-                    const amenity = data.amenities.find(a => a.id === subElementId);
+                    const amenity = section.amenities.find(a => a.id === subElementId);
                      if (amenity) return { type: 'amenity', data: amenity };
                  }
                  break;
