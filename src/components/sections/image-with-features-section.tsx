@@ -136,20 +136,23 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground"
                  onClick={() => isAdminMode && fileInputRef.current?.click()}
             >
-                Click para añadir
+                <div className="text-center">
+                    <Icon name="camera" className="mx-auto h-12 w-12 text-gray-400" />
+                    <p className="mt-2 text-sm text-gray-500">Click para añadir</p>
+                </div>
             </div>
         );
 
         if (data.media.type === 'video') {
-            return <video src={imageUrl} controls className="w-full h-full object-cover" />;
+            return <video src={imageUrl} controls className="w-full h-full object-contain" />;
         }
         
-        return <Image src={imageUrl} alt={data.title?.text || 'Property Image'} layout="fill" className="object-cover" />;
+        return <Image src={imageUrl} alt={data.title?.text || 'Property Image'} layout="fill" className="object-contain" />;
     };
     
     return (
         <div className={cn(
-            "relative w-full h-full rounded-lg overflow-hidden shadow-lg group/media min-h-[300px]",
+            "relative w-full h-full rounded-lg overflow-hidden shadow-lg group/media bg-muted",
             isAdminMode && "cursor-pointer",
             isSelected && "ring-2 ring-primary ring-offset-2"
         )}
@@ -195,12 +198,12 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="flex flex-col md:flex-row gap-8">
-          <div className="md:w-1/2">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+          <div className="lg:w-1/2">
              <MediaComponent />
           </div>
-          <div className="md:w-1/2 flex flex-col">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10 flex-grow content-center">
+          <div className="lg:w-1/2 flex flex-col justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                 {data.features.map((feature) => (
                 <div 
                   key={feature.id} 
