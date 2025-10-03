@@ -52,9 +52,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   onSelectElement,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const featuresListRef = useRef<HTMLDivElement>(null);
-  const { height: featuresHeight } = useResizeObserver(featuresListRef);
-
+  
   const handleTitleUpdate = (newTitle: Partial<StyledText>) => {
     if (data.title) {
         onUpdate({ ...data, title: { ...data.title, ...newTitle } });
@@ -155,11 +153,10 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     
     return (
         <div className={cn(
-            "relative w-full rounded-lg overflow-hidden shadow-lg group/media bg-muted",
+            "relative w-full rounded-lg overflow-hidden shadow-lg group/media bg-muted aspect-[9/16]",
             isAdminMode && "cursor-pointer",
             isSelected && "ring-2 ring-primary ring-offset-2"
         )}
-        style={{ height: featuresHeight ? `${featuresHeight}px` : 'auto', minHeight: '400px' }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'media' })}>
             {mediaContent()}
              {isAdminMode && imageUrl && (
@@ -201,8 +198,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="flex flex-col md:flex-row items-stretch gap-8">
-            <div className="w-full md:w-2/5">
+        <div className="flex flex-col sm:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16">
+            <div className="w-full sm:w-5/12 lg:w-4/12 flex-shrink-0"> 
                 <MediaComponent />
                 <input
                     type="file"
@@ -212,8 +209,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                     onChange={handleImageUpload}
                 />
             </div>
-            <div className="w-full md:w-3/5 flex flex-col justify-center" ref={featuresListRef}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
+            <div className="w-full sm:w-7/12 lg:w-8/12 flex flex-col justify-center mt-8 sm:mt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
                     {data.features.map((feature) => (
                     <div 
                       key={feature.id} 
