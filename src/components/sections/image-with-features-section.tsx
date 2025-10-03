@@ -144,15 +144,15 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
         );
 
         if (data.media.type === 'video') {
-            return <video src={imageUrl} controls className="w-full h-full object-contain" />;
+            return <video src={imageUrl} controls className="w-full h-full object-cover" />;
         }
         
-        return <Image src={imageUrl} alt={data.title?.text || 'Property Image'} layout="fill" className="object-contain" />;
+        return <Image src={imageUrl} alt={data.title?.text || 'Property Image'} layout="fill" className="object-cover" />;
     };
     
     return (
         <div className={cn(
-            "relative w-full h-full rounded-lg overflow-hidden shadow-lg group/media bg-muted",
+            "relative w-full aspect-[9/16] rounded-lg overflow-hidden shadow-lg group/media bg-muted",
             isAdminMode && "cursor-pointer",
             isSelected && "ring-2 ring-primary ring-offset-2"
         )}
