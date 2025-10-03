@@ -94,7 +94,6 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
 
   const handleSelectAmenity = (amenityId: string) => {
     if (!isAdminMode) return;
-    const amenityData = data.amenities.find(a => a.id === amenityId);
     onSelectElement({ sectionId: data.id, elementKey: 'amenities', subElementId: amenityId });
   };
 

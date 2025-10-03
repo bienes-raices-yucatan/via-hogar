@@ -47,23 +47,28 @@ export const ButtonSection: React.FC<ButtonSectionProps> = ({
     <section 
         className={cn(
             "py-8 md:py-12 relative group",
-            isAdminMode && "cursor-pointer hover:bg-accent/20",
-            isSelected && "bg-accent/30 ring-2 ring-primary ring-offset-2"
         )}
         style={{ backgroundColor: data.style?.backgroundColor }}
-        onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'text' })}
         data-section-type="button"
     >
-      <div className={cn("container mx-auto px-4 flex", alignmentClasses[data.alignment || 'center'])}>
+      <div className={cn("container mx-auto px-4 flex", alignmentClasses[data.alignment || 'center'])}
+           onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'text' })}
+      >
         {isAdminMode && <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={isSelected} />}
         
         {isAdminMode ? (
-            <Input
-                type="text"
-                value={data.text}
-                onChange={(e) => onUpdate({ text: e.target.value })}
-                className="w-auto text-center !text-lg !px-8 !h-12"
-            />
+            <div className={cn(
+              "p-2 rounded-md",
+              isAdminMode && "cursor-pointer hover:bg-accent/20",
+              isSelected && "bg-accent/30 ring-2 ring-primary ring-offset-2"
+            )}>
+              <Input
+                  type="text"
+                  value={data.text}
+                  onChange={(e) => onUpdate({ text: e.target.value })}
+                  className="w-auto text-center !text-lg !px-8 !h-12"
+              />
+            </div>
         ) : (
             <Button size="lg" onClick={handleButtonClick}>
                 {data.text}
@@ -73,5 +78,3 @@ export const ButtonSection: React.FC<ButtonSectionProps> = ({
     </section>
   );
 };
-
-    

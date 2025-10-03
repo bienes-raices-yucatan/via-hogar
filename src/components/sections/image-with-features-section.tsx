@@ -142,7 +142,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     
     return (
         <div className={cn(
-            "relative w-full h-full rounded-lg overflow-hidden shadow-lg group/media",
+            "relative aspect-[9/16] w-full max-w-sm mx-auto rounded-lg overflow-hidden shadow-lg group/media",
             isAdminMode && "cursor-pointer",
             isSelected && "ring-2 ring-primary ring-offset-2"
         )}
@@ -262,6 +262,3 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     </section>
   );
 };
-
-
-    
