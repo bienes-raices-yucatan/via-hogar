@@ -12,7 +12,6 @@ import { saveImage } from '@/lib/storage';
 import { cn } from '@/lib/utils';
 import { useImageLoader } from '@/hooks/use-image-loader';
 import { Skeleton } from '../ui/skeleton';
-import { useResizeObserver } from '@/hooks/use-resize-observer';
 
 
 const FeatureIconDisplay: React.FC<{ feature: FeatureItem }> = ({ feature }) => {
@@ -130,11 +129,11 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     const { imageUrl, isLoading } = useImageLoader(data.media.url);
     
     const mediaContent = () => {
-        if (isLoading) return <Skeleton className="w-full h-full" />;
+        if (isLoading) return <Skeleton className="absolute inset-0" />;
 
         if (!imageUrl) return (
             <div 
-                className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground"
+                className="absolute inset-0 bg-muted flex items-center justify-center text-muted-foreground"
                  onClick={() => isAdminMode && fileInputRef.current?.click()}
             >
                 <div className="text-center">
@@ -145,7 +144,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
         );
 
         if (data.media.type === 'video') {
-            return <video src={imageUrl} controls className="w-full h-full object-cover" />;
+            return <video src={imageUrl} controls className="absolute inset-0 w-full h-full object-cover" />;
         }
         
         return <Image src={imageUrl} alt={data.title?.text || 'Property Image'} layout="fill" className="object-cover" />;
@@ -198,8 +197,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="flex flex-col sm:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16">
-            <div className="w-full sm:w-5/12 lg:w-4/12 flex-shrink-0"> 
+        <div className="flex flex-col md:flex-row items-stretch gap-x-8 md:gap-x-12 lg:gap-x-16">
+            <div className="w-full md:w-5/12 lg:w-4/12 flex-shrink-0"> 
                 <MediaComponent />
                 <input
                     type="file"
@@ -209,7 +208,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                     onChange={handleImageUpload}
                 />
             </div>
-            <div className="w-full sm:w-7/12 lg:w-8/12 flex flex-col justify-center mt-8 sm:mt-0">
+            <div className="w-full md:w-7/12 lg:w-8/12 flex flex-col justify-center mt-8 md:mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
                     {data.features.map((feature) => (
                     <div 
@@ -266,13 +265,15 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                         )}
                     </div>
                     ))}
+                     {isAdminMode && (
+                        <div className="flex items-center justify-start md:col-span-2">
+                             <Button variant="outline" onClick={handleAddFeature} className="mt-8 self-start">
+                                <Icon name="plus" className="mr-2" />
+                                Añadir Característica
+                            </Button>
+                        </div>
+                    )}
                 </div>
-                {isAdminMode && (
-                    <Button variant="outline" onClick={handleAddFeature} className="mt-8 self-start">
-                        <Icon name="plus" className="mr-2" />
-                        Añadir Característica
-                    </Button>
-                )}
               </div>
         </div>
       </div>
