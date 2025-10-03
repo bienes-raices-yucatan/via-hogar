@@ -171,7 +171,7 @@ export type SelectedElement = {
     sectionId: string;
     elementKey: keyof AnySectionData | 'style' | 'backgroundImageUrl';
     subElementId?: string; // For items within an array (e.g., a specific feature ID)
-    property?: keyof (FeatureItem | PricingTier | StyledText | ButtonSectionData | NearbyPlace); // For nested properties within an item
+    property?: keyof (FeatureItem | PricingTier | StyledText | ButtonSectionData | NearbyPlace | AmenityItem); // For nested properties within an item
 };
 
 // Data structure for a contact form submission

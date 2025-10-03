@@ -557,7 +557,7 @@ export default function Home() {
         if (itemIndex > -1) {
             array[itemIndex] = { ...array[itemIndex], ...processedChanges };
         }
-    } else {
+    } else if (elementKey) {
         // Update a direct property of the section or a whole object like 'tier'
         (sectionToUpdate as any)[elementKey] = { ...(sectionToUpdate as any)[elementKey], ...processedChanges };
     }
@@ -642,7 +642,7 @@ export default function Home() {
             onNavigateHome={() => setSelectedPropertyId(null)}
         />
 
-        <main className="flex-grow">
+        <main className={cn("flex-grow", !selectedProperty && "pt-24")}>
             {selectedProperty ? (
                 <div>
                     {isAdminMode && <AddSectionControl index={0} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}

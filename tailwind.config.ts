@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -17,10 +18,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Roboto', 'sans-serif'],
-        headline: ['Montserrat', 'sans-serif'],
-        lora: ['Lora', 'serif'],
-        playfair: ['Playfair Display', 'serif'],
+        Poppins: ['var(--font-poppins)', 'sans-serif'],
+        Roboto: ['var(--font-roboto)', 'sans-serif'],
+        Lora: ['var(--font-lora)', 'serif'],
+        'Playfair Display': ['var(--font-playfair)', 'serif'],
+        Montserrat: ['var(--font-montserrat)', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

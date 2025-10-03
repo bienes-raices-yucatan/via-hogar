@@ -1,12 +1,39 @@
+
 import type {Metadata} from 'next';
-import { Poppins } from 'next/font/google';
+import { Poppins, Roboto, Lora, Playfair_Display, Montserrat } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '700'],
+  variable: '--font-poppins',
 });
+
+const roboto = Roboto({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-roboto',
+});
+
+const lora = Lora({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-lora',
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-playfair',
+});
+
+const montserrat = Montserrat({
+    subsets: ['latin'],
+    weight: ['400', '700', '900'],
+    variable: '--font-montserrat',
+});
+
 
 export const metadata: Metadata = {
   title: 'Nuevo Proyecto',
@@ -20,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={poppins.className}>
+      <body className={`${poppins.variable} ${roboto.variable} ${lora.variable} ${playfair.variable} ${montserrat.variable}`}>
           {children}
           <Toaster />
       </body>
