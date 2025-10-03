@@ -131,7 +131,14 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     const mediaContent = () => {
         if (isLoading) return <Skeleton className="w-full h-full" />;
 
-        if (!imageUrl) return <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">Sin medio</div>;
+        if (!imageUrl) return (
+            <div 
+                className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground"
+                 onClick={() => isAdminMode && fileInputRef.current?.click()}
+            >
+                Click para añadir
+            </div>
+        );
 
         if (data.media.type === 'video') {
             return <video src={imageUrl} controls className="w-full h-full object-cover" />;
@@ -148,7 +155,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
         )}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'media' })}>
             {mediaContent()}
-             {isAdminMode && (
+             {isAdminMode && imageUrl && (
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/media:opacity-100 flex items-center justify-center transition-opacity">
                     <Button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click()}}>
                         <Icon name="pencil" className="mr-2" />
