@@ -12,6 +12,7 @@ import { saveImage } from '@/lib/storage';
 import { cn } from '@/lib/utils';
 import { useImageLoader } from '@/hooks/use-image-loader';
 import { Skeleton } from '../ui/skeleton';
+import { useResizeObserver } from '@/hooks/use-resize-observer';
 
 
 const FeatureIconDisplay: React.FC<{ feature: FeatureItem }> = ({ feature }) => {
@@ -51,6 +52,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   onSelectElement,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const featuresListRef = useRef<HTMLDivElement>(null);
+  const { height: featuresHeight } = useResizeObserver(featuresListRef);
 
   const handleTitleUpdate = (newTitle: Partial<StyledText>) => {
     if (data.title) {
@@ -152,10 +155,11 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     
     return (
         <div className={cn(
-            "relative w-full aspect-[9/16] rounded-lg overflow-hidden shadow-lg group/media bg-muted",
+            "relative w-full rounded-lg overflow-hidden shadow-lg group/media bg-muted",
             isAdminMode && "cursor-pointer",
             isSelected && "ring-2 ring-primary ring-offset-2"
         )}
+        style={{ height: featuresHeight ? `${featuresHeight}px` : 'auto', minHeight: '400px' }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'media' })}>
             {mediaContent()}
              {isAdminMode && imageUrl && (
@@ -197,11 +201,18 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="flex flex-col lg:flex-row items-start">
+        <div className="flex flex-col lg:flex-row items-start gap-8">
           <div className="lg:w-1/3">
             <MediaComponent />
+             <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*,video/*"
+                onChange={handleImageUpload}
+             />
           </div>
-          <div className="lg:w-2/3 flex flex-col justify-center pl-8 lg:pl-16">
+          <div className="lg:w-2/3 flex flex-col justify-center" ref={featuresListRef}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                 {data.features.map((feature) => (
                 <div 
