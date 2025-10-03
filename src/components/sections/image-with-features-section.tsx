@@ -142,7 +142,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     
     return (
         <div className={cn(
-            "relative aspect-[9/16] w-full max-w-sm mx-auto rounded-lg overflow-hidden shadow-lg group/media",
+            "relative w-full rounded-lg overflow-hidden shadow-lg group/media aspect-[9/16]",
             isAdminMode && "cursor-pointer",
             isSelected && "ring-2 ring-primary ring-offset-2"
         )}
@@ -188,11 +188,11 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-start">
-          <div className="flex justify-center items-stretch md:col-span-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 items-start">
+          <div className="md:col-span-1">
              <MediaComponent />
           </div>
-          <div className="flex flex-col md:col-span-1">
+          <div className="flex flex-col md:col-span-1 md:pl-8 lg:pl-16">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10 flex-grow content-center">
                 {data.features.map((feature) => (
                 <div 
