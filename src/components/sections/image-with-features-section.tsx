@@ -197,11 +197,11 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
-          <div className="lg:w-5/12">
-             <MediaComponent />
+        <div className="flex flex-col lg:flex-row items-start">
+          <div className="lg:w-1/3">
+            <MediaComponent />
           </div>
-          <div className="lg:w-7/12 flex flex-col justify-center">
+          <div className="lg:w-2/3 flex flex-col justify-center pl-8 lg:pl-16">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                 {data.features.map((feature) => (
                 <div 
