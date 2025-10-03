@@ -113,7 +113,11 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
 
   const handleSelectFeatureProperty = (featureId: string, property: 'title' | 'description' | 'icon') => {
       if(!isAdminMode) return;
-      if (property === 'icon') {
+      const existingSelection = selectedElement?.subElementId === featureId && selectedElement?.property === property;
+      
+      if (existingSelection) {
+        onSelectElement(null);
+      } else if (property === 'icon') {
         onSelectElement({ sectionId: data.id, elementKey: 'features', subElementId: featureId });
       } else {
         onSelectElement({ sectionId: data.id, elementKey: 'features', subElementId: featureId, property });
@@ -138,7 +142,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     
     return (
         <div className={cn(
-            "relative w-full h-full rounded-lg overflow-hidden shadow-lg group/media",
+            "relative w-full h-full rounded-lg overflow-hidden shadow-lg group/media aspect-[9/16]",
             isAdminMode && "cursor-pointer",
             isSelected && "ring-2 ring-primary ring-offset-2"
         )}
@@ -146,7 +150,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
             {mediaContent()}
              {isAdminMode && (
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/media:opacity-100 flex items-center justify-center transition-opacity">
-                    <Button onClick={() => fileInputRef.current?.click()}>
+                    <Button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click()}}>
                         <Icon name="pencil" className="mr-2" />
                         Cambiar
                     </Button>
@@ -184,11 +188,11 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-stretch">
-          <div className="flex justify-center md:h-auto min-h-[400px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-16 items-center">
+          <div className="flex justify-center md:col-span-1">
              <MediaComponent />
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col md:col-span-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10 flex-grow">
                 {data.features.map((feature) => (
                 <div 

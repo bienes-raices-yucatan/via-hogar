@@ -57,6 +57,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
         fontFamily: value.fontFamily,
         textAlign: value.textAlign || 'left',
         fontWeight: value.fontWeight || 'normal',
+        padding: '0.1em 0.2em' // Added padding for indentation
     };
 
     if (!isAdminMode) {
@@ -87,7 +88,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
             }}
             className={cn(
                 className,
-                'transition-all duration-200 focus:outline-none whitespace-pre-wrap w-full',
+                'transition-all duration-200 focus:outline-none whitespace-pre-wrap w-full rounded-sm',
                 isAdminMode && 'cursor-pointer hover:outline-dashed hover:outline-1 hover:outline-primary',
                 isSelected && 'outline-dashed outline-2 outline-primary',
                 !currentText && 'h-8' // Placeholder height when empty
@@ -96,5 +97,3 @@ export const EditableText: React.FC<EditableTextProps> = ({
         />
     );
 };
-
-    
