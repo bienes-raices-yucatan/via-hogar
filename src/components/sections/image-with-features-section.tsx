@@ -176,7 +176,6 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
         style={{ backgroundColor: data.style?.backgroundColor }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
-      <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*,video/*" />
       <div className="container mx-auto px-4">
         {isAdminMode && (
           <SectionToolbar
@@ -198,11 +197,11 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-          <div className="lg:w-1/2">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+          <div className="lg:w-5/12">
              <MediaComponent />
           </div>
-          <div className="lg:w-1/2 flex flex-col justify-center">
+          <div className="lg:w-7/12 flex flex-col justify-center">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                 {data.features.map((feature) => (
                 <div 
