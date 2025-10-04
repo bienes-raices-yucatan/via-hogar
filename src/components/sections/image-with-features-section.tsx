@@ -109,7 +109,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
       reader.onload = async (e) => {
           const dataUrl = e.target?.result as string;
           const savedKey = await saveImage(dataUrl);
-          onUpdate({ ...data, media: { ...data.media, url: savedKey } });
+          const fileType = file.type.startsWith('video') ? 'video' : 'image';
+          onUpdate({ ...data, media: { type: fileType, url: savedKey } });
       };
       reader.readAsDataURL(file);
   };
@@ -129,12 +130,12 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
 
   const MediaComponent = ({ height }: { height?: number }) => {
     const isSelected = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'media';
-    const { imageUrl, isLoading } = useImageLoader(data.media.url);
+    const { imageUrl: mediaUrl, isLoading } = useImageLoader(data.media.url);
     
     const mediaContent = () => {
         if (isLoading) return <Skeleton className="absolute inset-0" />;
 
-        if (!imageUrl) return (
+        if (!mediaUrl) return (
             <div 
                 className="absolute inset-0 bg-muted flex items-center justify-center text-muted-foreground"
                  onClick={() => isAdminMode && fileInputRef.current?.click()}
@@ -147,22 +148,29 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
         );
 
         if (data.media.type === 'video') {
-            return <video src={imageUrl} controls className="absolute inset-0 w-full h-full object-cover" />;
+            return (
+                <video 
+                    key={mediaUrl} 
+                    src={mediaUrl} 
+                    controls 
+                    className="absolute inset-0 w-full h-full object-cover"
+                />
+            );
         }
         
-        return <Image src={imageUrl} alt={data.title?.text || 'Property Image'} layout="fill" className="object-cover" />;
+        return <Image src={mediaUrl} alt={data.title?.text || 'Property Image'} layout="fill" className="object-cover" />;
     };
     
     return (
         <div className={cn(
-            "relative w-full rounded-lg overflow-hidden shadow-lg group/media bg-muted aspect-[9/16]",
+            "relative w-full rounded-lg overflow-hidden shadow-lg group/media bg-muted",
             isAdminMode && "cursor-pointer",
             isSelected && "ring-2 ring-primary ring-offset-2"
         )}
-        style={{ height: height ? `${height}px` : undefined }}
+        style={{ height: height ? `${height}px` : 'auto', minHeight: '300px' }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'media' })}>
             {mediaContent()}
-             {isAdminMode && imageUrl && (
+             {isAdminMode && mediaUrl && (
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/media:opacity-100 flex items-center justify-center transition-opacity">
                     <Button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click()}}>
                         <Icon name="pencil" className="mr-2" />
