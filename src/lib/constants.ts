@@ -1,6 +1,6 @@
 
 
-import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission, FeatureItem, AmenitiesSectionData, HeroSectionData, ButtonSectionData, LocationSectionData } from './types';
+import { AnySectionData, NearbyPlace, Property, PricingSectionData, StyledText, DraggableTextData, ContactSubmission, FeatureItem, AmenitiesSectionData, HeroSectionData, ButtonSectionData, LocationSectionData, ImageWithFeaturesSectionData } from './types';
 
 // Default styled text for titles
 const defaultTitleStyle: Omit<StyledText, 'text'> = {
@@ -81,7 +81,8 @@ export const createSectionData = (
                 title: getDefaultTitle('Características Principales'),
                 media: { type: 'image', url: 'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
                 features: defaultFeatures,
-            };
+                mediaWidth: 40,
+            } as ImageWithFeaturesSectionData;
         case 'gallery':
             return {
                 ...base,

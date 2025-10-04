@@ -8,7 +8,7 @@ import { Slider } from './ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Icon } from './icon';
-import { FontFamily, IconName, TextAlign, StyledText, DraggableTextData, FeatureItem, FontWeight, PageSectionStyle, AmenityItem, PricingTier, NearbyPlace, ButtonSectionData } from '@/lib/types';
+import { FontFamily, IconName, TextAlign, StyledText, DraggableTextData, FeatureItem, FontWeight, PageSectionStyle, AmenityItem, PricingTier, NearbyPlace, ButtonSectionData, ImageWithFeaturesSectionData } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
@@ -18,7 +18,7 @@ const allIcons: IconName[] = ['bed' , 'bath' , 'area' , 'map-pin' , 'school' , '
 
 // Type definitions for what the toolbar can edit
 type EditableElement = {
-    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier' | 'nearbyPlace' | 'button';
+    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier' | 'nearbyPlace' | 'button' | 'imageWithFeatures';
     data: any;
 };
 
@@ -167,6 +167,21 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 <SliderWithInput label="Sup. Derecha" value={data.borderRadiusTopRight} onValueChange={(val) => onValueChange('borderRadiusTopRight', val)} />
                 <SliderWithInput label="Inf. Izquierda" value={data.borderRadiusBottomLeft} onValueChange={(val) => onValueChange('borderRadiusBottomLeft', val)} />
                 <SliderWithInput label="Inf. Derecha" value={data.borderRadiusBottomRight} onValueChange={(val) => onValueChange('borderRadiusBottomRight', val)} />
+            </div>
+        </>
+    );
+
+    const renderImageWithFeaturesControls = (data: ImageWithFeaturesSectionData, onValueChange: (key: string, value: any) => void) => (
+        <>
+            <div className="space-y-2">
+                <Label>Ancho de Media ({(data.mediaWidth || 40).toFixed(0)}%)</Label>
+                <Slider
+                    value={[data.mediaWidth || 40]}
+                    onValueChange={(v) => onValueChange('mediaWidth', v[0])}
+                    min={20}
+                    max={80}
+                    step={1}
+                />
             </div>
         </>
     );
@@ -328,6 +343,8 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 return renderTextControls(values, (key, value) => onUpdate({ [key]: value }));
             case 'sectionStyle':
                 return renderSectionStyleControls(values, (key, value) => onUpdate({ [key]: value }));
+            case 'imageWithFeatures':
+                 return renderImageWithFeaturesControls(values, (key, value) => onUpdate({ [key]: value }));
             case 'amenity':
                 return renderAmenityControls(values);
             case 'feature':

@@ -70,8 +70,8 @@ import { Icon } from '@/components/icon';
 
 // Type for the state that tracks the currently selected element for editing
 type SelectedElementForToolbar = {
-    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier' | 'nearbyPlace' | 'button';
-    data: Partial<StyledText & DraggableTextData & PageSectionStyle & AmenityItem & FeatureItem & PricingTier & NearbyPlace & ButtonSectionData>;
+    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier' | 'nearbyPlace' | 'button' | 'imageWithFeatures';
+    data: Partial<StyledText & DraggableTextData & PageSectionStyle & AmenityItem & FeatureItem & PricingTier & NearbyPlace & ButtonSectionData & ImageWithFeaturesSectionData>;
 };
 
 export default function Home() {
@@ -437,6 +437,9 @@ export default function Home() {
                 break;
             case 'imageWithFeatures':
                 if (elementKey === 'title') data = section.title;
+                if (elementKey === 'mediaWidth') {
+                    return { type: 'imageWithFeatures', data: section };
+                }
                 if (elementKey === 'features') {
                      const feature = section.features.find(f => f.id === subElementId);
                      if (feature) {
@@ -522,8 +525,8 @@ export default function Home() {
     const newSections = [...selectedProperty.sections];
     let sectionToUpdate: AnySectionData = JSON.parse(JSON.stringify(newSections[sectionIndex]));
 
-    if (elementKey === 'style') {
-        sectionToUpdate.style = { ...sectionToUpdate.style, ...processedChanges };
+    if (elementKey === 'style' || elementKey === 'mediaWidth') {
+        sectionToUpdate = { ...sectionToUpdate, ...processedChanges };
         if (processedChanges.backgroundImageUrl !== undefined) {
              (sectionToUpdate as any).backgroundImageUrl = processedChanges.backgroundImageUrl;
         }

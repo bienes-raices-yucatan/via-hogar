@@ -36,14 +36,14 @@ const FeatureIconDisplay: React.FC<{ feature: FeatureItem }> = ({ feature }) => 
 
 interface ImageWithFeaturesSectionProps {
   data: ImageWithFeaturesSectionData;
-  onUpdate: (data: ImageWithFeaturesSectionData) => void;
+  onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void;
   onDelete: (sectionId: string) => void;
   isAdminMode: boolean;
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
 }
 
-const MediaComponent = ({ data, onUpdate, height }: { data: ImageWithFeaturesSectionData; onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void; height?: number }) => {
+const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeaturesSectionData; onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void; isAdminMode: boolean; }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { imageUrl: mediaUrl, isLoading } = useImageLoader(data.media.url);
 
@@ -56,13 +56,15 @@ const MediaComponent = ({ data, onUpdate, height }: { data: ImageWithFeaturesSec
             const dataUrl = e.target?.result as string;
             const savedKey = await saveImage(dataUrl);
             const fileType = file.type.startsWith('video') ? 'video' : 'image';
-            onUpdate({ ...data, media: { type: fileType, url: savedKey } });
+            onUpdate({ media: { type: fileType, url: savedKey } });
         };
         reader.readAsDataURL(file);
     };
     
     const mediaContent = () => {
         if (isLoading) return <Skeleton className="absolute inset-0" />;
+
+        const commonClasses = "absolute inset-0 w-full h-full object-contain";
 
         if (!mediaUrl) return (
             <div 
@@ -75,27 +77,25 @@ const MediaComponent = ({ data, onUpdate, height }: { data: ImageWithFeaturesSec
                 </div>
             </div>
         );
-
+        
         if (data.media.type === 'video') {
             return (
                 <video 
                     key={mediaUrl} 
                     src={mediaUrl} 
                     controls 
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className={commonClasses}
                 />
             );
         }
         
-        return <Image src={mediaUrl} alt={data.title?.text || 'Property Image'} layout="fill" className="object-cover" />;
+        return <Image src={mediaUrl} alt={data.title?.text || 'Property Image'} layout="fill" className={commonClasses} />;
     };
 
-    const isAdminMode = true; // This should be passed as a prop if it can change
 
     return (
         <div 
-            className="relative w-full rounded-lg overflow-hidden shadow-lg group/media bg-muted"
-            style={{ height: height ? `${height}px` : 'auto', minHeight: '300px' }}
+            className="relative w-full h-full rounded-lg overflow-hidden shadow-lg group/media bg-muted/50"
         >
             {mediaContent()}
             {isAdminMode && (
@@ -152,7 +152,6 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     
     const newFeatures = data.features.map(f => {
         if (f.id === featureId) {
-            // Check for nested StyledText updates
             const newTitle = updates.title ? { ...f.title, ...updates.title } : f.title;
             const newDescription = updates.description ? { ...f.description, ...updates.description } : f.description;
             return { ...f, ...finalUpdates, title: newTitle, description: newDescription };
@@ -160,7 +159,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
         return f;
     });
 
-    onUpdate({ ...data, features: newFeatures });
+    onUpdate({ features: newFeatures });
   };
 
 
@@ -192,6 +191,12 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
       }
   };
 
+  const mediaWidth = data.mediaWidth || 40;
+  const featuresWidth = 100 - mediaWidth;
+
+  const isSectionSelectedForStyle = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style';
+  const isSectionSelectedForMediaWidth = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'mediaWidth';
+  const isSectionSelected = isSectionSelectedForStyle || isSectionSelectedForMediaWidth;
 
   return (
     <section 
@@ -204,9 +209,24 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           <SectionToolbar
             sectionId={data.id}
             onDelete={onDelete}
-            isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
+            isSectionSelected={isSectionSelected}
           />
         )}
+        {isAdminMode && (
+             <Button
+                variant="secondary"
+                size="icon"
+                className="absolute top-2 right-14 z-20 h-8 w-8"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectElement({ sectionId: data.id, elementKey: 'mediaWidth' });
+                }}
+                title="Ajustar ancho de media"
+            >
+                <Icon name="arrows-move" className="h-4 w-4" />
+            </Button>
+        )}
+
         {data.title && (data.title.text || isAdminMode) && (
           <EditableText
             id={`${data.id}-title`}
@@ -221,10 +241,20 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
         )}
 
         <div className="flex flex-col md:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16">
-            <div className="w-full md:w-5/12 lg:w-4/12 flex-shrink-0"> 
-                 <MediaComponent data={data} onUpdate={onUpdate} height={featuresHeight} />
+            <div 
+                className="w-full"
+                style={{ 
+                    width: `${mediaWidth}%`, 
+                    height: featuresHeight ? `${featuresHeight}px` : 'auto'
+                }}
+            > 
+                 <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
             </div>
-            <div ref={featuresListRef} className="w-full md:w-7/12 lg:w-8/12 flex flex-col justify-center mt-8 md:mt-0">
+            <div 
+                ref={featuresListRef} 
+                className="w-full mt-8 md:mt-0"
+                style={{ width: `${featuresWidth}%` }}
+            >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                     {data.features.map((feature) => (
                     <div 
@@ -295,4 +325,4 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
       </div>
     </section>
   );
-};
+}
