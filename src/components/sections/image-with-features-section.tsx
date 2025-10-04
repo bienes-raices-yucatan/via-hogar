@@ -43,6 +43,85 @@ interface ImageWithFeaturesSectionProps {
   onSelectElement: (element: SelectedElement | null) => void;
 }
 
+const MediaComponent = ({ data, onUpdate, height }: { data: ImageWithFeaturesSectionData; onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void; height?: number }) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { imageUrl: mediaUrl, isLoading } = useImageLoader(data.media.url);
+
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const dataUrl = e.target?.result as string;
+            const savedKey = await saveImage(dataUrl);
+            const fileType = file.type.startsWith('video') ? 'video' : 'image';
+            onUpdate({ ...data, media: { type: fileType, url: savedKey } });
+        };
+        reader.readAsDataURL(file);
+    };
+    
+    const mediaContent = () => {
+        if (isLoading) return <Skeleton className="absolute inset-0" />;
+
+        if (!mediaUrl) return (
+            <div 
+                className="absolute inset-0 bg-muted flex items-center justify-center text-muted-foreground"
+                 onClick={() => isAdminMode && fileInputRef.current?.click()}
+            >
+                <div className="text-center">
+                    <Icon name="camera" className="mx-auto h-12 w-12 text-gray-400" />
+                    <p className="mt-2 text-sm text-gray-500">Click para añadir</p>
+                </div>
+            </div>
+        );
+
+        if (data.media.type === 'video') {
+            return (
+                <video 
+                    key={mediaUrl} 
+                    src={mediaUrl} 
+                    controls 
+                    className="absolute inset-0 w-full h-full object-cover"
+                />
+            );
+        }
+        
+        return <Image src={mediaUrl} alt={data.title?.text || 'Property Image'} layout="fill" className="object-cover" />;
+    };
+
+    const isAdminMode = true; // This should be passed as a prop if it can change
+
+    return (
+        <div 
+            className="relative w-full rounded-lg overflow-hidden shadow-lg group/media bg-muted"
+            style={{ height: height ? `${height}px` : 'auto', minHeight: '300px' }}
+        >
+            {mediaContent()}
+            {isAdminMode && (
+                <>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*,video/*"
+                        onChange={handleImageUpload}
+                    />
+                    {mediaUrl && (
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/media:opacity-100 flex items-center justify-center transition-opacity">
+                            <Button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click()}}>
+                                <Icon name="pencil" className="mr-2" />
+                                Cambiar
+                            </Button>
+                        </div>
+                    )}
+                </>
+             )}
+        </div>
+    );
+};
+
+
 export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({
   data,
   onUpdate,
@@ -51,7 +130,6 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   selectedElement,
   onSelectElement,
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const featuresListRef = useRef<HTMLDivElement>(null);
   const { height: featuresHeight } = useResizeObserver(featuresListRef);
   
@@ -101,20 +179,6 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     onUpdate({ ...data, features: newFeatures });
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-          const dataUrl = e.target?.result as string;
-          const savedKey = await saveImage(dataUrl);
-          const fileType = file.type.startsWith('video') ? 'video' : 'image';
-          onUpdate({ ...data, media: { type: fileType, url: savedKey } });
-      };
-      reader.readAsDataURL(file);
-  };
-
   const handleSelectFeatureProperty = (featureId: string, property: 'title' | 'description' | 'icon') => {
       if(!isAdminMode) return;
       const existingSelection = selectedElement?.subElementId === featureId && selectedElement?.property === property;
@@ -128,59 +192,6 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
       }
   };
 
-  const MediaComponent = ({ height }: { height?: number }) => {
-    const isSelected = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'media';
-    const { imageUrl: mediaUrl, isLoading } = useImageLoader(data.media.url);
-    
-    const mediaContent = () => {
-        if (isLoading) return <Skeleton className="absolute inset-0" />;
-
-        if (!mediaUrl) return (
-            <div 
-                className="absolute inset-0 bg-muted flex items-center justify-center text-muted-foreground"
-                 onClick={() => isAdminMode && fileInputRef.current?.click()}
-            >
-                <div className="text-center">
-                    <Icon name="camera" className="mx-auto h-12 w-12 text-gray-400" />
-                    <p className="mt-2 text-sm text-gray-500">Click para añadir</p>
-                </div>
-            </div>
-        );
-
-        if (data.media.type === 'video') {
-            return (
-                <video 
-                    key={mediaUrl} 
-                    src={mediaUrl} 
-                    controls 
-                    className="absolute inset-0 w-full h-full object-cover"
-                />
-            );
-        }
-        
-        return <Image src={mediaUrl} alt={data.title?.text || 'Property Image'} layout="fill" className="object-cover" />;
-    };
-    
-    return (
-        <div className={cn(
-            "relative w-full rounded-lg overflow-hidden shadow-lg group/media bg-muted",
-            isAdminMode && "cursor-pointer",
-            isSelected && "ring-2 ring-primary ring-offset-2"
-        )}
-        style={{ height: height ? `${height}px` : 'auto', minHeight: '300px' }}
-        onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'media' })}>
-            {mediaContent()}
-             {isAdminMode && mediaUrl && (
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/media:opacity-100 flex items-center justify-center transition-opacity">
-                    <Button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click()}}>
-                        <Icon name="pencil" className="mr-2" />
-                        Cambiar
-                    </Button>
-                </div>
-             )}
-        </div>
-    );
-  }
 
   return (
     <section 
@@ -211,17 +222,10 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
 
         <div className="flex flex-col md:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16">
             <div className="w-full md:w-5/12 lg:w-4/12 flex-shrink-0"> 
-                <MediaComponent height={featuresHeight} />
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept="image/*,video/*"
-                    onChange={handleImageUpload}
-                />
+                 <MediaComponent data={data} onUpdate={onUpdate} height={featuresHeight} />
             </div>
             <div ref={featuresListRef} className="w-full md:w-7/12 lg:w-8/12 flex flex-col justify-center mt-8 md:mt-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                     {data.features.map((feature) => (
                     <div 
                       key={feature.id} 
@@ -278,7 +282,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                     </div>
                     ))}
                      {isAdminMode && (
-                        <div className="flex items-center justify-start md:col-span-2">
+                        <div className="flex items-center justify-start sm:col-span-2">
                              <Button variant="outline" onClick={handleAddFeature} className="mt-8 self-start">
                                 <Icon name="plus" className="mr-2" />
                                 Añadir Característica
