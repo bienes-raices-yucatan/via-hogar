@@ -12,6 +12,7 @@ import { saveImage } from '@/lib/storage';
 import { cn } from '@/lib/utils';
 import { useImageLoader } from '@/hooks/use-image-loader';
 import { Skeleton } from '../ui/skeleton';
+import { useResizeObserver } from '@/hooks/use-resize-observer';
 
 
 const FeatureIconDisplay: React.FC<{ feature: FeatureItem }> = ({ feature }) => {
@@ -51,6 +52,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   onSelectElement,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const featuresListRef = useRef<HTMLDivElement>(null);
+  const { height: featuresHeight } = useResizeObserver(featuresListRef);
   
   const handleTitleUpdate = (newTitle: Partial<StyledText>) => {
     if (data.title) {
@@ -124,7 +127,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
       }
   };
 
-  const MediaComponent = () => {
+  const MediaComponent = ({ height }: { height?: number }) => {
     const isSelected = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'media';
     const { imageUrl, isLoading } = useImageLoader(data.media.url);
     
@@ -156,6 +159,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
             isAdminMode && "cursor-pointer",
             isSelected && "ring-2 ring-primary ring-offset-2"
         )}
+        style={{ height: height ? `${height}px` : undefined }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'media' })}>
             {mediaContent()}
              {isAdminMode && imageUrl && (
@@ -197,9 +201,9 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
 
-        <div className="flex flex-col md:flex-row items-stretch gap-x-8 md:gap-x-12 lg:gap-x-16">
+        <div className="flex flex-col md:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16">
             <div className="w-full md:w-5/12 lg:w-4/12 flex-shrink-0"> 
-                <MediaComponent />
+                <MediaComponent height={featuresHeight} />
                 <input
                     type="file"
                     ref={fileInputRef}
@@ -208,7 +212,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                     onChange={handleImageUpload}
                 />
             </div>
-            <div className="w-full md:w-7/12 lg:w-8/12 flex flex-col justify-center mt-8 md:mt-0">
+            <div ref={featuresListRef} className="w-full md:w-7/12 lg:w-8/12 flex flex-col justify-center mt-8 md:mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
                     {data.features.map((feature) => (
                     <div 
