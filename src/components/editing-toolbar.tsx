@@ -183,6 +183,16 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                     step={1}
                 />
             </div>
+            <div className="space-y-2">
+                <Label>Escala ({( (data.scale || 1) * 100).toFixed(0)}%)</Label>
+                <Slider
+                    value={[(data.scale || 1) * 100]}
+                    onValueChange={(v) => onValueChange('scale', v[0] / 100)}
+                    min={25}
+                    max={100}
+                    step={1}
+                />
+            </div>
         </>
     );
     
