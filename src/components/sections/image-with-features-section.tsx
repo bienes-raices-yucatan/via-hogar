@@ -71,7 +71,7 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
                 key={mediaUrl} 
                 src={mediaUrl} 
                 controls 
-                className="w-full h-auto object-cover rounded-lg"
+                className="w-full h-auto object-contain rounded-lg"
             />
         ) : (
             <Image 
@@ -79,7 +79,7 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
                 alt={data.title?.text || 'Property Image'} 
                 width={600} 
                 height={800} 
-                className="w-full h-auto object-cover rounded-lg"
+                className="w-full h-auto object-contain rounded-lg"
             />
         );
 
@@ -139,8 +139,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
 }) => {
   const handleTitleUpdate = (newTitle: Partial<StyledText>) => {
     if (data.title) {
-        const currentText = data.title.text;
-        onUpdate({ ...data, title: { ...data.title, ...newTitle, text: newTitle.text ?? currentText } });
+        onUpdate({ ...data, title: { ...data.title, ...newTitle } });
     }
   };
   
@@ -199,6 +198,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   const isSectionSelectedForStyle = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style';
   const isSectionSelectedForLayout = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'mediaWidth');
   const isSectionSelected = isSectionSelectedForStyle || isSectionSelectedForLayout;
+  
+  const mediaWidth = data.mediaWidth ?? 50;
 
   return (
     <section 
@@ -241,14 +242,15 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
               />
             )}
-            <div className="flex flex-col lg:flex-row items-start justify-center gap-12 lg:gap-16">
+            <div className="flex flex-col lg:flex-row items-start gap-12 lg:gap-16">
                 
-                {/* --- Columna Izquierda (Video/Imagen) --- */}
-                <div className="w-full lg:max-w-xl lg:flex-shrink-0">
+                <div 
+                  className="w-full lg:flex-shrink-0"
+                  style={{ width: isAdminMode || !isSectionSelectedForLayout ? `${mediaWidth}%` : '100%' }}
+                >
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
 
-                {/* --- Columna Derecha (Características) --- */}
                 <div className="flex-1 w-full">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                         {data.features.map((feature) => (
@@ -273,7 +275,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                                     id={`${feature.id}-title`}
                                     value={feature.title}
                                     isAdminMode={isAdminMode}
-                                    onUpdate={(val) => handleFeatureUpdate(feature.id, { title: { ...feature.title, ...val} })}
+                                    onUpdate={(val) => handleFeatureUpdate(feature.id, { title: val })}
                                     onSelect={() => handleSelectFeatureProperty(feature.id, 'title')}
                                     isSelected={selectedElement?.subElementId === feature.id && selectedElement.property === 'title'}
                                     className="font-bold text-lg text-foreground"
@@ -283,7 +285,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                                     id={`${feature.id}-desc`}
                                     value={feature.description}
                                     isAdminMode={isAdminMode}
-                                    onUpdate={(val) => handleFeatureUpdate(feature.id, { description: { ...feature.description, ...val} })}
+                                    onUpdate={(val) => handleFeatureUpdate(feature.id, { description: val })}
                                     onSelect={() => handleSelectFeatureProperty(feature.id, 'description')}
                                     isSelected={selectedElement?.subElementId === feature.id && selectedElement.property === 'description'}
                                     className="text-muted-foreground mt-1"
@@ -321,3 +323,5 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     </section>
   );
 }
+
+    

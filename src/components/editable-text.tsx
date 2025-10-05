@@ -32,13 +32,11 @@ export const EditableText: React.FC<EditableTextProps> = ({
     }
 
     const handleContentChange = (e: ContentEditableEvent) => {
-        // Directly call onUpdate to avoid re-render conflicts
         onUpdate({ text: e.target.value });
     };
 
     const handleBlur = () => {
-        // onUpdate is already called on change, but we can keep blur for other logic if needed in the future.
-        // For now, it can be empty as the main update happens in handleContentChange.
+        // onUpdate is already called on change, so blur can be used for other logic if needed.
     };
     
     const textStyle: React.CSSProperties = {
@@ -87,3 +85,5 @@ export const EditableText: React.FC<EditableTextProps> = ({
         />
     );
 };
+
+    

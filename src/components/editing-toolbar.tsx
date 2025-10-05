@@ -69,7 +69,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const renderTextControls = (data: StyledText | DraggableTextData, onValueChange: (key: string, value: any) => void) => {
+    const renderTextControls = (data: StyledText | DraggableTextData) => {
       return (
         <>
             <div className="space-y-2">
@@ -140,7 +140,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
       )
     };
     
-    const renderSectionStyleControls = (data: PageSectionStyle, onValueChange: (key: string, value: any) => void) => (
+    const renderSectionStyleControls = (data: PageSectionStyle) => (
         <>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
@@ -148,13 +148,13 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 Cambiar Imagen de Fondo
             </Button>
             <hr />
-            <ColorPicker label="Color de Fondo" value={data.backgroundColor || '#FFFFFF'} onChange={(c) => onValueChange('backgroundColor', c)} />
+            <ColorPicker label="Color de Fondo" value={data.backgroundColor || '#FFFFFF'} onChange={(c) => handleChange('backgroundColor', c)} />
             <hr />
             <div className="space-y-2">
               <Label>Altura de la Sección ({(data.height || 80).toFixed(0)}vh)</Label>
               <Slider
                 value={[data.height || 80]}
-                onValueChange={(v) => onValueChange('height', v[0])}
+                onValueChange={(v) => handleChange('height', v[0])}
                 min={20}
                 max={100}
                 step={1}
@@ -163,21 +163,21 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
             <hr />
             <Label>Radio de las Esquinas (rem)</Label>
              <div className="grid grid-cols-2 gap-4">
-                <SliderWithInput label="Sup. Izquierda" value={data.borderRadiusTopLeft} onValueChange={(val) => onValueChange('borderRadiusTopLeft', val)} />
-                <SliderWithInput label="Sup. Derecha" value={data.borderRadiusTopRight} onValueChange={(val) => onValueChange('borderRadiusTopRight', val)} />
-                <SliderWithInput label="Inf. Izquierda" value={data.borderRadiusBottomLeft} onValueChange={(val) => onValueChange('borderRadiusBottomLeft', val)} />
-                <SliderWithInput label="Inf. Derecha" value={data.borderRadiusBottomRight} onValueChange={(val) => onValueChange('borderRadiusBottomRight', val)} />
+                <SliderWithInput label="Sup. Izquierda" value={data.borderRadiusTopLeft} onValueChange={(val) => handleChange('borderRadiusTopLeft', val)} />
+                <SliderWithInput label="Sup. Derecha" value={data.borderRadiusTopRight} onValueChange={(val) => handleChange('borderRadiusTopRight', val)} />
+                <SliderWithInput label="Inf. Izquierda" value={data.borderRadiusBottomLeft} onValueChange={(val) => handleChange('borderRadiusBottomLeft', val)} />
+                <SliderWithInput label="Inf. Derecha" value={data.borderRadiusBottomRight} onValueChange={(val) => handleChange('borderRadiusBottomRight', val)} />
             </div>
         </>
     );
 
-    const renderImageWithFeaturesControls = (data: ImageWithFeaturesSectionData, onValueChange: (key: string, value: any) => void) => (
+    const renderImageWithFeaturesControls = (data: ImageWithFeaturesSectionData) => (
         <>
             <div className="space-y-2">
                 <Label>Ancho de Media ({(data.mediaWidth || 50).toFixed(0)}%)</Label>
                 <Slider
                     value={[data.mediaWidth || 50]}
-                    onValueChange={(v) => onValueChange('mediaWidth', v[0])}
+                    onValueChange={(v) => handleChange('mediaWidth', v[0])}
                     min={20}
                     max={80}
                     step={1}
@@ -208,32 +208,45 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         </>
     );
 
-    const renderFeatureControls = (data: FeatureItem) => (
-        <>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-            <IconPicker label="Icono" value={data.icon} onChange={(icon) => onUpdate({ icon })} />
-            <hr />
-            <p className="text-xs font-bold text-muted-foreground uppercase">Título</p>
-            {renderTextControls(data.title, (key, value) => onUpdate({ title: { ...data.title, [key]: value } }))}
-            <hr />
-            <p className="text-xs font-bold text-muted-foreground uppercase">Descripción</p>
-            {renderTextControls(data.description, (key, value) => onUpdate({ description: { ...data.description, [key]: value } }))}
-            <hr />
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                <Icon name="camera" className="mr-2" />
-                Usar Imagen en vez de icono
-            </Button>
-            {data.imageUrl && (
-                <Button variant="destructive" size="sm" onClick={() => onUpdate({ imageUrl: null })}>
-                    <Icon name="trash" className="mr-2" />
-                    Quitar Imagen
+    const renderFeatureControls = (data: FeatureItem) => {
+        const handleLocalUpdate = (property: 'title' | 'description', changes: Partial<StyledText>) => {
+            onUpdate({ [property]: { ...data[property], ...changes } });
+        };
+
+        return (
+            <>
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                <IconPicker label="Icono" value={data.icon} onChange={(icon) => onUpdate({ icon })} />
+                <hr />
+                <p className="text-xs font-bold text-muted-foreground uppercase">Título</p>
+                {renderTextControls(data.title, (key, value) => handleLocalUpdate('title', { [key]: value }))}
+                <hr />
+                <p className="text-xs font-bold text-muted-foreground uppercase">Descripción</p>
+                {renderTextControls(data.description, (key, value) => handleLocalUpdate('description', { [key]: value }))}
+                <hr />
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                    <Icon name="camera" className="mr-2" />
+                    Usar Imagen en vez de icono
                 </Button>
-            )}
-        </>
-    );
+                {data.imageUrl && (
+                    <Button variant="destructive" size="sm" onClick={() => onUpdate({ imageUrl: null })}>
+                        <Icon name="trash" className="mr-2" />
+                        Quitar Imagen
+                    </Button>
+                )}
+            </>
+        );
+    };
 
 
-    const renderPricingTierControls = (data: PricingTier) => (
+    const renderPricingTierControls = (data: PricingTier) => {
+        const handleLocalUpdate = (property: keyof PricingTier, changes: Partial<StyledText>) => {
+            const currentVal = data[property];
+            if(typeof currentVal === 'object') {
+                onUpdate({ [property]: { ...currentVal, ...changes } });
+            }
+        };
+        return (
         <>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
@@ -248,25 +261,25 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
             )}
             <hr/>
             <p className="text-xs font-bold text-muted-foreground uppercase">Título</p>
-            {renderTextControls(data.title, (key, value) => onUpdate({ title: { ...data.title, [key]: value } }))}
+            {renderTextControls(data.title, (key, value) => handleLocalUpdate('title', { [key]: value }))}
             <hr/>
             <p className="text-xs font-bold text-muted-foreground uppercase">Precio</p>
-            {renderTextControls(data.price, (key, value) => onUpdate({ price: { ...data.price, [key]: value } }))}
+            {renderTextControls(data.price, (key, value) => handleLocalUpdate('price', { [key]: value }))}
             <hr/>
             {data.oldPrice && (
                 <>
                     <p className="text-xs font-bold text-muted-foreground uppercase">Precio Anterior</p>
-                    {renderTextControls(data.oldPrice, (key, value) => onUpdate({ oldPrice: { ...data.oldPrice, [key]: value } }))}
+                    {renderTextControls(data.oldPrice, (key, value) => handleLocalUpdate('oldPrice', { [key]: value }))}
                     <hr/>
                 </>
             )}
             <p className="text-xs font-bold text-muted-foreground uppercase">Moneda</p>
-            {renderTextControls(data.currency, (key, value) => onUpdate({ currency: { ...data.currency, [key]: value } }))}
+            {renderTextControls(data.currency, (key, value) => handleLocalUpdate('currency', { [key]: value }))}
             <hr/>
             <p className="text-xs font-bold text-muted-foreground uppercase">Descripción</p>
-            {renderTextControls(data.description, (key, value) => onUpdate({ description: { ...data.description, [key]: value } }))}
+            {renderTextControls(data.description, (key, value) => handleLocalUpdate('description', { [key]: value }))}
         </>
-    )
+    )};
 
     const renderNearbyPlaceControls = (data: NearbyPlace) => (
         <>
@@ -340,11 +353,11 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         switch (element.type) {
             case 'styledText':
             case 'draggableText':
-                return renderTextControls(values, (key, value) => onUpdate({ [key]: value }));
+                return renderTextControls(values);
             case 'sectionStyle':
-                return renderSectionStyleControls(values, (key, value) => onUpdate({ [key]: value }));
+                return renderSectionStyleControls(values, handleChange);
             case 'imageWithFeatures':
-                 return renderImageWithFeaturesControls(values, (key, value) => onUpdate({ [key]: value }));
+                 return renderImageWithFeaturesControls(values);
             case 'amenity':
                 return renderAmenityControls(values);
             case 'feature':
@@ -494,3 +507,5 @@ const SliderWithInput: React.FC<{
     </div>
   );
 };
+
+    
