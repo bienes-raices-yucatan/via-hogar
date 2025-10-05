@@ -298,7 +298,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
               />
             )}
-            <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-start gap-x-12 xl:gap-x-16">
+            <div className="w-full flex flex-col lg:flex-row items-start justify-center gap-x-12 xl:gap-x-16">
                 
                 <div 
                   className="w-full lg:flex-shrink-0"
@@ -307,8 +307,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
 
-                <div className="flex-1 w-full mt-8 lg:mt-0 flex justify-center">
-                     <div className="flex flex-col sm:flex-row gap-x-8 gap-y-10 w-full max-w-2xl">
+                <div className="w-full mt-8 lg:mt-0">
+                     <div className="flex gap-x-8 sm:gap-x-10 max-w-2xl">
                         {/* Column 1 */}
                         <div className="flex flex-1 flex-col gap-y-10">
                             {col1.map(feature => (
@@ -336,19 +336,22 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                                     onDelete={() => handleDeleteFeature(feature.id)}
                                 />
                             ))}
+                             {features.length < 6 && isAdminMode && (
+                                <button
+                                    onClick={handleAddFeature}
+                                    className="flex flex-col items-center justify-center text-center border-2 border-dashed rounded-lg p-4 hover:bg-accent hover:border-primary transition-colors h-full min-h-[100px]"
+                                >
+                                    <Icon name="plus" className="w-8 h-8 text-muted-foreground mb-2" />
+                                    <span className="text-sm font-semibold text-muted-foreground">Añadir</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
-            {isAdminMode && (
-                <div className="container mx-auto px-4 mt-8 flex justify-center">
-                     <Button variant="outline" onClick={handleAddFeature}>
-                        <Icon name="plus" className="mr-2" />
-                        Añadir Característica
-                    </Button>
-                </div>
-            )}
         </div>
     </section>
   );
 }
+
+    
