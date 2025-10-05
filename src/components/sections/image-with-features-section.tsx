@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useState, useEffect } from 'react';
@@ -128,6 +129,75 @@ interface ImageWithFeaturesSectionProps {
   onSelectElement: (element: SelectedElement | null) => void;
 }
 
+const FeatureItemComponent: React.FC<{
+    feature: FeatureItem;
+    isAdminMode: boolean;
+    isSelected: boolean;
+    onSelect: () => void;
+    onUpdate: (updates: Partial<FeatureItem>) => void;
+    onDelete: () => void;
+}> = ({ feature, isAdminMode, isSelected, onSelect, onUpdate, onDelete }) => {
+    const handleTitleUpdate = (updates: Partial<StyledText>) => {
+        onUpdate({ title: { ...feature.title, ...updates } });
+    };
+
+    const handleDescriptionUpdate = (updates: Partial<StyledText>) => {
+        onUpdate({ description: { ...feature.description, ...updates } });
+    };
+
+    return (
+        <div 
+            className={cn(
+                "flex items-start gap-4 relative group/feature",
+                isAdminMode && "cursor-pointer rounded-lg p-2 -m-2 transition-colors hover:bg-accent/20",
+                isSelected && "bg-accent/30 ring-2 ring-primary"
+            )}
+            onClick={onSelect}
+        >
+            <div className="bg-primary/10 text-primary p-3 rounded-lg flex-shrink-0 h-12 w-12 flex items-center justify-center">
+                <FeatureIconDisplay feature={feature} />
+            </div>
+            <div className="flex-grow min-w-0">
+                <EditableText
+                    as="h4"
+                    id={`${feature.id}-title`}
+                    value={feature.title}
+                    isAdminMode={isAdminMode}
+                    onUpdate={handleTitleUpdate}
+                    onSelect={onSelect}
+                    isSelected={isSelected}
+                    className="font-bold text-lg text-foreground"
+                />
+                <EditableText
+                    as="p"
+                    id={`${feature.id}-desc`}
+                    value={feature.description}
+                    isAdminMode={isAdminMode}
+                    onUpdate={handleDescriptionUpdate}
+                    onSelect={onSelect}
+                    isSelected={isSelected}
+                    className="text-muted-foreground mt-1"
+                />
+            </div>
+            {isAdminMode && (
+                <div className="absolute -top-1 -right-1 opacity-0 group-hover/feature:opacity-100 transition-opacity">
+                    <Button 
+                        variant="destructive"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete();
+                        }}
+                    >
+                        <Icon name="x-mark" className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({
   data,
   onUpdate,
@@ -155,17 +225,13 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     
     const newFeatures = data.features.map(f => {
         if (f.id === featureId) {
-            // This logic is a bit complex because the update can be a partial StyledText or a direct value
-            const newTitle = updates.title ? { ...f.title, ...updates.title } : f.title;
-            const newDescription = updates.description ? { ...f.description, ...updates.description } : f.description;
-            return { ...f, ...finalUpdates, title: newTitle, description: newDescription };
+            return { ...f, ...finalUpdates };
         }
         return f;
     });
 
     onUpdate({ features: newFeatures });
   };
-
 
   const handleAddFeature = () => {
     const newFeature: FeatureItem = {
@@ -182,17 +248,9 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     onUpdate({ ...data, features: newFeatures });
   };
 
-  const handleSelectFeatureProperty = (featureId: string, property: 'title' | 'description' | 'icon') => {
+  const handleSelectFeature = (featureId: string) => {
       if(!isAdminMode) return;
-      const existingSelection = selectedElement?.subElementId === featureId && selectedElement?.property === property;
-      
-      if (existingSelection) {
-        onSelectElement(null);
-      } else if (property === 'icon') {
-        onSelectElement({ sectionId: data.id, elementKey: 'features', subElementId: featureId });
-      } else {
-        onSelectElement({ sectionId: data.id, elementKey: 'features', subElementId: featureId, property });
-      }
+      onSelectElement({ sectionId: data.id, elementKey: 'features', subElementId: featureId });
   };
 
   const isSectionSelectedForStyle = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style';
@@ -200,6 +258,12 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   const isSectionSelected = isSectionSelectedForStyle || isSectionSelectedForLayout;
   
   const mediaWidth = data.mediaWidth ?? 50;
+
+  // Manual distribution into 3 columns
+  const features = data.features || [];
+  const col1 = [features[0], features[2], features[3]].filter(Boolean);
+  const col2 = [features[1], features[4], features[5]].filter(Boolean);
+  const col3: FeatureItem[] = []; // Intentionally empty based on user request
 
   return (
     <section 
@@ -245,78 +309,53 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
             <div className="flex flex-col lg:flex-row items-start gap-x-12 xl:gap-x-16">
                 
                 <div 
-                  className="w-full lg:flex-shrink-0"
+                  className="w-full lg:w-auto lg:flex-shrink-0"
                   style={{ width: `${mediaWidth}%` }}
                 >
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
 
-                <div className="flex-1 w-full">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
-                        {data.features.map((feature) => (
-                        <div 
-                          key={feature.id} 
-                          className="flex items-start gap-4 relative group/feature"
-                          onClick={(e) => { e.stopPropagation(); }}
-                        >
-                            <div 
-                                className={cn(
-                                  "bg-primary/10 text-primary p-3 rounded-lg flex-shrink-0 h-12 w-12 flex items-center justify-center", 
-                                  isAdminMode && "cursor-pointer", 
-                                  selectedElement?.subElementId === feature.id && (selectedElement.property === 'icon' || !selectedElement.property) && "ring-2 ring-primary"
-                                )}
-                                onClick={(e) => {e.stopPropagation(); handleSelectFeatureProperty(feature.id, 'icon')}}
-                            >
-                              <FeatureIconDisplay feature={feature} />
-                            </div>
-                            <div className="flex-grow min-w-0">
-                                <EditableText
-                                    as="h4"
-                                    id={`${feature.id}-title`}
-                                    value={feature.title}
+                <div className="flex-1 w-full mt-8 lg:mt-0">
+                    <div className="flex flex-col sm:flex-row gap-x-8 gap-y-10">
+                        {/* Column 1 */}
+                        <div className="flex flex-1 flex-col gap-y-10">
+                            {col1.map(feature => (
+                                <FeatureItemComponent 
+                                    key={feature.id}
+                                    feature={feature}
                                     isAdminMode={isAdminMode}
-                                    onUpdate={(val) => handleFeatureUpdate(feature.id, { title: val })}
-                                    onSelect={() => handleSelectFeatureProperty(feature.id, 'title')}
-                                    isSelected={selectedElement?.subElementId === feature.id && selectedElement.property === 'title'}
-                                    className="font-bold text-lg text-foreground"
+                                    isSelected={selectedElement?.subElementId === feature.id}
+                                    onSelect={() => handleSelectFeature(feature.id)}
+                                    onUpdate={(updates) => handleFeatureUpdate(feature.id, updates)}
+                                    onDelete={() => handleDeleteFeature(feature.id)}
                                 />
-                                 <EditableText
-                                    as="p"
-                                    id={`${feature.id}-desc`}
-                                    value={feature.description}
-                                    isAdminMode={isAdminMode}
-                                    onUpdate={(val) => handleFeatureUpdate(feature.id, { description: val })}
-                                    onSelect={() => handleSelectFeatureProperty(feature.id, 'description')}
-                                    isSelected={selectedElement?.subElementId === feature.id && selectedElement.property === 'description'}
-                                    className="text-muted-foreground mt-1"
-                                />
-                            </div>
-                            {isAdminMode && (
-                                <div className="absolute -top-1 -right-1 opacity-0 group-hover/feature:opacity-100 transition-opacity">
-                                    <Button 
-                                      variant="destructive"
-                                      size="icon"
-                                      className="h-6 w-6"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteFeature(feature.id);
-                                      }}
-                                    >
-                                        <Icon name="x-mark" className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            )}
+                            ))}
                         </div>
-                        ))}
-                         {isAdminMode && (
-                            <div className="flex items-center justify-start sm:col-span-2 xl:col-span-3">
-                                 <Button variant="outline" onClick={handleAddFeature} className="mt-8 self-start">
-                                    <Icon name="plus" className="mr-2" />
-                                    Añadir Característica
-                                </Button>
-                            </div>
-                        )}
+                        {/* Column 2 */}
+                        <div className="flex flex-1 flex-col gap-y-10">
+                           {col2.map(feature => (
+                                <FeatureItemComponent 
+                                    key={feature.id}
+                                    feature={feature}
+                                    isAdminMode={isAdminMode}
+                                    isSelected={selectedElement?.subElementId === feature.id}
+                                    onSelect={() => handleSelectFeature(feature.id)}
+                                    onUpdate={(updates) => handleFeatureUpdate(feature.id, updates)}
+                                    onDelete={() => handleDeleteFeature(feature.id)}
+                                />
+                            ))}
+                        </div>
+                        {/* Column 3 (Intentionally Blank) */}
+                        <div className="flex-1" />
                     </div>
+                     {isAdminMode && (
+                        <div className="mt-8">
+                             <Button variant="outline" onClick={handleAddFeature}>
+                                <Icon name="plus" className="mr-2" />
+                                Añadir Característica
+                            </Button>
+                        </div>
+                    )}
                   </div>
             </div>
         </div>
