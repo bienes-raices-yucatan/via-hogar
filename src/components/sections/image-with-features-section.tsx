@@ -34,7 +34,7 @@ const FeatureIconDisplay: React.FC<{ feature: FeatureItem }> = ({ feature }) => 
     return <Icon name={feature.icon} className="w-6 h-6" />;
 }
 
-const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeaturesSectionData; onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void; isAdminMode: boolean }) => {
+const MediaComponent = ({ data, onUpdate, isAdminMode, containerHeight }: { data: ImageWithFeaturesSectionData; onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void; isAdminMode: boolean; containerHeight?: number }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { imageUrl: mediaUrl, isLoading } = useImageLoader(data.media.url);
 
@@ -53,14 +53,18 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
     };
     
     const mediaContent = () => {
-        if (isLoading) return <Skeleton className="absolute inset-0 rounded-lg" />;
-
-        const commonClasses = "absolute inset-0 w-full h-full object-cover rounded-lg";
+        if (isLoading) return <Skeleton className="w-full h-full rounded-lg" />;
+        
+        const commonClasses = "w-full h-full object-contain rounded-lg";
+        const mediaStyle: React.CSSProperties = {
+            maxHeight: containerHeight ? `${containerHeight}px` : '100%',
+        };
 
         if (!mediaUrl) return (
             <div 
-                className="absolute inset-0 bg-muted/50 rounded-lg flex items-center justify-center text-muted-foreground"
-                 onClick={() => isAdminMode && fileInputRef.current?.click()}
+                className="w-full h-full bg-muted/20 rounded-lg flex items-center justify-center text-muted-foreground"
+                style={{ height: containerHeight ? `${containerHeight}px` : '400px' }}
+                onClick={() => isAdminMode && fileInputRef.current?.click()}
             >
                 <div className="text-center">
                     <Icon name="camera" className="mx-auto h-12 w-12 text-gray-400" />
@@ -76,17 +80,18 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
                     src={mediaUrl} 
                     controls 
                     className={commonClasses}
+                    style={mediaStyle}
                 />
             );
         }
         
-        return <Image src={mediaUrl} alt={data.title?.text || 'Property Image'} layout="fill" className={commonClasses} />;
+        return <Image src={mediaUrl} alt={data.title?.text || 'Property Image'} width={600} height={800} className={cn(commonClasses, "w-full")} style={mediaStyle} />;
     };
 
 
     return (
         <div 
-            className="relative w-full h-full group/media"
+            className="relative w-full h-full group/media flex items-center justify-center"
         >
             {mediaContent()}
             {isAdminMode && (
@@ -112,6 +117,15 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
     );
 };
 
+
+interface ImageWithFeaturesSectionProps {
+  data: ImageWithFeaturesSectionData;
+  onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void;
+  onDelete: (sectionId: string) => void;
+  isAdminMode: boolean;
+  selectedElement: SelectedElement | null;
+  onSelectElement: (element: SelectedElement | null) => void;
+}
 
 export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> = ({
   data,
@@ -190,7 +204,6 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   const mediaWidth = data.mediaWidth || 40;
   const featuresWidth = 100 - mediaWidth;
 
-  // Calculate the height of the container that holds the scaled content
   const scaledContainerHeight = featuresHeight ? featuresHeight * scale : undefined;
 
   return (
@@ -239,21 +252,21 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
            style={{ height: scaledContainerHeight }}
         >
             <div 
-                className="flex flex-col md:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16 transition-transform duration-300 origin-top"
+                className="flex flex-col sm:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16 transition-transform duration-300 origin-top"
                 style={{ transform: `scale(${scale})` }}
             >
                 <div 
-                    className="w-full md:flex-shrink-0"
+                    className="w-full sm:w-5/12 lg:w-4/12 flex-shrink-0"
                     style={{ 
                         width: `${mediaWidth}%`,
                         height: featuresHeight ? `${featuresHeight}px` : 'auto'
                     }}
                 > 
-                     <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
+                     <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} containerHeight={featuresHeight} />
                 </div>
                 <div 
                     ref={featuresListRef} 
-                    className="w-full mt-8 md:mt-0"
+                    className="w-full sm:w-7/12 lg:w-8/12 mt-8 sm:mt-0"
                     style={{ width: `${featuresWidth}%`}}
                 >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
@@ -328,4 +341,3 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     </section>
   );
 }
-
