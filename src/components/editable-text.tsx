@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import ContentEditable, { ContentEditableEvent } from 'react-contenteditable';
 import { StyledText } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -31,24 +31,17 @@ export const EditableText: React.FC<EditableTextProps> = ({
         return null;
     }
 
-    const [currentText, setCurrentText] = useState(value.text);
-    const hasChangedRef = useRef(false);
-
-    // Update internal state if the prop changes from outside
-    useEffect(() => {
-        setCurrentText(value.text);
-    }, [value.text]);
+    const textRef = useRef(value.text);
+    textRef.current = value.text;
 
     const handleContentChange = (e: ContentEditableEvent) => {
-        setCurrentText(e.target.value);
-        hasChangedRef.current = true;
+        // Directly call onUpdate to avoid re-render conflicts
+        onUpdate({ text: e.target.value });
     };
 
     const handleBlur = () => {
-        if (hasChangedRef.current) {
-            onUpdate({ text: currentText });
-            hasChangedRef.current = false;
-        }
+        // onUpdate is already called on change, but we can keep blur for other logic if needed in the future.
+        // For now, it can be empty as the main update happens in handleContentChange.
     };
     
     const textStyle: React.CSSProperties = {
@@ -72,7 +65,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
 
     return (
         <ContentEditable
-            html={currentText}
+            html={value.text}
             tagName={Component}
             onChange={handleContentChange}
             onBlur={handleBlur}
@@ -91,7 +84,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
                 'transition-all duration-200 focus:outline-none whitespace-pre-wrap w-full rounded-sm',
                 isAdminMode && 'cursor-pointer hover:outline-dashed hover:outline-1 hover:outline-primary',
                 isSelected && 'outline-dashed outline-2 outline-primary',
-                !currentText && 'h-8' // Placeholder height when empty
+                !value.text && 'h-8' // Placeholder height when empty
             )}
             style={textStyle}
         />
