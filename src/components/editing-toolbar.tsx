@@ -183,16 +183,6 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                     step={1}
                 />
             </div>
-            <div className="space-y-2">
-                <Label>Escala del Video ({( (data.mediaScale || 1) * 100).toFixed(0)}%)</Label>
-                <Slider
-                    value={[(data.mediaScale || 1) * 100]}
-                    onValueChange={(v) => onValueChange('mediaScale', v[0] / 100)}
-                    min={25}
-                    max={100}
-                    step={1}
-                />
-            </div>
         </>
     );
     

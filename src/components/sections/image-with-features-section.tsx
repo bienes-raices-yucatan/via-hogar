@@ -51,8 +51,6 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
         reader.readAsDataURL(file);
     };
     
-    const mediaScale = data.mediaScale || 1;
-
     const mediaContent = () => {
         if (isLoading) return <Skeleton className="w-full h-full aspect-video rounded-lg" />;
         
@@ -115,7 +113,6 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
     return (
         <div 
             className="relative w-full h-auto"
-            style={{ transform: `scale(${mediaScale})`, transformOrigin: 'top center' }}
         >
             {mediaContent()}
         </div>
@@ -225,7 +222,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                     className="absolute top-2 right-14 z-20 h-8 w-8"
                     onClick={(e) => {
                         e.stopPropagation();
-                        onSelectElement({ sectionId: data.id, elementKey: 'mediaScale' });
+                        onSelectElement({ sectionId: data.id, elementKey: 'mediaWidth' });
                     }}
                     title="Ajustar diseño de la sección"
                 >
@@ -246,10 +243,13 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
               />
             )}
             <div className="flex flex-col md:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16">
-                <div className="w-full md:w-[40%] flex-shrink-0">
+                <div 
+                    className="w-full flex-shrink-0"
+                    style={{ width: `${mediaWidth}%` }}
+                >
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
-                <div className="w-full md:w-[60%] mt-8 md:mt-0">
+                <div className="w-full flex-grow mt-8 md:mt-0">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                         {data.features.map((feature) => (
                         <div 
