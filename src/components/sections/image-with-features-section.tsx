@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { ImageWithFeaturesSectionData, SelectedElement, FeatureItem, StyledText } from '@/lib/types';
 import { SectionToolbar } from '@/components/section-toolbar';
@@ -55,9 +55,9 @@ const MediaComponent = ({ data, onUpdate, isAdminMode, containerHeight }: { data
     const mediaContent = () => {
         if (isLoading) return <Skeleton className="w-full h-full rounded-lg" />;
         
-        const commonClasses = "w-full h-full object-contain rounded-lg";
+        const commonClasses = "w-full h-full object-cover rounded-lg";
         const mediaStyle: React.CSSProperties = {
-            maxHeight: containerHeight ? `${containerHeight}px` : '100%',
+             height: containerHeight ? `${containerHeight}px` : 'auto',
         };
 
         if (!mediaUrl) return (
@@ -136,8 +136,15 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   onSelectElement,
 }) => {
   const featuresListRef = useRef<HTMLDivElement>(null);
-  const { height: featuresHeight } = useResizeObserver(featuresListRef);
+  const { height: observedHeight } = useResizeObserver(featuresListRef);
+  const [featuresHeight, setFeaturesHeight] = useState<number | undefined>();
   
+  useEffect(() => {
+      if (observedHeight) {
+          setFeaturesHeight(observedHeight);
+      }
+  }, [observedHeight]);
+
   const handleTitleUpdate = (newTitle: Partial<StyledText>) => {
     if (data.title) {
         onUpdate({ ...data, title: { ...data.title, ...newTitle } });
