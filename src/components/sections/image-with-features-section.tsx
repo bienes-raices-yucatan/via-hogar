@@ -95,7 +95,7 @@ const MediaComponent = ({ data, onUpdate, isAdminMode, style }: { data: ImageWit
 
     return (
         <div 
-            className="relative w-full h-full rounded-lg overflow-hidden shadow-lg group/media bg-muted/50"
+            className="relative w-full h-full rounded-lg overflow-hidden shadow-lg group/media"
             style={style}
         >
             {mediaContent()}
