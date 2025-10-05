@@ -243,12 +243,16 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
               />
             )}
             <div className="flex flex-col md:flex-row items-start gap-x-12 lg:gap-x-16">
+                
+                {/* --- Columna Naranja (Video/Imagen) --- */}
                 <div 
-                    className="w-full flex-shrink-0"
+                    className="w-full md:w-[40%] flex-shrink-0"
                     style={{ width: `${mediaWidth}%` }}
                 >
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
+
+                {/* --- Columna Verde (Características) --- */}
                 <div className="w-full flex-grow mt-8 md:mt-0">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                         {data.features.map((feature) => (
