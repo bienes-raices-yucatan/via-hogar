@@ -196,7 +196,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   };
 
   const isSectionSelectedForStyle = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style';
-  const isSectionSelectedForLayout = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'mediaWidth' || selectedElement.elementKey === 'mediaScale');
+  const isSectionSelectedForLayout = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'mediaWidth');
   const isSectionSelected = isSectionSelectedForStyle || isSectionSelectedForLayout;
   
   const mediaWidth = data.mediaWidth || 40;
@@ -242,7 +242,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
               />
             )}
-            <div className="flex flex-col md:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16">
+            <div className="flex flex-col md:flex-row items-start gap-x-12 lg:gap-x-16">
                 <div 
                     className="w-full flex-shrink-0"
                     style={{ width: `${mediaWidth}%` }}
@@ -321,3 +321,5 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     </section>
   );
 }
+
+    
