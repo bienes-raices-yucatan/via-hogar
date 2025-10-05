@@ -58,7 +58,7 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
 
         if (!mediaUrl) return (
             <div 
-                className="w-full h-96 bg-muted/20 rounded-lg flex items-center justify-center text-muted-foreground"
+                className="w-full h-96 rounded-lg flex items-center justify-center text-muted-foreground"
                 onClick={() => isAdminMode && fileInputRef.current?.click()}
             >
                 <div className="text-center">
@@ -74,12 +74,12 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
                     key={mediaUrl} 
                     src={mediaUrl} 
                     controls 
-                    className={commonClasses}
+                    className="w-full h-auto rounded-lg"
                 />
             );
         }
         
-        return <Image src={mediaUrl} alt={data.title?.text || 'Property Image'} width={600} height={800} className={commonClasses} />;
+        return <Image src={mediaUrl} alt={data.title?.text || 'Property Image'} width={600} height={800} className="w-full h-auto rounded-lg" />;
     };
 
 
@@ -192,8 +192,6 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   const isSectionSelected = isSectionSelectedForStyle || isSectionSelectedForLayout;
   
   const scale = data.scale || 1;
-  const mediaWidth = data.mediaWidth || 40;
-  const featuresWidth = 100 - mediaWidth;
 
   return (
     <section 
@@ -242,13 +240,11 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
             <div className="flex flex-col md:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16">
                 <div 
                     className="w-full md:w-5/12 lg:w-4/12 flex-shrink-0"
-                    style={{ width: `${mediaWidth}%`}}
                 > 
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
                 <div 
                     className="w-full md:w-7/12 lg:w-8/12 mt-8 md:mt-0"
-                    style={{ width: `${featuresWidth}%`}}
                 >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                         {data.features.map((feature) => (
