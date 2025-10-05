@@ -192,14 +192,16 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
       }
   };
 
+  const isSectionSelectedForStyle = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style';
+  const isSectionSelectedForLayout = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'mediaWidth' || selectedElement.elementKey === 'scale');
+  const isSectionSelected = isSectionSelectedForStyle || isSectionSelectedForLayout;
+  
+  const scale = data.scale || 1;
   const mediaWidth = data.mediaWidth || 40;
   const featuresWidth = 100 - mediaWidth;
 
-  const isSectionSelectedForStyle = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style';
-  const isSectionSelectedForMediaWidth = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'mediaWidth' || selectedElement.elementKey === 'scale');
-  const isSectionSelected = isSectionSelectedForStyle || isSectionSelectedForMediaWidth;
-  
-  const scale = data.scale || 1;
+  // Calculate the height of the container that holds the scaled content
+  const scaledContainerHeight = featuresHeight ? featuresHeight * scale : undefined;
 
   return (
     <section 
@@ -224,9 +226,9 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                     e.stopPropagation();
                     onSelectElement({ sectionId: data.id, elementKey: 'scale' });
                 }}
-                title="Ajustar escala"
+                title="Ajustar diseño de la sección"
             >
-                <Icon name="arrows-move" className="h-4 w-4" />
+                <Icon name="pencil" className="h-4 w-4" />
             </Button>
         )}
 
@@ -243,15 +245,17 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
           />
         )}
         <div 
-          className="flex justify-center"
+          className="flex justify-center items-start"
+           style={{ height: scaledContainerHeight }}
         >
             <div 
-                className="flex flex-col md:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16 transition-transform duration-300"
+                className="flex flex-col md:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16 transition-transform duration-300 origin-top"
                 style={{ transform: `scale(${scale})` }}
             >
                 <div 
-                    className="w-full md:w-5/12 lg:w-4/12 flex-shrink-0"
+                    className="w-full md:flex-shrink-0"
                     style={{ 
+                        width: `${mediaWidth}%`,
                         height: featuresHeight ? `${featuresHeight}px` : 'auto'
                     }}
                 > 
@@ -259,7 +263,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 </div>
                 <div 
                     ref={featuresListRef} 
-                    className="w-full md:w-7/12 lg:w-8/12 mt-8 md:mt-0"
+                    className="w-full mt-8 md:mt-0"
+                    style={{ width: `${featuresWidth}%`}}
                 >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                         {data.features.map((feature) => (
