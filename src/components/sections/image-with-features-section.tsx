@@ -54,11 +54,11 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
     const mediaScale = data.mediaScale || 1;
 
     const mediaContent = () => {
-        if (isLoading) return <Skeleton className="w-full h-96 rounded-lg" />;
+        if (isLoading) return <Skeleton className="w-full h-full aspect-video rounded-lg" />;
         
         if (!mediaUrl) return (
              <div 
-                className="w-full h-96 rounded-lg flex items-center justify-center text-muted-foreground"
+                className="w-full h-96 rounded-lg flex items-center justify-center text-muted-foreground border-2 border-dashed"
                 onClick={() => isAdminMode && fileInputRef.current?.click()}
             >
                 <div className="text-center">
@@ -69,11 +69,11 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
         );
         
         const mediaElement = data.media.type === 'video' ? (
-            <video 
+             <video 
                 key={mediaUrl} 
                 src={mediaUrl} 
                 controls 
-                className="w-full h-auto object-contain rounded-lg"
+                className="w-full h-auto object-cover rounded-lg"
             />
         ) : (
             <Image 
@@ -81,12 +81,12 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
                 alt={data.title?.text || 'Property Image'} 
                 width={600} 
                 height={800} 
-                className="w-full h-auto object-contain rounded-lg"
+                className="w-full h-auto object-cover rounded-lg"
             />
         );
 
         return (
-             <div className="relative group/media" style={{ transform: `scale(${mediaScale})`, transformOrigin: 'top center' }}>
+             <div className="relative group/media">
                 {mediaElement}
                 {isAdminMode && (
                     <>
@@ -115,6 +115,7 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
     return (
         <div 
             className="relative w-full h-auto"
+            style={{ transform: `scale(${mediaScale})`, transformOrigin: 'top center' }}
         >
             {mediaContent()}
         </div>
@@ -245,15 +246,10 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
               />
             )}
             <div className="flex flex-col md:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16">
-                <div 
-                    className="w-full md:flex-shrink-0"
-                     style={{ width: `${mediaWidth}%` }}
-                > 
+                <div className="w-full md:w-[40%] flex-shrink-0">
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
-                <div 
-                    className="w-full mt-8 md:mt-0"
-                >
+                <div className="w-full md:w-[60%] mt-8 md:mt-0">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                         {data.features.map((feature) => (
                         <div 
