@@ -12,7 +12,6 @@ import { saveImage } from '@/lib/storage';
 import { cn } from '@/lib/utils';
 import { useImageLoader } from '@/hooks/use-image-loader';
 import { Skeleton } from '../ui/skeleton';
-import { useResizeObserver } from '@/hooks/use-resize-observer';
 
 
 const FeatureIconDisplay: React.FC<{ feature: FeatureItem }> = ({ feature }) => {
@@ -34,7 +33,7 @@ const FeatureIconDisplay: React.FC<{ feature: FeatureItem }> = ({ feature }) => 
     return <Icon name={feature.icon} className="w-6 h-6" />;
 }
 
-const MediaComponent = ({ data, onUpdate, isAdminMode, containerHeight }: { data: ImageWithFeaturesSectionData; onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void; isAdminMode: boolean; containerHeight?: number }) => {
+const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeaturesSectionData; onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void; isAdminMode: boolean; }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { imageUrl: mediaUrl, isLoading } = useImageLoader(data.media.url);
 
@@ -53,17 +52,13 @@ const MediaComponent = ({ data, onUpdate, isAdminMode, containerHeight }: { data
     };
     
     const mediaContent = () => {
-        if (isLoading) return <Skeleton className="w-full h-full rounded-lg" />;
+        if (isLoading) return <Skeleton className="w-full h-96 rounded-lg" />;
         
-        const commonClasses = "w-full h-full object-cover rounded-lg";
-        const mediaStyle: React.CSSProperties = {
-             height: containerHeight ? `${containerHeight}px` : 'auto',
-        };
+        const commonClasses = "w-full h-auto object-cover rounded-lg";
 
         if (!mediaUrl) return (
             <div 
-                className="w-full h-full bg-muted/20 rounded-lg flex items-center justify-center text-muted-foreground"
-                style={{ height: containerHeight ? `${containerHeight}px` : '400px' }}
+                className="w-full h-96 bg-muted/20 rounded-lg flex items-center justify-center text-muted-foreground"
                 onClick={() => isAdminMode && fileInputRef.current?.click()}
             >
                 <div className="text-center">
@@ -80,18 +75,17 @@ const MediaComponent = ({ data, onUpdate, isAdminMode, containerHeight }: { data
                     src={mediaUrl} 
                     controls 
                     className={commonClasses}
-                    style={mediaStyle}
                 />
             );
         }
         
-        return <Image src={mediaUrl} alt={data.title?.text || 'Property Image'} width={600} height={800} className={cn(commonClasses, "w-full")} style={mediaStyle} />;
+        return <Image src={mediaUrl} alt={data.title?.text || 'Property Image'} width={600} height={800} className={commonClasses} />;
     };
 
 
     return (
         <div 
-            className="relative w-full h-full group/media flex items-center justify-center"
+            className="relative w-full h-auto group/media"
         >
             {mediaContent()}
             {isAdminMode && (
@@ -135,16 +129,6 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   selectedElement,
   onSelectElement,
 }) => {
-  const featuresListRef = useRef<HTMLDivElement>(null);
-  const { height: observedHeight } = useResizeObserver(featuresListRef);
-  const [featuresHeight, setFeaturesHeight] = useState<number | undefined>();
-  
-  useEffect(() => {
-      if (observedHeight) {
-          setFeaturesHeight(observedHeight);
-      }
-  }, [observedHeight]);
-
   const handleTitleUpdate = (newTitle: Partial<StyledText>) => {
     if (data.title) {
         onUpdate({ ...data, title: { ...data.title, ...newTitle } });
@@ -211,69 +195,59 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   const mediaWidth = data.mediaWidth || 40;
   const featuresWidth = 100 - mediaWidth;
 
-  const scaledContainerHeight = featuresHeight ? featuresHeight * scale : undefined;
-
   return (
     <section 
         className="py-12 md:py-20 relative group"
         style={{ backgroundColor: data.style?.backgroundColor }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
-      <div className="container mx-auto px-4">
-        {isAdminMode && (
-          <SectionToolbar
-            sectionId={data.id}
-            onDelete={onDelete}
-            isSectionSelected={isSectionSelected}
-          />
-        )}
-        {isAdminMode && (
-             <Button
-                variant="secondary"
-                size="icon"
-                className="absolute top-2 right-14 z-20 h-8 w-8"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectElement({ sectionId: data.id, elementKey: 'scale' });
-                }}
-                title="Ajustar diseño de la sección"
-            >
-                <Icon name="pencil" className="h-4 w-4" />
-            </Button>
-        )}
-
-        {data.title && (data.title.text || isAdminMode) && (
-          <EditableText
-            id={`${data.id}-title`}
-            as="h2"
-            isAdminMode={isAdminMode}
-            onUpdate={handleTitleUpdate}
-            className="text-3xl md:text-4xl font-bold text-center mb-12 text-foreground"
-            value={data.title}
-            onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'title' })}
-            isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
-          />
-        )}
         <div 
-          className="flex justify-center items-start"
-           style={{ height: scaledContainerHeight }}
+          className="container mx-auto px-4 origin-top transition-transform duration-300"
+          style={{ transform: `scale(${scale})` }}
         >
-            <div 
-                className="flex flex-col sm:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16 transition-transform duration-300 origin-top"
-                style={{ transform: `scale(${scale})` }}
-            >
-                <div 
-                    className="w-full sm:w-5/12 lg:w-4/12 flex-shrink-0"
-                    style={{ 
-                        width: `${mediaWidth}%`,
-                        height: featuresHeight ? `${featuresHeight}px` : 'auto'
+            {isAdminMode && (
+              <SectionToolbar
+                sectionId={data.id}
+                onDelete={onDelete}
+                isSectionSelected={isSectionSelected}
+              />
+            )}
+            {isAdminMode && (
+                <Button
+                    variant="secondary"
+                    size="icon"
+                    className="absolute top-2 right-14 z-20 h-8 w-8"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectElement({ sectionId: data.id, elementKey: 'scale' });
                     }}
+                    title="Ajustar diseño de la sección"
+                >
+                    <Icon name="pencil" className="h-4 w-4" />
+                </Button>
+            )}
+
+            {data.title && (data.title.text || isAdminMode) && (
+              <EditableText
+                id={`${data.id}-title`}
+                as="h2"
+                isAdminMode={isAdminMode}
+                onUpdate={handleTitleUpdate}
+                className="text-3xl md:text-4xl font-bold text-center mb-12 text-foreground"
+                value={data.title}
+                onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'title' })}
+                isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
+              />
+            )}
+            <div className="flex flex-col md:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16">
+                <div 
+                    className="w-full md:w-5/12 lg:w-4/12 flex-shrink-0"
+                    style={{ width: `${mediaWidth}%`}}
                 > 
-                     <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} containerHeight={featuresHeight} />
+                     <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
                 <div 
-                    ref={featuresListRef} 
-                    className="w-full sm:w-7/12 lg:w-8/12 mt-8 sm:mt-0"
+                    className="w-full md:w-7/12 lg:w-8/12 mt-8 md:mt-0"
                     style={{ width: `${featuresWidth}%`}}
                 >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
@@ -344,7 +318,6 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                   </div>
             </div>
         </div>
-      </div>
     </section>
   );
 }
