@@ -31,9 +31,6 @@ export const EditableText: React.FC<EditableTextProps> = ({
         return null;
     }
 
-    const textRef = useRef(value.text);
-    textRef.current = value.text;
-
     const handleContentChange = (e: ContentEditableEvent) => {
         // Directly call onUpdate to avoid re-render conflicts
         onUpdate({ text: e.target.value });

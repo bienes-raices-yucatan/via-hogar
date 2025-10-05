@@ -81,8 +81,7 @@ export const createSectionData = (
                 title: getDefaultTitle('Características Principales'),
                 media: { type: 'image', url: 'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
                 features: defaultFeatures,
-                mediaWidth: 40,
-                mediaScale: 1,
+                mediaWidth: 50,
             } as ImageWithFeaturesSectionData;
         case 'gallery':
             return {

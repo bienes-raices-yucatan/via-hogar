@@ -174,9 +174,9 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
     const renderImageWithFeaturesControls = (data: ImageWithFeaturesSectionData, onValueChange: (key: string, value: any) => void) => (
         <>
             <div className="space-y-2">
-                <Label>Ancho de Media ({(data.mediaWidth || 40).toFixed(0)}%)</Label>
+                <Label>Ancho de Media ({(data.mediaWidth || 50).toFixed(0)}%)</Label>
                 <Slider
-                    value={[data.mediaWidth || 40]}
+                    value={[data.mediaWidth || 50]}
                     onValueChange={(v) => onValueChange('mediaWidth', v[0])}
                     min={20}
                     max={80}

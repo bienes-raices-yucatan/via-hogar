@@ -139,7 +139,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
 }) => {
   const handleTitleUpdate = (newTitle: Partial<StyledText>) => {
     if (data.title) {
-        onUpdate({ ...data, title: { ...data.title, ...newTitle } });
+        const currentText = data.title.text;
+        onUpdate({ ...data, title: { ...data.title, ...newTitle, text: newTitle.text ?? currentText } });
     }
   };
   
@@ -198,8 +199,6 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   const isSectionSelectedForStyle = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style';
   const isSectionSelectedForLayout = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'mediaWidth');
   const isSectionSelected = isSectionSelectedForStyle || isSectionSelectedForLayout;
-  
-  const mediaWidth = data.mediaWidth || 40;
 
   return (
     <section 
@@ -242,18 +241,15 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
               />
             )}
-            <div className="flex flex-col md:flex-row items-start gap-x-12 lg:gap-x-16">
+            <div className="flex flex-col lg:flex-row items-start justify-center gap-12 lg:gap-16">
                 
-                {/* --- Columna Naranja (Video/Imagen) --- */}
-                <div 
-                    className="w-full md:w-[40%] flex-shrink-0"
-                    style={{ width: `${mediaWidth}%` }}
-                >
+                {/* --- Columna Izquierda (Video/Imagen) --- */}
+                <div className="w-full lg:max-w-xl lg:flex-shrink-0">
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
 
-                {/* --- Columna Verde (Características) --- */}
-                <div className="w-full flex-grow mt-8 md:mt-0">
+                {/* --- Columna Derecha (Características) --- */}
+                <div className="flex-1 w-full">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                         {data.features.map((feature) => (
                         <div 
@@ -325,5 +321,3 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     </section>
   );
 }
-
-    

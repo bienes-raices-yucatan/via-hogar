@@ -68,7 +68,6 @@ export interface ImageWithFeaturesSectionData extends PageSection {
   };
   features: FeatureItem[];
   mediaWidth?: number; // Percentage width for the media column
-  mediaScale?: number; // Scale of the media element (e.g., 0.75 for 75%)
 }
 
 // Data for a single image in the gallery, with an optional title
