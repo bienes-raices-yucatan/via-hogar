@@ -137,12 +137,11 @@ const FeatureItemComponent: React.FC<{
     onUpdate: (updates: Partial<FeatureItem>) => void;
     onDelete: () => void;
 }> = ({ feature, isAdminMode, isSelected, onSelect, onUpdate, onDelete }) => {
-    const handleTitleUpdate = (updates: Partial<StyledText>) => {
-        onUpdate({ title: { ...feature.title, ...updates } });
-    };
-
-    const handleDescriptionUpdate = (updates: Partial<StyledText>) => {
-        onUpdate({ description: { ...feature.description, ...updates } });
+    
+    const handleUpdate = (updates: Partial<StyledText>, property: 'title' | 'description') => {
+        onSelect(); // Ensure the element is selected before updating
+        const currentData = feature[property];
+        onUpdate({ [property]: { ...currentData, ...updates } });
     };
 
     return (
@@ -163,7 +162,7 @@ const FeatureItemComponent: React.FC<{
                     id={`${feature.id}-title`}
                     value={feature.title}
                     isAdminMode={isAdminMode}
-                    onUpdate={handleTitleUpdate}
+                    onUpdate={(upd) => handleUpdate(upd, 'title')}
                     onSelect={onSelect}
                     isSelected={isSelected}
                     className="font-bold text-lg text-foreground"
@@ -173,7 +172,7 @@ const FeatureItemComponent: React.FC<{
                     id={`${feature.id}-desc`}
                     value={feature.description}
                     isAdminMode={isAdminMode}
-                    onUpdate={handleDescriptionUpdate}
+                    onUpdate={(upd) => handleUpdate(upd, 'description')}
                     onSelect={onSelect}
                     isSelected={isSelected}
                     className="text-muted-foreground mt-1"
@@ -223,14 +222,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
         }
     }
     
-    const newFeatures = data.features.map(f => {
-        if (f.id === featureId) {
-            return { ...f, ...finalUpdates };
-        }
-        return f;
-    });
-
-    onUpdate({ features: newFeatures });
+    const newFeatures = data.features.map(f => f.id === featureId ? { ...f, ...finalUpdates } : f);
+    onUpdate({ ...data, features: newFeatures });
   };
 
   const handleAddFeature = () => {
@@ -258,19 +251,10 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   const isSectionSelected = isSectionSelectedForStyle || isSectionSelectedForLayout;
   
   const mediaWidth = data.mediaWidth ?? 50;
-
-  // Manual distribution into 2 columns based on user request
-  const features = data.features || [];
-  const col1: FeatureItem[] = [];
-  const col2: FeatureItem[] = [];
   
-  features.forEach((feature, index) => {
-      if (index % 2 === 0) {
-          col1.push(feature);
-      } else {
-          col2.push(feature);
-      }
-  });
+  const features = data.features || [];
+  const col1 = features.slice(0, 3);
+  const col2 = features.slice(3, 6);
 
 
   return (
@@ -314,7 +298,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
               />
             )}
-            <div className="flex flex-col lg:flex-row items-start gap-x-12 xl:gap-x-16">
+            <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-start gap-x-12 xl:gap-x-16">
                 
                 <div 
                   className="w-full lg:flex-shrink-0"
@@ -324,7 +308,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 </div>
 
                 <div className="flex-1 w-full mt-8 lg:mt-0 flex justify-center">
-                    <div className="flex flex-col sm:flex-row gap-x-8 gap-y-10 w-full max-w-2xl">
+                     <div className="flex flex-col sm:flex-row gap-x-8 gap-y-10 w-full max-w-2xl">
                         {/* Column 1 */}
                         <div className="flex flex-1 flex-col gap-y-10">
                             {col1.map(feature => (
@@ -368,4 +352,3 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     </section>
   );
 }
-
