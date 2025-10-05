@@ -51,13 +51,13 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
         reader.readAsDataURL(file);
     };
     
+    const mediaScale = data.mediaScale || 1;
+
     const mediaContent = () => {
         if (isLoading) return <Skeleton className="w-full h-96 rounded-lg" />;
         
-        const commonClasses = "w-full h-auto object-cover rounded-lg";
-
         if (!mediaUrl) return (
-            <div 
+             <div 
                 className="w-full h-96 rounded-lg flex items-center justify-center text-muted-foreground"
                 onClick={() => isAdminMode && fileInputRef.current?.click()}
             >
@@ -68,45 +68,55 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
             </div>
         );
         
-        if (data.media.type === 'video') {
-            return (
-                <video 
-                    key={mediaUrl} 
-                    src={mediaUrl} 
-                    controls 
-                    className="w-full h-auto rounded-lg"
-                />
-            );
-        }
-        
-        return <Image src={mediaUrl} alt={data.title?.text || 'Property Image'} width={600} height={800} className="w-full h-auto rounded-lg" />;
+        const mediaElement = data.media.type === 'video' ? (
+            <video 
+                key={mediaUrl} 
+                src={mediaUrl} 
+                controls 
+                className="w-full h-auto object-contain rounded-lg"
+            />
+        ) : (
+            <Image 
+                src={mediaUrl} 
+                alt={data.title?.text || 'Property Image'} 
+                width={600} 
+                height={800} 
+                className="w-full h-auto object-contain rounded-lg"
+            />
+        );
+
+        return (
+             <div className="relative group/media" style={{ transform: `scale(${mediaScale})`, transformOrigin: 'top center' }}>
+                {mediaElement}
+                {isAdminMode && (
+                    <>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/*,video/*"
+                            onChange={handleImageUpload}
+                        />
+                        {mediaUrl && (
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/media:opacity-100 flex items-center justify-center transition-opacity rounded-lg">
+                                <Button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click()}}>
+                                    <Icon name="pencil" className="mr-2" />
+                                    Cambiar
+                                </Button>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+        );
     };
 
 
     return (
         <div 
-            className="relative w-full h-auto group/media"
+            className="relative w-full h-auto"
         >
             {mediaContent()}
-            {isAdminMode && (
-                <>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        className="hidden"
-                        accept="image/*,video/*"
-                        onChange={handleImageUpload}
-                    />
-                    {mediaUrl && (
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/media:opacity-100 flex items-center justify-center transition-opacity rounded-lg">
-                            <Button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click()}}>
-                                <Icon name="pencil" className="mr-2" />
-                                Cambiar
-                            </Button>
-                        </div>
-                    )}
-                </>
-             )}
         </div>
     );
 };
@@ -188,10 +198,10 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   };
 
   const isSectionSelectedForStyle = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style';
-  const isSectionSelectedForLayout = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'mediaWidth' || selectedElement.elementKey === 'scale');
+  const isSectionSelectedForLayout = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'mediaWidth' || selectedElement.elementKey === 'mediaScale');
   const isSectionSelected = isSectionSelectedForStyle || isSectionSelectedForLayout;
   
-  const scale = data.scale || 1;
+  const mediaWidth = data.mediaWidth || 40;
 
   return (
     <section 
@@ -199,10 +209,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
         style={{ backgroundColor: data.style?.backgroundColor }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
-        <div 
-          className="container mx-auto px-4 origin-top transition-transform duration-300"
-          style={{ transform: `scale(${scale})` }}
-        >
+        <div className="container mx-auto px-4">
             {isAdminMode && (
               <SectionToolbar
                 sectionId={data.id}
@@ -217,7 +224,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                     className="absolute top-2 right-14 z-20 h-8 w-8"
                     onClick={(e) => {
                         e.stopPropagation();
-                        onSelectElement({ sectionId: data.id, elementKey: 'scale' });
+                        onSelectElement({ sectionId: data.id, elementKey: 'mediaScale' });
                     }}
                     title="Ajustar diseño de la sección"
                 >
@@ -239,12 +246,13 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
             )}
             <div className="flex flex-col md:flex-row items-start gap-x-8 md:gap-x-12 lg:gap-x-16">
                 <div 
-                    className="w-full md:w-5/12 lg:w-4/12 flex-shrink-0"
+                    className="w-full md:flex-shrink-0"
+                     style={{ width: `${mediaWidth}%` }}
                 > 
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
                 <div 
-                    className="w-full md:w-7/12 lg:w-8/12 mt-8 md:mt-0"
+                    className="w-full mt-8 md:mt-0"
                 >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
                         {data.features.map((feature) => (

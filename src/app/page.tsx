@@ -437,7 +437,7 @@ export default function Home() {
                 break;
             case 'imageWithFeatures':
                 if (elementKey === 'title') data = section.title;
-                if (elementKey === 'mediaWidth' || elementKey === 'scale') {
+                if (elementKey === 'mediaWidth' || elementKey === 'mediaScale') {
                     return { type: 'imageWithFeatures', data: section };
                 }
                 if (elementKey === 'features') {
@@ -525,7 +525,7 @@ export default function Home() {
     const newSections = [...selectedProperty.sections];
     let sectionToUpdate: AnySectionData = JSON.parse(JSON.stringify(newSections[sectionIndex]));
 
-    if (elementKey === 'style' || elementKey === 'mediaWidth' || elementKey === 'scale') {
+    if (elementKey === 'style' || elementKey === 'mediaWidth' || elementKey === 'mediaScale') {
         sectionToUpdate = { ...sectionToUpdate, ...processedChanges };
         if (processedChanges.backgroundImageUrl !== undefined) {
              (sectionToUpdate as any).backgroundImageUrl = processedChanges.backgroundImageUrl;
