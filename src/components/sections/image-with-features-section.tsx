@@ -259,11 +259,19 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   
   const mediaWidth = data.mediaWidth ?? 50;
 
-  // Manual distribution into 3 columns
+  // Manual distribution into 2 columns based on user request
   const features = data.features || [];
-  const col1 = [features[0], features[2], features[3]].filter(Boolean);
-  const col2 = [features[1], features[4], features[5]].filter(Boolean);
-  const col3: FeatureItem[] = []; // Intentionally empty based on user request
+  const col1: FeatureItem[] = [];
+  const col2: FeatureItem[] = [];
+  
+  features.forEach((feature, index) => {
+      if (index % 2 === 0) {
+          col1.push(feature);
+      } else {
+          col2.push(feature);
+      }
+  });
+
 
   return (
     <section 
@@ -309,14 +317,14 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
             <div className="flex flex-col lg:flex-row items-start gap-x-12 xl:gap-x-16">
                 
                 <div 
-                  className="w-full lg:w-auto lg:flex-shrink-0"
+                  className="w-full lg:flex-shrink-0"
                   style={{ width: `${mediaWidth}%` }}
                 >
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
 
-                <div className="flex-1 w-full mt-8 lg:mt-0">
-                    <div className="flex flex-col sm:flex-row gap-x-8 gap-y-10">
+                <div className="flex-1 w-full mt-8 lg:mt-0 flex justify-center">
+                    <div className="flex flex-col sm:flex-row gap-x-8 gap-y-10 w-full max-w-2xl">
                         {/* Column 1 */}
                         <div className="flex flex-1 flex-col gap-y-10">
                             {col1.map(feature => (
@@ -345,20 +353,19 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                                 />
                             ))}
                         </div>
-                        {/* Column 3 (Intentionally Blank) */}
-                        <div className="flex-1" />
                     </div>
-                     {isAdminMode && (
-                        <div className="mt-8">
-                             <Button variant="outline" onClick={handleAddFeature}>
-                                <Icon name="plus" className="mr-2" />
-                                Añadir Característica
-                            </Button>
-                        </div>
-                    )}
-                  </div>
+                </div>
             </div>
+            {isAdminMode && (
+                <div className="container mx-auto px-4 mt-8 flex justify-center">
+                     <Button variant="outline" onClick={handleAddFeature}>
+                        <Icon name="plus" className="mr-2" />
+                        Añadir Característica
+                    </Button>
+                </div>
+            )}
         </div>
     </section>
   );
 }
+
