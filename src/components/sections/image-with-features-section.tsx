@@ -34,16 +34,7 @@ const FeatureIconDisplay: React.FC<{ feature: FeatureItem }> = ({ feature }) => 
     return <Icon name={feature.icon} className="w-6 h-6" />;
 }
 
-interface ImageWithFeaturesSectionProps {
-  data: ImageWithFeaturesSectionData;
-  onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void;
-  onDelete: (sectionId: string) => void;
-  isAdminMode: boolean;
-  selectedElement: SelectedElement | null;
-  onSelectElement: (element: SelectedElement | null) => void;
-}
-
-const MediaComponent = ({ data, onUpdate, isAdminMode, style }: { data: ImageWithFeaturesSectionData; onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void; isAdminMode: boolean, style?: React.CSSProperties }) => {
+const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeaturesSectionData; onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void; isAdminMode: boolean }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { imageUrl: mediaUrl, isLoading } = useImageLoader(data.media.url);
 
@@ -62,13 +53,13 @@ const MediaComponent = ({ data, onUpdate, isAdminMode, style }: { data: ImageWit
     };
     
     const mediaContent = () => {
-        if (isLoading) return <Skeleton className="absolute inset-0" />;
+        if (isLoading) return <Skeleton className="absolute inset-0 rounded-lg" />;
 
-        const commonClasses = "absolute inset-0 w-full h-full object-contain";
+        const commonClasses = "absolute inset-0 w-full h-full object-cover rounded-lg";
 
         if (!mediaUrl) return (
             <div 
-                className="absolute inset-0 bg-muted flex items-center justify-center text-muted-foreground"
+                className="absolute inset-0 bg-muted/50 rounded-lg flex items-center justify-center text-muted-foreground"
                  onClick={() => isAdminMode && fileInputRef.current?.click()}
             >
                 <div className="text-center">
@@ -95,8 +86,7 @@ const MediaComponent = ({ data, onUpdate, isAdminMode, style }: { data: ImageWit
 
     return (
         <div 
-            className="relative w-full h-full rounded-lg overflow-hidden shadow-lg group/media"
-            style={style}
+            className="relative w-full h-full group/media"
         >
             {mediaContent()}
             {isAdminMode && (
@@ -109,7 +99,7 @@ const MediaComponent = ({ data, onUpdate, isAdminMode, style }: { data: ImageWit
                         onChange={handleImageUpload}
                     />
                     {mediaUrl && (
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/media:opacity-100 flex items-center justify-center transition-opacity">
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/media:opacity-100 flex items-center justify-center transition-opacity rounded-lg">
                             <Button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click()}}>
                                 <Icon name="pencil" className="mr-2" />
                                 Cambiar
@@ -338,3 +328,4 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     </section>
   );
 }
+
