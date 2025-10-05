@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useRef, useState, useEffect } from 'react';
@@ -156,6 +155,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     
     const newFeatures = data.features.map(f => {
         if (f.id === featureId) {
+            // This logic is a bit complex because the update can be a partial StyledText or a direct value
             const newTitle = updates.title ? { ...f.title, ...updates.title } : f.title;
             const newDescription = updates.description ? { ...f.description, ...updates.description } : f.description;
             return { ...f, ...finalUpdates, title: newTitle, description: newDescription };
@@ -242,17 +242,17 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
               />
             )}
-            <div className="flex flex-col lg:flex-row items-start gap-12 lg:gap-16">
+            <div className="flex flex-col lg:flex-row items-start gap-x-12 xl:gap-x-16">
                 
                 <div 
                   className="w-full lg:flex-shrink-0"
-                  style={{ width: isAdminMode || !isSectionSelectedForLayout ? `${mediaWidth}%` : '100%' }}
+                  style={{ width: `${mediaWidth}%` }}
                 >
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
 
                 <div className="flex-1 w-full">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-10">
                         {data.features.map((feature) => (
                         <div 
                           key={feature.id} 
@@ -269,7 +269,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                             >
                               <FeatureIconDisplay feature={feature} />
                             </div>
-                            <div className="flex-grow">
+                            <div className="flex-grow min-w-0">
                                 <EditableText
                                     as="h4"
                                     id={`${feature.id}-title`}
@@ -309,7 +309,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                         </div>
                         ))}
                          {isAdminMode && (
-                            <div className="flex items-center justify-start sm:col-span-2">
+                            <div className="flex items-center justify-start sm:col-span-2 xl:col-span-3">
                                  <Button variant="outline" onClick={handleAddFeature} className="mt-8 self-start">
                                     <Icon name="plus" className="mr-2" />
                                     Añadir Característica
@@ -323,5 +323,3 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     </section>
   );
 }
-
-    
