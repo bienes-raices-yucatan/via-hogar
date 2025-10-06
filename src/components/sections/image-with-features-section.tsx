@@ -253,10 +253,10 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   
   const mediaWidth = data.mediaWidth ?? 50;
   
+  // Explicitly define columns
   const features = data.features || [];
-  const col1 = [features[0], features[3]].filter(Boolean); // Dormitorios, 2 espacios
-  const col2 = [features[1], features[5]].filter(Boolean); // 5 baños, Paneles
-  const col3 = [features[4], features[2]].filter(Boolean); // Lavandería, Piscina
+  const col1 = [features[0], features[2], features[3]];
+  const col2 = [features[1], features[4], features[5]];
 
 
   return (
@@ -300,7 +300,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
               />
             )}
-            <div className="flex items-start justify-center gap-x-12 xl:gap-x-16">
+            <div className="flex items-start gap-x-12 xl:gap-x-16">
                 
                 <div 
                   className="flex-shrink-0"
@@ -309,11 +309,11 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
 
-                <div className="max-w-2xl">
-                     <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-x-8 sm:gap-x-10">
+                <div className="flex-1 max-w-4xl">
+                     <div className="flex gap-x-8 sm:gap-x-10">
                         {/* Column 1 */}
-                        <div className="flex flex-col gap-y-10">
-                            {features.slice(0, 2).map(feature => (
+                        <div className="flex flex-1 flex-col gap-y-10">
+                            {col1.filter(Boolean).map(feature => (
                                 <FeatureItemComponent 
                                     key={feature.id}
                                     feature={feature}
@@ -326,8 +326,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                             ))}
                         </div>
                         {/* Column 2 */}
-                        <div className="flex flex-col gap-y-10">
-                           {features.slice(2, 4).map(feature => (
+                        <div className="flex flex-1 flex-col gap-y-10">
+                           {col2.filter(Boolean).map(feature => (
                                 <FeatureItemComponent 
                                     key={feature.id}
                                     feature={feature}
@@ -339,18 +339,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                                 />
                             ))}
                         </div>
-                        <div className="flex flex-col gap-y-10">
-                             {features.slice(4, 6).map(feature => (
-                                <FeatureItemComponent 
-                                    key={feature.id}
-                                    feature={feature}
-                                    isAdminMode={isAdminMode}
-                                    isSelected={selectedElement?.subElementId === feature.id}
-                                    onSelect={() => handleSelectFeature(feature.id)}
-                                    onUpdate={(updates) => handleFeatureUpdate(feature.id, updates)}
-                                    onDelete={() => handleDeleteFeature(feature.id)}
-                                />
-                            ))}
+                         {/* Column 3 (intentionally empty) */}
+                        <div className="flex flex-1 flex-col gap-y-10">
                              {features.length < 6 && isAdminMode && (
                                 <button
                                     onClick={handleAddFeature}
@@ -368,7 +358,3 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     </section>
   );
 }
-
-    
-
-    
