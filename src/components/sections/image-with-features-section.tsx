@@ -227,6 +227,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   };
 
   const handleAddFeature = () => {
+    if (data.features.length >= 6) return;
     const newFeature: FeatureItem = {
       id: `feat-${Date.now()}`,
       icon: 'generic-feature',
@@ -253,8 +254,9 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   const mediaWidth = data.mediaWidth ?? 50;
   
   const features = data.features || [];
-  const col1 = features.slice(0, 3);
-  const col2 = features.slice(3, 6);
+  const col1 = [features[0], features[3]].filter(Boolean); // Dormitorios, 2 espacios
+  const col2 = [features[1], features[5]].filter(Boolean); // 5 baños, Paneles
+  const col3 = [features[4], features[2]].filter(Boolean); // Lavandería, Piscina
 
 
   return (
@@ -298,20 +300,20 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
               />
             )}
-            <div className="w-full flex flex-col lg:flex-row items-start justify-center gap-x-12 xl:gap-x-16">
+            <div className="flex items-start justify-center gap-x-12 xl:gap-x-16">
                 
                 <div 
-                  className="w-full lg:flex-shrink-0"
+                  className="flex-shrink-0"
                   style={{ width: `${mediaWidth}%` }}
                 >
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
 
-                <div className="w-full mt-8 lg:mt-0">
-                     <div className="flex gap-x-8 sm:gap-x-10 max-w-2xl">
+                <div className="max-w-2xl">
+                     <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-x-8 sm:gap-x-10">
                         {/* Column 1 */}
-                        <div className="flex flex-1 flex-col gap-y-10">
-                            {col1.map(feature => (
+                        <div className="flex flex-col gap-y-10">
+                            {features.slice(0, 2).map(feature => (
                                 <FeatureItemComponent 
                                     key={feature.id}
                                     feature={feature}
@@ -324,8 +326,21 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                             ))}
                         </div>
                         {/* Column 2 */}
-                        <div className="flex flex-1 flex-col gap-y-10">
-                           {col2.map(feature => (
+                        <div className="flex flex-col gap-y-10">
+                           {features.slice(2, 4).map(feature => (
+                                <FeatureItemComponent 
+                                    key={feature.id}
+                                    feature={feature}
+                                    isAdminMode={isAdminMode}
+                                    isSelected={selectedElement?.subElementId === feature.id}
+                                    onSelect={() => handleSelectFeature(feature.id)}
+                                    onUpdate={(updates) => handleFeatureUpdate(feature.id, updates)}
+                                    onDelete={() => handleDeleteFeature(feature.id)}
+                                />
+                            ))}
+                        </div>
+                        <div className="flex flex-col gap-y-10">
+                             {features.slice(4, 6).map(feature => (
                                 <FeatureItemComponent 
                                     key={feature.id}
                                     feature={feature}
@@ -353,5 +368,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     </section>
   );
 }
+
+    
 
     
