@@ -78,7 +78,6 @@ export const createSectionData = (
                 ...base,
                 type: 'imageWithFeatures',
                 style: { backgroundColor: '#FFFFFF' },
-                title: getDefaultTitle('Características Principales'),
                 media: { type: 'image', url: 'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
                 features: defaultFeatures,
                 mediaWidth: 50,
@@ -88,7 +87,6 @@ export const createSectionData = (
                 ...base,
                 type: 'gallery',
                 style: { backgroundColor: '#F9FAFB' }, // gray-50
-                title: getDefaultTitle('Galería de la Propiedad'),
                 images: [],
             };
         case 'amenities':
@@ -96,7 +94,6 @@ export const createSectionData = (
                 ...base,
                 type: 'amenities',
                 style: { backgroundColor: '#F9FAFB' }, // gray-50
-                title: getDefaultTitle('Amenidades Exclusivas'),
                 amenities: [],
             } as AmenitiesSectionData;
         case 'pricing':
@@ -132,7 +129,6 @@ export const createSectionData = (
                 ...base,
                 type: 'location',
                 style: { backgroundColor: '#FFFFFF' },
-                title: getDefaultTitle('Ubicación y Alrededores'),
                 coordinates: options.coordinates || { lat: 19.4326, lng: -99.1332 },
                 nearbyPlaces: options.nearbyPlaces || defaultPlaces,
             } as LocationSectionData;

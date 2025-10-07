@@ -111,7 +111,7 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
             isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
           />
         )}
-        {data.title && (
+        {data.title && (isAdminMode) && (
           <EditableText
             id={`${data.id}-title`}
             as="h2"

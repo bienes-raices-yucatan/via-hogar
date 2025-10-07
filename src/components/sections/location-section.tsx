@@ -146,7 +146,7 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
             isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
           />
         )}
-        {data.title && (data.title.text || isAdminMode) && (
+        {data.title && (isAdminMode) && (
           <EditableText
             id={`${data.id}-title`}
             as="h2"

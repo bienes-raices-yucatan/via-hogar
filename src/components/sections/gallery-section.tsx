@@ -132,7 +132,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
           />
         )}
         <div className="flex justify-center items-center mb-10">
-          {data.title && (
+          {data.title && (isAdminMode) && (
              <EditableText
                 as="h2"
                 id={`${data.id}-title`}
