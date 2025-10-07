@@ -147,7 +147,7 @@ const FeatureItemComponent: React.FC<{
     return (
         <div 
             className={cn(
-                "flex items-start gap-4 relative group/feature",
+                "flex items-start gap-4 relative group/feature h-full",
                 isAdminMode && "cursor-pointer rounded-lg p-2 -m-2 transition-colors hover:bg-accent/20",
                 isSelected && "bg-accent/30 ring-2 ring-primary"
             )}
@@ -287,18 +287,6 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 </Button>
             )}
 
-            {data.title && (data.title.text || isAdminMode) && (
-              <EditableText
-                id={`${data.id}-title`}
-                as="h2"
-                isAdminMode={isAdminMode}
-                onUpdate={handleTitleUpdate}
-                className="text-3xl md:text-4xl font-bold text-center mb-12 text-foreground"
-                value={data.title}
-                onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'title' })}
-                isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
-              />
-            )}
             <div className="flex justify-center items-start gap-x-12 xl:gap-x-16">
                 
                 <div 
@@ -308,8 +296,8 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                      <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
                 </div>
 
-                <div className="max-w-md">
-                     <div className="flex gap-x-8 sm:gap-x-10">
+                <div className="max-w-2xl">
+                     <div className="grid grid-cols-2 gap-x-8 sm:gap-x-10">
                         {/* Column 1 */}
                         <div className="flex flex-1 flex-col gap-y-10">
                             {column1Features.map(feature => (
@@ -354,3 +342,5 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
     </section>
   );
 }
+
+    
