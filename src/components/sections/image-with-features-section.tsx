@@ -253,12 +253,11 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   
   const mediaWidth = data.mediaWidth ?? 50;
   
-  // Explicitly define columns
+  // Explicitly define columns based on the new desired order
   const features = data.features || [];
   
-  const col1 = [features[0], features[3]];
-  const col2 = [features[1], features[4]];
-  const col3 = [features[2], features[5]];
+  const column1Features = [features.find(f => f.title.text.includes('Dormitorios')), features.find(f => f.title.text.includes('estacionamiento')), features.find(f => f.title.text.includes('Lavandería'))].filter(Boolean) as FeatureItem[];
+  const column2Features = [features.find(f => f.title.text.includes('baños')), features.find(f => f.title.text.includes('Paneles')), features.find(f => f.title.text.includes('Piscina'))].filter(Boolean) as FeatureItem[];
 
 
   return (
@@ -302,10 +301,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
               />
             )}
-            <div className={cn(
-                "flex items-start gap-x-12 xl:gap-x-16",
-                !isAdminMode && "justify-center"
-            )}>
+            <div className="flex items-start gap-x-12 xl:gap-x-16 w-full">
                 
                 <div 
                   className="flex-shrink-0"
@@ -318,7 +314,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                      <div className="flex gap-x-8 sm:gap-x-10">
                         {/* Column 1 */}
                         <div className="flex flex-1 flex-col gap-y-10">
-                            {col1.filter(Boolean).map(feature => (
+                            {column1Features.map(feature => (
                                 <FeatureItemComponent 
                                     key={feature.id}
                                     feature={feature}
@@ -332,7 +328,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                         </div>
                         {/* Column 2 */}
                         <div className="flex flex-1 flex-col gap-y-10">
-                           {col2.filter(Boolean).map(feature => (
+                           {column2Features.map(feature => (
                                 <FeatureItemComponent 
                                     key={feature.id}
                                     feature={feature}
@@ -344,20 +340,9 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                                 />
                             ))}
                         </div>
-                         {/* Column 3 */}
+                         {/* Column 3 (Intentionally Blank) */}
                         <div className="flex flex-1 flex-col gap-y-10">
-                            {col3.filter(Boolean).map(feature => (
-                                <FeatureItemComponent 
-                                    key={feature.id}
-                                    feature={feature}
-                                    isAdminMode={isAdminMode}
-                                    isSelected={selectedElement?.subElementId === feature.id}
-                                    onSelect={() => handleSelectFeature(feature.id)}
-                                    onUpdate={(updates) => handleFeatureUpdate(feature.id, updates)}
-                                    onDelete={() => handleDeleteFeature(feature.id)}
-                                />
-                            ))}
-                             {features.length < 6 && isAdminMode && (
+                            { (column1Features.length + column2Features.length < 6) && isAdminMode && (
                                 <button
                                     onClick={handleAddFeature}
                                     className="flex flex-col items-center justify-center text-center border-2 border-dashed rounded-lg p-4 hover:bg-accent hover:border-primary transition-colors h-full min-h-[100px]"
