@@ -111,18 +111,7 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
             isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
           />
         )}
-        {data.title && (isAdminMode) && (
-          <EditableText
-            id={`${data.id}-title`}
-            as="h2"
-            isAdminMode={isAdminMode}
-            onUpdate={handleTitleUpdate}
-            className="text-3xl md:text-4xl font-bold text-center mb-12 text-foreground"
-            value={data.title}
-            onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'title' })}
-            isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
-          />
-        )}
+        
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
             {data.amenities.map(amenity => (
                 <div 

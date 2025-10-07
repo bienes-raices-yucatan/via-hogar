@@ -178,5 +178,3 @@ export const createNewProperty = (address: string, coordinates: { lat: number; l
         sections: uniqueSections,
     };
 };
-
-    

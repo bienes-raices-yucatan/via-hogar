@@ -146,18 +146,7 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
             isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
           />
         )}
-        {data.title && (isAdminMode) && (
-          <EditableText
-            id={`${data.id}-title`}
-            as="h2"
-            isAdminMode={isAdminMode}
-            onUpdate={handleTitleUpdate}
-            className="text-3xl md:text-4xl font-bold text-center mb-10 text-foreground"
-            value={data.title}
-            onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'title' })}
-            isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
-          />
-        )}
+        
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
           <div className="lg:col-span-3 rounded-lg overflow-hidden shadow-xl">
             <iframe

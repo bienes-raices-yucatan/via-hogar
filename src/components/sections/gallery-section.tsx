@@ -18,15 +18,16 @@ import { EditableText } from '../editable-text';
 import { deleteImage, saveImage } from '@/lib/storage';
 import { useImageLoader } from '@/hooks/use-image-loader';
 import { Skeleton } from '../ui/skeleton';
+import { cn } from '@/lib/utils';
 
 
 const GalleryCarouselItem: React.FC<{ image: GalleryImage; isAdminMode: boolean; onDelete: (id: string) => void; }> = ({ image, isAdminMode, onDelete }) => {
     const { imageUrl, isLoading } = useImageLoader(image.url);
 
     return (
-        <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+        <CarouselItem className="md:basis-1/2 lg:basis-1/2">
             <div className="p-1">
-            <div className="relative aspect-[3/2] overflow-hidden rounded-lg group/image">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-lg group/image">
                 {isLoading ? <Skeleton className="w-full h-full" /> : 
                  imageUrl ? (
                     <Image
@@ -125,7 +126,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
             isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
           />
         )}
-        <div className="text-center mb-10">
+        <div className={cn("text-center", data.images.length > 0 && "mb-10")}>
           {isAdminMode && (
             <div className="ml-4">
               <Button onClick={() => fileInputRef.current?.click()}>
@@ -152,7 +153,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
             }}
             className="w-full"
           >
-            <CarouselContent>
+            <CarouselContent className="-ml-1">
               {data.images.map((image) => (
                 <GalleryCarouselItem
                     key={image.id}
@@ -162,8 +163,8 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
                 />
               ))}
             </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
+            <CarouselPrevious className="ml-16" />
+            <CarouselNext className="mr-16" />
           </Carousel>
         ) : (
           <div 

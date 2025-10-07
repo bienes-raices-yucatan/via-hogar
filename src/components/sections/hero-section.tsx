@@ -88,7 +88,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 style={backgroundStyle}
             />
         )}
-        <div className="absolute inset-0 bg-black/20 z-0"></div>
+        <div className="absolute inset-0 bg-black/30 z-0"></div>
 
         <div className={cn("relative z-10 h-full w-full", isDraggingMode && 'cursor-move')}>
             { (isAdminMode || data.title.text) && (
@@ -107,5 +107,3 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     </section>
   );
 };
-
-    
