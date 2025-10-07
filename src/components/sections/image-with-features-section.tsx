@@ -255,8 +255,10 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   
   // Explicitly define columns
   const features = data.features || [];
-  const col1 = [features[0], features[2], features[3]];
-  const col2 = [features[1], features[4], features[5]];
+  
+  const col1 = [features[0], features[3]];
+  const col2 = [features[1], features[4]];
+  const col3 = [features[2], features[5]];
 
 
   return (
@@ -300,7 +302,10 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 isSelected={selectedElement?.sectionId === data.id && selectedElement?.elementKey === 'title'}
               />
             )}
-            <div className="flex items-start gap-x-12 xl:gap-x-16">
+            <div className={cn(
+                "flex items-start gap-x-12 xl:gap-x-16",
+                !isAdminMode && "justify-center"
+            )}>
                 
                 <div 
                   className="flex-shrink-0"
@@ -339,8 +344,19 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                                 />
                             ))}
                         </div>
-                         {/* Column 3 (intentionally empty) */}
+                         {/* Column 3 */}
                         <div className="flex flex-1 flex-col gap-y-10">
+                            {col3.filter(Boolean).map(feature => (
+                                <FeatureItemComponent 
+                                    key={feature.id}
+                                    feature={feature}
+                                    isAdminMode={isAdminMode}
+                                    isSelected={selectedElement?.subElementId === feature.id}
+                                    onSelect={() => handleSelectFeature(feature.id)}
+                                    onUpdate={(updates) => handleFeatureUpdate(feature.id, updates)}
+                                    onDelete={() => handleDeleteFeature(feature.id)}
+                                />
+                            ))}
                              {features.length < 6 && isAdminMode && (
                                 <button
                                     onClick={handleAddFeature}
