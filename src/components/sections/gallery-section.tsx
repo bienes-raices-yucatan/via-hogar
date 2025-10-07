@@ -27,7 +27,7 @@ const GalleryCarouselItem: React.FC<{ image: GalleryImage; isAdminMode: boolean;
     return (
         <CarouselItem className="md:basis-1/2 lg:basis-1/3">
             <div className="p-1">
-            <div className="relative aspect-video overflow-hidden rounded-lg group/image">
+            <div className="relative aspect-[3/4] overflow-hidden rounded-lg group/image">
                 {isLoading ? <Skeleton className="w-full h-full" /> : 
                  imageUrl ? (
                     <Image
@@ -112,6 +112,8 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
     onUpdate({ ...data, images: newImages });
   }, [data, onUpdate]);
 
+  const isSelected = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style';
+
   return (
     <section 
         className="relative group"
@@ -123,10 +125,10 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
           <SectionToolbar
             sectionId={data.id}
             onDelete={onDelete}
-            isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
+            isSectionSelected={isSelected}
           />
         )}
-        <div className={cn("text-center", data.images.length > 0 && "mb-4")}>
+        <div className={cn(data.images.length > 0 && "mb-4")}>
           {isAdminMode && (
             <div className="absolute top-2 left-2 z-20">
               <Button onClick={() => fileInputRef.current?.click()} size="sm">
@@ -151,7 +153,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
               align: 'start',
               loop: true,
             }}
-            className="w-full"
+            className="w-full max-w-7xl mx-auto"
           >
             <CarouselContent className="-ml-1">
               {data.images.map((image) => (
