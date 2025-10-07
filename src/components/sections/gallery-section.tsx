@@ -73,12 +73,6 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleTitleUpdate = (newTitle: any) => {
-    if (data.title) {
-        onUpdate({ ...data, title: { ...data.title, ...newTitle } });
-    }
-  };
-
   const handleImageUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -123,7 +117,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
         style={{ backgroundColor: data.style?.backgroundColor }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
-      <div className="container mx-auto px-4">
+      <div className="w-full">
         {isAdminMode && (
           <SectionToolbar
             sectionId={data.id}
@@ -131,19 +125,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
             isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
           />
         )}
-        <div className="flex justify-center items-center mb-10">
-          {data.title && (isAdminMode) && (
-             <EditableText
-                as="h2"
-                id={`${data.id}-title`}
-                value={data.title}
-                onUpdate={handleTitleUpdate}
-                className="text-3xl md:text-4xl font-bold text-center text-foreground"
-                isAdminMode={isAdminMode}
-                onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'title' })}
-                isSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'title'}
-            />
-          )}
+        <div className="text-center mb-10">
           {isAdminMode && (
             <div className="ml-4">
               <Button onClick={() => fileInputRef.current?.click()}>
@@ -186,7 +168,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
         ) : (
           <div 
             onClick={() => isAdminMode && fileInputRef.current?.click()}
-            className="flex flex-col items-center justify-center text-center border-2 border-dashed rounded-lg p-12 hover:bg-accent hover:border-primary transition-colors cursor-pointer"
+            className="flex flex-col items-center justify-center text-center border-2 border-dashed rounded-lg p-12 hover:bg-accent hover:border-primary transition-colors cursor-pointer container mx-auto"
           >
              <Icon name="area" className="w-12 h-12 text-muted-foreground mb-4" />
              <h3 className="text-xl font-semibold text-foreground">Galería Vacía</h3>

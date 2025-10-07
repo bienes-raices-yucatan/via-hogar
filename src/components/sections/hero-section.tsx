@@ -55,7 +55,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
   return (
     <section 
-        className="relative text-white group w-full"
+        className="relative text-white group w-full shadow-lg"
         style={sectionStyle}
     >
         {isAdminMode && (
