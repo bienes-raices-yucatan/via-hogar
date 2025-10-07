@@ -25,9 +25,9 @@ const GalleryCarouselItem: React.FC<{ image: GalleryImage; isAdminMode: boolean;
     const { imageUrl, isLoading } = useImageLoader(image.url);
 
     return (
-        <CarouselItem className="md:basis-1/2 lg:basis-1/2">
+        <CarouselItem className="md:basis-1/2 lg:basis-1/3">
             <div className="p-1">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-lg group/image">
+            <div className="relative aspect-video overflow-hidden rounded-lg group/image">
                 {isLoading ? <Skeleton className="w-full h-full" /> : 
                  imageUrl ? (
                     <Image
@@ -114,7 +114,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
 
   return (
     <section 
-        className="py-12 md:py-20 relative group"
+        className="relative group"
         style={{ backgroundColor: data.style?.backgroundColor }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
@@ -126,12 +126,12 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
             isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
           />
         )}
-        <div className={cn("text-center", data.images.length > 0 && "mb-10")}>
+        <div className={cn("text-center", data.images.length > 0 && "mb-4")}>
           {isAdminMode && (
-            <div className="ml-4">
-              <Button onClick={() => fileInputRef.current?.click()}>
+            <div className="absolute top-2 left-2 z-20">
+              <Button onClick={() => fileInputRef.current?.click()} size="sm">
                 <Icon name="plus" className="mr-2" />
-                Añadir Imágenes
+                Añadir
               </Button>
               <input
                 type="file"
@@ -174,7 +174,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
              <Icon name="area" className="w-12 h-12 text-muted-foreground mb-4" />
              <h3 className="text-xl font-semibold text-foreground">Galería Vacía</h3>
              <p className="text-muted-foreground mt-2">
-                {isAdminMode ? "Haz clic aquí o en el botón 'Añadir Imágenes' para empezar." : "Pronto se añadirán imágenes a esta galería."}
+                {isAdminMode ? "Haz clic aquí o en el botón 'Añadir' para empezar." : "Pronto se añadirán imágenes a esta galería."}
              </p>
           </div>
         )}
