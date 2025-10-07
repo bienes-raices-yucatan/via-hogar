@@ -25,9 +25,9 @@ const GalleryCarouselItem: React.FC<{ image: GalleryImage; isAdminMode: boolean;
     const { imageUrl, isLoading } = useImageLoader(image.url);
 
     return (
-        <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+        <CarouselItem className="basis-1/2 md:basis-1/3 lg:basis-1/4">
             <div className="p-1">
-            <div className="relative aspect-[3/4] overflow-hidden rounded-lg group/image">
+            <div className="relative aspect-video overflow-hidden rounded-lg group/image">
                 {isLoading ? <Skeleton className="w-full h-full" /> : 
                  imageUrl ? (
                     <Image
@@ -116,7 +116,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
 
   return (
     <section 
-        className="relative group"
+        className="relative group py-4"
         style={{ backgroundColor: data.style?.backgroundColor }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
@@ -153,7 +153,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
               align: 'start',
               loop: true,
             }}
-            className="w-full max-w-7xl mx-auto"
+            className="w-full"
           >
             <CarouselContent className="-ml-1">
               {data.images.map((image) => (
