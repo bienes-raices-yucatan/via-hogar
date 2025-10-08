@@ -41,6 +41,7 @@ interface PricingSectionProps {
   isAdminMode: boolean;
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
+  onEnhance: (imageKey: string, onUpdate: (newKey: string) => void) => void;
 }
 
 export const PricingSection: React.FC<PricingSectionProps> = ({
@@ -50,6 +51,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
   isAdminMode,
   selectedElement,
   onSelectElement,
+  onEnhance,
 }) => {
   const { tier } = data;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -74,6 +76,13 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
       };
       reader.readAsDataURL(file);
   };
+  
+  const handleEnhanceClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onEnhance(data.backgroundImageUrl, (newImageKey) => {
+            onUpdate({ backgroundImageUrl: newImageKey });
+        });
+    };
 
   const handleSelectTierElement = (property: keyof Omit<PricingTier, 'id' | 'buttonText' | 'iconUrl'>) => {
       if(!isAdminMode) return;
@@ -102,14 +111,24 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
           />
         )}
          {isAdminMode && (
-          <Button
-            variant="secondary"
-            className="absolute top-2 right-14 z-20"
-            onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-          >
-              <Icon name="camera" className="mr-2" />
-              Cambiar Fondo
-          </Button>
+          <div className="absolute top-2 right-14 z-20 flex gap-2">
+            <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleEnhanceClick}
+            >
+                <Icon name="sparkles" className="mr-2 h-4 w-4" />
+                Mejorar
+            </Button>
+            <Button
+                variant="secondary"
+                size="sm"
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+            >
+                <Icon name="camera" className="mr-2 h-4 w-4" />
+                Cambiar
+            </Button>
+          </div>
         )}
         
         <Card className="max-w-md w-full bg-background/90 backdrop-blur-sm shadow-2xl rounded-2xl">
@@ -191,3 +210,5 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
     </section>
   );
 };
+
+    

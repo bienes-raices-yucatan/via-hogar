@@ -24,6 +24,7 @@ interface ContactSectionProps {
   isAdminMode: boolean;
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
+  onEnhance: (imageKey: string, onUpdate: (newKey: string) => void) => void;
 }
 
 export const ContactSection: React.FC<ContactSectionProps> = ({
@@ -34,6 +35,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
   isAdminMode,
   selectedElement,
   onSelectElement,
+  onEnhance,
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { imageUrl, isLoading } = useImageLoader(data.backgroundImageUrl);
@@ -66,6 +68,13 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
             onUpdate({ ...data, backgroundImageUrl: savedKey });
         };
         reader.readAsDataURL(file);
+    };
+
+    const handleEnhanceClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onEnhance(data.backgroundImageUrl, (newImageKey) => {
+            onUpdate({ backgroundImageUrl: newImageKey });
+        });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -101,18 +110,27 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
 
       {isAdminMode && <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={isSelected} />}
       {isAdminMode && (
-          <Button
-            variant="secondary"
-            className="absolute top-2 right-14 z-20"
-            onClick={(e) => {
-                e.stopPropagation();
-                fileInputRef.current?.click()
-            }}
-            size="sm"
-          >
-              <Icon name="camera" className="mr-2 h-4 w-4" />
-              Cambiar Fondo
-          </Button>
+          <div className="absolute top-2 right-14 z-20 flex gap-2">
+            <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleEnhanceClick}
+            >
+                <Icon name="sparkles" className="mr-2 h-4 w-4" />
+                Mejorar
+            </Button>
+            <Button
+                variant="secondary"
+                size="sm"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click()
+                }}
+            >
+                <Icon name="camera" className="mr-2 h-4 w-4" />
+                Cambiar
+            </Button>
+          </div>
       )}
 
       <div className="container mx-auto px-4 relative z-10 flex flex-col items-center">

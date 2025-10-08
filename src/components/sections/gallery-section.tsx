@@ -21,7 +21,12 @@ import { Skeleton } from '../ui/skeleton';
 import { cn } from '@/lib/utils';
 
 
-const GalleryCarouselItem: React.FC<{ image: GalleryImage; isAdminMode: boolean; onDelete: (id: string) => void; }> = ({ image, isAdminMode, onDelete }) => {
+const GalleryCarouselItem: React.FC<{ 
+    image: GalleryImage; 
+    isAdminMode: boolean; 
+    onDelete: (id: string) => void; 
+    onEnhance: (e: React.MouseEvent, id: string) => void;
+}> = ({ image, isAdminMode, onDelete, onEnhance }) => {
     const { imageUrl, isLoading } = useImageLoader(image.url);
 
     return (
@@ -39,13 +44,20 @@ const GalleryCarouselItem: React.FC<{ image: GalleryImage; isAdminMode: boolean;
                  ) : <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">Error</div>}
                 
                 {isAdminMode && (
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button
                         variant="destructive"
                         size="icon"
                         onClick={() => onDelete(image.id)}
                     >
                         <Icon name="trash" />
+                    </Button>
+                     <Button
+                        variant="secondary"
+                        size="icon"
+                        onClick={(e) => onEnhance(e, image.id)}
+                    >
+                        <Icon name="sparkles" />
                     </Button>
                 </div>
                 )}
@@ -62,6 +74,7 @@ interface GallerySectionProps {
   isAdminMode: boolean;
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
+  onEnhance: (imageKey: string, onUpdate: (newKey: string) => void) => void;
 }
 
 export const GallerySection: React.FC<GallerySectionProps> = ({
@@ -71,6 +84,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
   isAdminMode,
   selectedElement,
   onSelectElement,
+  onEnhance,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autoplay = useRef(
@@ -114,6 +128,19 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
     const newImages = data.images.filter(img => img.id !== imageId);
     onUpdate({ ...data, images: newImages });
   }, [data, onUpdate]);
+
+  const handleEnhanceImage = (e: React.MouseEvent, imageId: string) => {
+      e.stopPropagation();
+      const imageToEnhance = data.images.find(img => img.id === imageId);
+      if (!imageToEnhance) return;
+      
+      onEnhance(imageToEnhance.url, (newImageKey) => {
+          const newImages = data.images.map(img => 
+              img.id === imageId ? { ...img, url: newImageKey } : img
+          );
+          onUpdate({ ...data, images: newImages });
+      });
+  };
 
   const isSelected = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style';
 
@@ -168,6 +195,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
                     image={image}
                     isAdminMode={isAdminMode}
                     onDelete={handleDeleteImage}
+                    onEnhance={handleEnhanceImage}
                 />
               ))}
             </CarouselContent>
@@ -177,9 +205,9 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
         ) : (
           <div 
             onClick={() => isAdminMode && fileInputRef.current?.click()}
-            className="flex flex-col items-center justify-center text-center border-2 border-dashed rounded-lg p-12 hover:bg-accent hover:border-primary transition-colors cursor-pointer container mx-auto"
+            className="flex flex-col items-center justify-center text-center border-2 border-dashed rounded-lg p-12 hover:bg-accent hover:border-primary transition-colors cursor-pointer container mx-auto my-12"
           >
-             <Icon name="area" className="w-12 h-12 text-muted-foreground mb-4" />
+             <Icon name="camera" className="w-12 h-12 text-muted-foreground mb-4" />
              <h3 className="text-xl font-semibold text-foreground">Galería Vacía</h3>
              <p className="text-muted-foreground mt-2">
                 {isAdminMode ? "Haz clic aquí o en el botón 'Añadir' para empezar." : "Pronto se añadirán imágenes a esta galería."}
@@ -190,3 +218,5 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
     </section>
   );
 };
+
+    

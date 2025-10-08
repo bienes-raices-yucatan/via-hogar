@@ -26,7 +26,8 @@ import {
     TextAlign,
     PricingTier,
     FontWeight,
-    PageSectionStyle
+    PageSectionStyle,
+    GalleryImage
 } from '@/lib/types';
 
 // Import constants
@@ -38,8 +39,8 @@ import {
 } from '@/lib/constants';
 
 // Import services
-import { initDB, saveImage, exportData, importData } from '@/lib/storage';
-import { geocodeAddress, generateNearbyPlaces } from '@/ai/gemini-service';
+import { initDB, saveImage, exportData, importData, getImageBlob } from '@/lib/storage';
+import { geocodeAddress, generateNearbyPlaces, enhanceImageWithAI } from '@/ai/gemini-service';
 
 
 // Import all components
@@ -72,6 +73,15 @@ import { Icon } from '@/components/icon';
 type SelectedElementForToolbar = {
     type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier' | 'nearbyPlace' | 'button' | 'imageWithFeatures';
     data: Partial<StyledText & DraggableTextData & PageSectionStyle & AmenityItem & FeatureItem & PricingTier & NearbyPlace & ButtonSectionData & ImageWithFeaturesSectionData>;
+};
+
+const blobToDataURL = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
 };
 
 export default function Home() {
@@ -573,6 +583,38 @@ export default function Home() {
       setConfirmationModalState({isOpen: false, onConfirm: () => {}, title: '', message: ''});
   };
 
+  const handleEnhanceImage = useCallback(async (imageKey: string | null | undefined, onUpdate: (newImageKey: string) => void) => {
+    if (!imageKey) {
+        toast({ title: 'No hay imagen para mejorar.', variant: 'destructive'});
+        return;
+    }
+
+    toast({ title: 'Mejorando imagen con IA...', description: 'Este proceso puede tardar unos segundos.'});
+
+    try {
+        let imageDataUrl: string;
+
+        // If it's a key, get blob and convert to data URL. If it's a URL, use it.
+        if (imageKey.startsWith('http') || imageKey.startsWith('data:')) {
+            imageDataUrl = imageKey;
+        } else {
+            const blob = await getImageBlob(imageKey);
+            if (!blob) throw new Error('No se pudo encontrar la imagen en la base de datos local.');
+            imageDataUrl = await blobToDataURL(blob);
+        }
+
+        const enhancedDataUrl = await enhanceImageWithAI(imageDataUrl);
+        const newImageKey = await saveImage(enhancedDataUrl);
+        
+        onUpdate(newImageKey);
+
+        toast({ title: '¡Imagen Mejorada!', description: 'La imagen ha sido actualizada con la versión de la IA.' });
+    } catch (error) {
+        console.error("Image enhancement failed:", error);
+        toast({ title: 'Error de IA', description: `No se pudo mejorar la imagen. ${error instanceof Error ? error.message : ''}`, variant: 'destructive' });
+    }
+  }, [toast]);
+
   // --- Render Logic ---
   const renderSection = useCallback((section: AnySectionData, index: number) => {
     const commonProps = {
@@ -586,19 +628,19 @@ export default function Home() {
     const sectionContent = () => {
         switch (section.type) {
             case 'hero':
-                return <HeroSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} isDraggingMode={isDraggingMode} isFirstSection={index === 0} />;
+                return <HeroSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} isDraggingMode={isDraggingMode} onEnhance={handleEnhanceImage} isFirstSection={index === 0} />;
             case 'imageWithFeatures':
-                return <ImageWithFeaturesSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
+                return <ImageWithFeaturesSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} onEnhance={handleEnhanceImage} />;
             case 'gallery':
-                return <GallerySection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
+                return <GallerySection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} onEnhance={handleEnhanceImage} />;
             case 'amenities':
                 return <AmenitiesSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
             case 'contact':
-                return <ContactSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} onSubmit={handleContactSubmit} />;
+                return <ContactSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} onSubmit={handleContactSubmit} onEnhance={handleEnhanceImage} />;
             case 'location':
                 return <LocationSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} propertyAddress={selectedProperty?.address || ''} onUpdateAddress={handleUpdateAddress} />;
             case 'pricing':
-                return <PricingSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
+                return <PricingSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} onEnhance={handleEnhanceImage} />;
             case 'button':
                 return <ButtonSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
             default:
@@ -631,7 +673,7 @@ export default function Home() {
 
     return sectionContent();
 
-  }, [isAdminMode, isDraggingMode, selectedElement, handleUpdateSection, handleDeleteSection, handleContactSubmit, selectedProperty?.address, handleUpdateAddress, handleReorderSections, dragItem, dragOverItem]);
+  }, [isAdminMode, isDraggingMode, selectedElement, handleUpdateSection, handleDeleteSection, handleContactSubmit, selectedProperty?.address, handleUpdateAddress, handleReorderSections, dragItem, dragOverItem, handleEnhanceImage]);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -642,7 +684,7 @@ export default function Home() {
             onSiteNameChange={setSiteName}
             customLogo={customLogo}
             onLogoUpload={setCustomLogo}
-            onNavigateHome={() => setSelectedPropertyId(null)}
+            onEnhanceLogo={handleEnhanceImage}
         />
 
         <main className={cn("flex-grow", !selectedProperty && "pt-24")}>
@@ -663,6 +705,7 @@ export default function Home() {
                 onAddProperty={handleAddProperty}
                 onUpdateProperty={handleUpdateProperty}
                 onDeleteProperty={handleDeleteProperty}
+                onEnhancePropertyImage={handleEnhanceImage}
                 isAdminMode={isAdminMode}
             />
             )}
@@ -704,3 +747,5 @@ export default function Home() {
     </div>
   );
 };
+
+    

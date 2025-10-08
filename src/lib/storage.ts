@@ -94,6 +94,22 @@ export const getImageBlob = (key: string): Promise<Blob | null> => {
             reject('DB not initialized');
             return;
         }
+        if (key.startsWith('http') || key.startsWith('data:')) {
+            // It's a URL, not a key. Fetch it and return as blob.
+             fetch(key)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => resolve(blob))
+                .catch(err => {
+                    console.error('Failed to fetch image from URL:', err);
+                    reject(err);
+                });
+            return;
+        }
         const transaction = db.transaction(STORE_NAME, 'readonly');
         const store = transaction.objectStore(STORE_NAME);
         const request: IDBRequest<Blob | undefined> = store.get(key);
@@ -226,3 +242,5 @@ export const importData = async (jsonString: string): Promise<{ properties: any[
         }
     });
 };
+
+    

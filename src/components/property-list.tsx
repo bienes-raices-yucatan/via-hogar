@@ -16,6 +16,7 @@ interface PropertyCardProps {
   onSelectProperty: (id: string) => void;
   onDeleteProperty: (id: string) => void;
   onImageUploadClick: (e: React.MouseEvent, propertyId: string) => void;
+  onEnhanceClick: (e: React.MouseEvent, propertyId: string) => void;
   isAdminMode: boolean;
 }
 
@@ -23,7 +24,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     prop, 
     onSelectProperty, 
     onDeleteProperty, 
-    onImageUploadClick, 
+    onImageUploadClick,
+    onEnhanceClick, 
     isAdminMode,
 }) => {
     const { imageUrl, isLoading } = useImageLoader(prop.mainImageUrl);
@@ -58,6 +60,13 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                   >
                       <Icon name="trash" />
                   </Button>
+                   <Button
+                      variant="secondary"
+                      size="icon"
+                      onClick={(e) => onEnhanceClick(e, prop.id)}
+                  >
+                      <Icon name="sparkles" />
+                  </Button>
                   <Button
                       variant="secondary"
                       size="icon"
@@ -89,6 +98,7 @@ interface PropertyListProps {
   onAddProperty: () => void;
   onUpdateProperty: (property: Property) => void;
   onDeleteProperty: (id: string) => void;
+  onEnhancePropertyImage: (imageKey: string, onUpdate: (newKey: string) => void) => void;
   isAdminMode: boolean;
 }
 
@@ -98,6 +108,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
   onAddProperty,
   onUpdateProperty,
   onDeleteProperty,
+  onEnhancePropertyImage,
   isAdminMode,
 }) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -107,6 +118,16 @@ export const PropertyList: React.FC<PropertyListProps> = ({
     e.stopPropagation();
     propertyIdToUpdateRef.current = propertyId;
     imageInputRef.current?.click();
+  };
+
+  const handleEnhanceClick = (e: React.MouseEvent, propertyId: string) => {
+    e.stopPropagation();
+    const property = properties.find(p => p.id === propertyId);
+    if (!property) return;
+
+    onEnhancePropertyImage(property.mainImageUrl, (newImageKey) => {
+      onUpdateProperty({ ...property, mainImageUrl: newImageKey });
+    });
   };
 
   const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,6 +196,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
               onSelectProperty={onSelectProperty}
               onDeleteProperty={onDeleteProperty}
               onImageUploadClick={handleImageUploadClick}
+              onEnhanceClick={handleEnhanceClick}
               isAdminMode={isAdminMode}
             />
           ))}
@@ -183,3 +205,5 @@ export const PropertyList: React.FC<PropertyListProps> = ({
     </div>
   );
 };
+
+    

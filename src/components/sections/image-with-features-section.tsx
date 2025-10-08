@@ -33,7 +33,7 @@ const FeatureIconDisplay: React.FC<{ feature: FeatureItem }> = ({ feature }) => 
     return <Icon name={feature.icon} className="w-6 h-6" />;
 }
 
-const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeaturesSectionData; onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void; isAdminMode: boolean; }) => {
+const MediaComponent = ({ data, onUpdate, isAdminMode, onEnhance }: { data: ImageWithFeaturesSectionData; onUpdate: (data: Partial<ImageWithFeaturesSectionData>) => void; isAdminMode: boolean; onEnhance: (imageKey: string, onUpdate: (newKey: string) => void) => void; }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { imageUrl: mediaUrl, isLoading } = useImageLoader(data.media.url);
 
@@ -49,6 +49,15 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
             onUpdate({ media: { type: fileType, url: savedKey } });
         };
         reader.readAsDataURL(file);
+    };
+
+    const handleEnhanceClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (data.media.type === 'image') {
+            onEnhance(data.media.url, (newImageKey) => {
+                onUpdate({ media: { type: 'image', url: newImageKey } });
+            });
+        }
     };
     
     const mediaContent = () => {
@@ -96,7 +105,13 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
                             onChange={handleImageUpload}
                         />
                         {mediaUrl && (
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/media:opacity-100 flex items-center justify-center transition-opacity rounded-lg">
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/media:opacity-100 flex items-center justify-center gap-2 transition-opacity rounded-lg">
+                                {data.media.type === 'image' && (
+                                    <Button onClick={handleEnhanceClick}>
+                                        <Icon name="sparkles" className="mr-2" />
+                                        Mejorar
+                                    </Button>
+                                )}
                                 <Button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click()}}>
                                     <Icon name="pencil" className="mr-2" />
                                     Cambiar
@@ -127,6 +142,7 @@ interface ImageWithFeaturesSectionProps {
   isAdminMode: boolean;
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
+  onEnhance: (imageKey: string, onUpdate: (newKey: string) => void) => void;
 }
 
 const FeatureItemComponent: React.FC<{
@@ -204,6 +220,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   isAdminMode,
   selectedElement,
   onSelectElement,
+  onEnhance,
 }) => {
   const handleTitleUpdate = (newTitle: Partial<StyledText>) => {
     if (data.title) {
@@ -260,7 +277,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
 
   return (
     <section 
-        className="py-12 md:py-20 relative group"
+        className="relative group"
         style={{ backgroundColor: data.style?.backgroundColor }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
@@ -287,13 +304,13 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 </Button>
             )}
 
-            <div className="flex justify-center items-start gap-x-12 xl:gap-x-16">
+            <div className={cn("flex items-start gap-x-12 xl:gap-x-16", !isAdminMode && "justify-center")}>
                 
                 <div 
                   className="flex-shrink-0"
                   style={{ width: `${mediaWidth}%` }}
                 >
-                     <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} />
+                     <MediaComponent data={data} onUpdate={onUpdate} isAdminMode={isAdminMode} onEnhance={onEnhance} />
                 </div>
 
                 <div className="max-w-2xl">

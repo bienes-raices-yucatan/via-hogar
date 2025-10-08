@@ -20,6 +20,7 @@ interface HeroSectionProps {
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
   isFirstSection: boolean;
+  onEnhance: (imageKey: string, onUpdate: (newKey: string) => void) => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
@@ -31,6 +32,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   selectedElement,
   onSelectElement,
   isFirstSection,
+  onEnhance,
 }) => {
   const { imageUrl, isLoading } = useImageLoader(data.backgroundImageUrl);
 
@@ -38,13 +40,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     onUpdate({ ...data, title: { ...data.title, ...newTitle } });
   };
   
+  const handleEnhanceClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onEnhance(data.backgroundImageUrl, (newImageKey) => {
+          onUpdate({ ...data, backgroundImageUrl: newImageKey });
+      });
+  };
+
   const sectionStyle: React.CSSProperties = {
     height: data.style?.height ? `${data.style.height}vh` : '80vh',
     minHeight: '400px', // Ensure a minimum height
     borderRadius: isFirstSection 
         ? `0 0 ${data.style?.borderRadiusBottomRight || 0}rem ${data.style?.borderRadiusBottomLeft || 0}rem`
         : `${data.style?.borderRadiusTopLeft || 0}rem ${data.style?.borderRadiusTopRight || 0}rem ${data.style?.borderRadiusBottomRight || 0}rem ${data.style?.borderRadiusBottomLeft || 0}rem`,
-    backgroundImage: `url(${imageUrl})`,
   };
 
   const isSelected = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'backgroundImageUrl' || selectedElement.elementKey === 'style');
@@ -65,15 +73,23 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             isAdminMode && "group-hover:brightness-90 transition-all",
             isSelected && "brightness-90"
         )}
-        style={sectionStyle}
+        style={{...sectionStyle, backgroundImage: `url(${imageUrl})`}}
     >
         {isAdminMode && (
-          <>
-            <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={isSelected} />
+          <div className="absolute top-2 right-2 z-20 flex gap-2">
             <Button
               variant="secondary"
               size="icon"
-              className="absolute top-2 right-14 z-20 h-8 w-8"
+              className="h-8 w-8"
+              onClick={handleEnhanceClick}
+              title="Mejorar imagen de fondo con IA"
+            >
+              <Icon name="sparkles" className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-8 w-8"
               onClick={(e) => {
                 e.stopPropagation();
                 onSelectElement({ sectionId: data.id, elementKey: 'style' });
@@ -82,7 +98,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             >
               <Icon name="pencil" className="h-4 w-4" />
             </Button>
-          </>
+            <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={isSelected} />
+          </div>
         )}
         
         <div className="absolute inset-0 bg-black/30 z-0"></div>
@@ -104,3 +121,5 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     </section>
   );
 };
+
+    

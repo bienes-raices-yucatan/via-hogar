@@ -17,6 +17,7 @@ interface HeaderProps {
     customLogo: string | null;
     onLogoUpload: (logo: string | null) => void;
     onNavigateHome: () => void;
+    onEnhanceLogo: (imageKey: string, onUpdate: (newKey: string) => void) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -26,7 +27,8 @@ export const Header: React.FC<HeaderProps> = ({
     onSiteNameChange,
     customLogo,
     onLogoUpload,
-    onNavigateHome 
+    onNavigateHome,
+    onEnhanceLogo
 }) => {
     const logoInputRef = useRef<HTMLInputElement>(null);
     const { imageUrl: logoUrl, isLoading: isLogoLoading } = useImageLoader(customLogo);
@@ -95,11 +97,26 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
                
                 {isAdminMode && (
-                    <>
+                    <div className="absolute -right-[7.5rem] h-7 flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                         <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-7 w-7 bg-white/20 text-white hover:bg-white/30"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (customLogo) {
+                                    onEnhanceLogo(customLogo, onLogoUpload);
+                                }
+                            }}
+                            title="Mejorar logo con IA"
+                            disabled={!customLogo}
+                        >
+                            <Icon name="sparkles" className="h-4 w-4" />
+                        </Button>
                         <Button
                             variant="outline"
                             size="icon"
-                            className="absolute -right-10 h-7 w-7 opacity-0 group-hover:opacity-100 bg-white/20 text-white hover:bg-white/30"
+                            className="h-7 w-7 bg-white/20 text-white hover:bg-white/30"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 logoInputRef.current?.click();
@@ -115,7 +132,7 @@ export const Header: React.FC<HeaderProps> = ({
                             accept="image/*"
                             onChange={handleLogoUpload}
                         />
-                    </>
+                    </div>
                 )}
             </div>
             {isAdminMode && (
@@ -128,3 +145,5 @@ export const Header: React.FC<HeaderProps> = ({
         </header>
     );
 };
+
+    
