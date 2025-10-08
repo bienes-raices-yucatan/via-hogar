@@ -44,18 +44,27 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     borderRadius: isFirstSection 
         ? `0 0 ${data.style?.borderRadiusBottomRight || 0}rem ${data.style?.borderRadiusBottomLeft || 0}rem`
         : `${data.style?.borderRadiusTopLeft || 0}rem ${data.style?.borderRadiusTopRight || 0}rem ${data.style?.borderRadiusBottomRight || 0}rem ${data.style?.borderRadiusBottomLeft || 0}rem`,
-    overflow: 'hidden',
-  };
-
-  const backgroundStyle: React.CSSProperties = {
-      backgroundImage: `url(${imageUrl})`,
+    backgroundImage: `url(${imageUrl})`,
   };
 
   const isSelected = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'backgroundImageUrl' || selectedElement.elementKey === 'style');
 
+  if (isLoading) {
+    return (
+        <Skeleton 
+            className="relative w-full shadow-lg"
+            style={{...sectionStyle, backgroundImage: 'none'}} 
+        />
+    )
+  }
+
   return (
     <section 
-        className="relative text-white group w-full shadow-lg"
+        className={cn(
+            "relative text-white group w-full shadow-lg bg-cover bg-center bg-fixed",
+            isAdminMode && "group-hover:brightness-90 transition-all",
+            isSelected && "brightness-90"
+        )}
         style={sectionStyle}
     >
         {isAdminMode && (
@@ -76,18 +85,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </>
         )}
         
-        {isLoading ? (
-            <Skeleton className="absolute inset-0" style={sectionStyle} />
-        ) : (
-            <div
-                className={cn(
-                    "absolute inset-0 bg-cover bg-center",
-                    isAdminMode && "group-hover:brightness-90 transition-all",
-                    isSelected && "brightness-90"
-                )}
-                style={backgroundStyle}
-            />
-        )}
         <div className="absolute inset-0 bg-black/30 z-0"></div>
 
         <div className={cn("relative z-10 h-full w-full", isDraggingMode && 'cursor-move')}>
