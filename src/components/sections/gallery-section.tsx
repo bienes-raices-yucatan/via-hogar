@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { GallerySectionData, SelectedElement, GalleryImage } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/icon';
+import Autoplay from "embla-carousel-autoplay";
 import {
   Carousel,
   CarouselContent,
@@ -14,7 +15,6 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import { SectionToolbar } from '../section-toolbar';
-import { EditableText } from '../editable-text';
 import { deleteImage, saveImage } from '@/lib/storage';
 import { useImageLoader } from '@/hooks/use-image-loader';
 import { Skeleton } from '../ui/skeleton';
@@ -25,7 +25,7 @@ const GalleryCarouselItem: React.FC<{ image: GalleryImage; isAdminMode: boolean;
     const { imageUrl, isLoading } = useImageLoader(image.url);
 
     return (
-        <CarouselItem className="basis-1/2 md:basis-1/3 lg:basis-1/4">
+        <CarouselItem className="basis-1/2">
             <div className="p-1">
             <div className="relative aspect-video overflow-hidden rounded-lg group/image">
                 {isLoading ? <Skeleton className="w-full h-full" /> : 
@@ -73,6 +73,9 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
   onSelectElement,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const autoplay = useRef(
+      Autoplay({ delay: 2000, stopOnInteraction: true })
+  );
 
   const handleImageUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -116,7 +119,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
 
   return (
     <section 
-        className="relative group py-4"
+        className="relative group"
         style={{ backgroundColor: data.style?.backgroundColor }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
@@ -149,11 +152,14 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
 
         {data.images.length > 0 ? (
           <Carousel
+            plugins={[autoplay.current]}
             opts={{
               align: 'start',
               loop: true,
             }}
             className="w-full"
+            onMouseEnter={() => autoplay.current.stop()}
+            onMouseLeave={() => autoplay.current.reset()}
           >
             <CarouselContent className="-ml-1">
               {data.images.map((image) => (
