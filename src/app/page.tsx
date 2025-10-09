@@ -90,6 +90,8 @@ export default function Home() {
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
 
   // --- Modal State ---
   const [isNewPropertyModalOpen, setIsNewPropertyModalOpen] = useState(false);
@@ -120,6 +122,7 @@ export default function Home() {
   // --- Effects ---
   useEffect(() => {
     const loadFromStorage = async () => {
+        setIsLoading(true);
         await initDB();
         
         try {
@@ -127,8 +130,6 @@ export default function Home() {
             if (savedProps) {
                 const parsedProps: Property[] = JSON.parse(savedProps);
                 setProperties(parsedProps);
-            } else {
-                setProperties([]); // Start with empty if nothing is saved
             }
 
             const savedSubmissions = localStorage.getItem('submissionsData');
@@ -140,14 +141,18 @@ export default function Home() {
             const savedLogo = localStorage.getItem('customLogo');
             if (savedLogo) setCustomLogo(savedLogo);
 
+            const savedSelectedPropId = sessionStorage.getItem('selectedPropertyId');
+            if(savedSelectedPropId) setSelectedPropertyId(savedSelectedPropId);
         } catch (error) {
             console.error("Failed to parse data from localStorage, starting fresh.", error);
+            // Clear potentially corrupted data
+            localStorage.removeItem('propertiesData');
+            localStorage.removeItem('submissionsData');
             setProperties([]);
             setSubmissions([]);
+        } finally {
+            setIsLoading(false);
         }
-
-        const savedSelectedPropId = sessionStorage.getItem('selectedPropertyId');
-        if(savedSelectedPropId) setSelectedPropertyId(savedSelectedPropId);
     }
     
     loadFromStorage();
@@ -155,10 +160,10 @@ export default function Home() {
 
   // Persist data to localStorage
   useEffect(() => {
-    // Always set the item, even if it's an empty array.
-    // This prevents issues where removing the last item makes it seem like nothing is saved.
-    localStorage.setItem('propertiesData', JSON.stringify(properties));
-  }, [properties]);
+    if (!isLoading) {
+      localStorage.setItem('propertiesData', JSON.stringify(properties));
+    }
+  }, [properties, isLoading]);
 
   useEffect(() => { 
       if (submissions.length > 0) {
@@ -648,6 +653,10 @@ export default function Home() {
 
   }, [isAdminMode, isDraggingMode, selectedElement, handleUpdateSection, handleDeleteSection, handleContactSubmit, selectedProperty?.address, handleUpdateAddress, handleReorderSections, dragItem, dragOverItem]);
 
+  if (isLoading) {
+    return null; // or a loading spinner
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
         <Header 
@@ -720,3 +729,5 @@ export default function Home() {
     </div>
   );
 };
+
+    
