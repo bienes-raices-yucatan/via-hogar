@@ -58,10 +58,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         reader.onload = (event) => {
             const dataUrl = event.target?.result as string;
             // The onUpdate will trigger the saveImage logic in the parent component
-            const keyToUpdate = 
-                element.type === 'amenity' || element.type === 'feature' || element.type === 'nearbyPlace' ? 'imageUrl' 
-                : element.type === 'pricingTier' ? 'iconUrl'
-                : 'backgroundImageUrl';
+            const keyToUpdate = 'backgroundImageUrl';
             onUpdate({ [keyToUpdate]: dataUrl });
         };
         reader.readAsDataURL(file);
@@ -188,70 +185,56 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
     
     const renderAmenityControls = (data: AmenityItem) => (
         <>
-            <IconPicker label="Icono" value={data.icon} onChange={(icon) => onUpdate({ icon })} />
+            <IconPicker 
+                label="Icono o Imagen" 
+                value={data.icon} 
+                imageUrl={data.imageUrl}
+                onIconChange={(icon) => onUpdate({ icon, imageUrl: null })}
+                onImageUpload={(newImageUrl) => onUpdate({ imageUrl: newImageUrl, icon: null })}
+                onImageRemove={() => onUpdate({ imageUrl: null, icon: 'generic-feature' })}
+            />
             <div className="space-y-2">
                 <Label>Texto de la amenidad</Label>
                 <Input value={data.text} onChange={(e) => onUpdate({ text: e.target.value })} />
             </div>
-            <hr/>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                <Icon name="camera" className="mr-2" />
-                Usar Imagen en vez de icono
-            </Button>
-            {data.imageUrl && (
-                <Button variant="destructive" size="sm" onClick={() => onUpdate({ imageUrl: null })}>
-                    <Icon name="trash" className="mr-2" />
-                    Quitar Imagen
-                </Button>
-            )}
         </>
     );
 
     const renderFeatureControls = (data: FeatureItem) => {
-        const handleLocalUpdate = (property: 'title' | 'description', changes: Partial<StyledText>) => {
-            onUpdate({ [property]: { ...data[property], ...changes } });
-        };
-
         return (
             <>
-                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-                <IconPicker label="Icono" value={data.icon} onChange={(icon) => onUpdate({ icon })} />
-                <hr />
-                <p className="text-xs font-bold text-muted-foreground uppercase">Título</p>
-                {renderTextControls(data.title, (key, value) => handleLocalUpdate('title', { [key]: value }))}
-                <hr />
-                <p className="text-xs font-bold text-muted-foreground uppercase">Descripción</p>
-                {renderTextControls(data.description, (key, value) => handleLocalUpdate('description', { [key]: value }))}
-                <hr />
-                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                    <Icon name="camera" className="mr-2" />
-                    Usar Imagen en vez de icono
-                </Button>
-                {data.imageUrl && (
-                    <Button variant="destructive" size="sm" onClick={() => onUpdate({ imageUrl: null })}>
-                        <Icon name="trash" className="mr-2" />
-                        Quitar Imagen
-                    </Button>
-                )}
+                <IconPicker 
+                    label="Icono o Imagen" 
+                    value={data.icon} 
+                    imageUrl={data.imageUrl}
+                    onIconChange={(icon) => onUpdate({ icon, imageUrl: null })}
+                    onImageUpload={(newImageUrl) => onUpdate({ imageUrl: newImageUrl, icon: null })}
+                    onImageRemove={() => onUpdate({ imageUrl: null, icon: 'generic-feature' })}
+                />
             </>
         );
     };
 
 
     const renderPricingTierControls = (data: PricingTier) => {
-        const handleLocalUpdate = (property: keyof PricingTier, changes: Partial<StyledText>) => {
-            const currentVal = data[property];
-            if(typeof currentVal === 'object') {
-                onUpdate({ [property]: { ...currentVal, ...changes } });
-            }
+        const handleFileChangeForTier = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const dataUrl = event.target?.result as string;
+                onUpdate({ iconUrl: dataUrl });
+            };
+            reader.readAsDataURL(file);
         };
+        
         return (
         <>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+            <input type="file" ref={fileInputRef} onChange={handleFileChangeForTier} className="hidden" accept="image/*" />
             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                 <Icon name="camera" className="mr-2" />
-                Cambiar Imagen/Icono
+                Cambiar Imagen de Encabezado
             </Button>
             {data.iconUrl && (
                 <Button variant="destructive" size="sm" onClick={() => onUpdate({ iconUrl: null })}>
@@ -259,31 +242,19 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                     Quitar Imagen
                 </Button>
             )}
-            <hr/>
-            <p className="text-xs font-bold text-muted-foreground uppercase">Título</p>
-            {renderTextControls(data.title, (key, value) => handleLocalUpdate('title', { [key]: value }))}
-            <hr/>
-            <p className="text-xs font-bold text-muted-foreground uppercase">Precio</p>
-            {renderTextControls(data.price, (key, value) => handleLocalUpdate('price', { [key]: value }))}
-            <hr/>
-            {data.oldPrice && (
-                <>
-                    <p className="text-xs font-bold text-muted-foreground uppercase">Precio Anterior</p>
-                    {renderTextControls(data.oldPrice, (key, value) => handleLocalUpdate('oldPrice', { [key]: value }))}
-                    <hr/>
-                </>
-            )}
-            <p className="text-xs font-bold text-muted-foreground uppercase">Moneda</p>
-            {renderTextControls(data.currency, (key, value) => handleLocalUpdate('currency', { [key]: value }))}
-            <hr/>
-            <p className="text-xs font-bold text-muted-foreground uppercase">Descripción</p>
-            {renderTextControls(data.description, (key, value) => handleLocalUpdate('description', { [key]: value }))}
         </>
     )};
 
     const renderNearbyPlaceControls = (data: NearbyPlace) => (
         <>
-            <IconPicker label="Icono" value={data.icon} onChange={(icon) => onUpdate({ icon })} />
+            <IconPicker 
+                label="Icono o Imagen" 
+                value={data.icon} 
+                imageUrl={data.imageUrl}
+                onIconChange={(icon) => onUpdate({ icon, imageUrl: null })}
+                onImageUpload={(newImageUrl) => onUpdate({ imageUrl: newImageUrl, icon: null })}
+                onImageRemove={() => onUpdate({ imageUrl: null, icon: 'map-pin' })}
+            />
             <div className="space-y-2">
                 <Label>Título del Lugar</Label>
                 <Input value={data.title} onChange={(e) => onUpdate({ title: e.target.value })} />
@@ -292,18 +263,6 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 <Label>Tiempo de Viaje</Label>
                 <Input value={data.travelTime} onChange={(e) => onUpdate({ travelTime: e.target.value })} />
             </div>
-            <hr/>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                <Icon name="camera" className="mr-2" />
-                Usar Imagen en vez de icono
-            </Button>
-            {data.imageUrl && (
-                <Button variant="destructive" size="sm" onClick={() => onUpdate({ imageUrl: null })}>
-                    <Icon name="trash" className="mr-2" />
-                    Quitar Imagen
-                </Button>
-            )}
         </>
     );
 
@@ -355,7 +314,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
             case 'draggableText':
                 return renderTextControls(values);
             case 'sectionStyle':
-                return renderSectionStyleControls(values, handleChange);
+                return renderSectionStyleControls(values);
             case 'imageWithFeatures':
                  return renderImageWithFeaturesControls(values);
             case 'amenity':
@@ -442,28 +401,60 @@ const ColorPicker: React.FC<{ label: string; value: string; onChange: (color: st
 };
 
 
-const IconPicker: React.FC<{ label: string; value: IconName; onChange: (icon: IconName) => void }> = ({ label, value, onChange }) => {
+const IconPicker: React.FC<{
+    label: string;
+    value: IconName | null;
+    imageUrl?: string | null;
+    onIconChange: (icon: IconName) => void;
+    onImageUpload: (dataUrl: string) => void;
+    onImageRemove: () => void;
+}> = ({ label, value, imageUrl, onIconChange, onImageUpload, onImageRemove }) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const dataUrl = event.target?.result as string;
+            onImageUpload(dataUrl);
+        };
+        reader.readAsDataURL(file);
+    };
+    
     return (
         <div className="space-y-2">
             <Label>{label}</Label>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
             <Popover>
                 <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start text-left font-normal">
                         <div className="flex items-center gap-2">
-                            {value && <Icon name={value} className="h-4 w-4" />}
-                            <span className="capitalize">{value ? value.replace(/-/g, ' ') : "Seleccionar Icono"}</span>
+                            {imageUrl ? <img src={imageUrl} className="h-4 w-4 object-cover rounded-sm" alt="Custom icon" /> : value && <Icon name={value} className="h-4 w-4" />}
+                            <span className="capitalize">{imageUrl ? "Imagen Personalizada" : (value ? value.replace(/-/g, ' ') : "Seleccionar")}</span>
                         </div>
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-64 p-0" align="start">
-                    <ScrollArea className="h-72">
-                        <div className="p-2 grid grid-cols-5 gap-1">
+                <PopoverContent className="w-72 p-0" align="start">
+                    <div className="p-2 border-b grid grid-cols-2 gap-2">
+                         <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                            <Icon name="upload" className="mr-2" />
+                            Cargar Imagen
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={onImageRemove} disabled={!imageUrl}>
+                            <Icon name="trash" className="mr-2" />
+                            Quitar Imagen
+                        </Button>
+                    </div>
+                    <ScrollArea className="h-60">
+                        <div className="p-2 grid grid-cols-6 gap-1">
                             {allIcons.map((icon) => (
                                 <Button
                                     key={icon}
                                     variant={value === icon ? 'default' : 'ghost'}
                                     size="icon"
-                                    onClick={() => onChange(icon)}
+                                    onClick={() => onIconChange(icon)}
                                     className="w-full h-full aspect-square"
                                 >
                                     <Icon name={icon} />

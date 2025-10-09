@@ -53,7 +53,7 @@ export interface HeroSectionData extends PageSection {
 // Data for a single feature item (e.g., '3 Bedrooms', 'Solar Panels')
 export interface FeatureItem {
   id: string;
-  icon: IconName;
+  icon: IconName | null;
   imageUrl?: string;
   title: StyledText;
   description: StyledText;
@@ -62,7 +62,6 @@ export interface FeatureItem {
 // Data for the section containing an image and a list of features
 export interface ImageWithFeaturesSectionData extends PageSection {
   type: 'imageWithFeatures';
-  title?: StyledText;
   media: {
     type: 'image' | 'video';
     url: string;
@@ -87,7 +86,7 @@ export interface GallerySectionData extends PageSection {
 // Data for a single point of interest near the property
 export interface NearbyPlace {
     id: string;
-    icon: IconName;
+    icon: IconName | null;
     imageUrl?: string;
     title: string;
     travelTime: string;
@@ -107,7 +106,7 @@ export interface LocationSectionData extends PageSection {
 export interface AmenityItem {
   id: string;
   text: string;
-  icon: IconName;
+  icon: IconName | null;
   imageUrl?: string;
 }
 
