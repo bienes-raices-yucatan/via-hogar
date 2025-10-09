@@ -10,6 +10,8 @@ import { useImageLoader } from '@/hooks/use-image-loader';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
 import { Icon } from '../icon';
+import { Switch } from '../ui/switch';
+import { Label } from '../ui/label';
 
 interface HeroSectionProps {
   data: HeroSectionData;
@@ -47,6 +49,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       });
   };
 
+  const handleParallaxToggle = (isChecked: boolean) => {
+      onUpdate({ ...data, isParallax: isChecked });
+  };
+
   const sectionStyle: React.CSSProperties = {
     height: data.style?.height ? `${data.style.height}vh` : '80vh',
     minHeight: '400px', // Ensure a minimum height
@@ -69,37 +75,61 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   return (
     <section 
         className={cn(
-            "relative text-white group w-full shadow-lg bg-cover bg-center bg-fixed",
+            "relative text-white group w-full shadow-lg bg-cover bg-center",
+            data.isParallax && "bg-fixed",
             isAdminMode && "group-hover:brightness-90 transition-all",
             isSelected && "brightness-90"
         )}
         style={{...sectionStyle, backgroundImage: `url(${imageUrl})`}}
     >
         {isAdminMode && (
-          <div className="absolute top-2 right-2 z-20 flex gap-2">
-            <Button
-              variant="secondary"
-              size="icon"
-              className="h-8 w-8"
-              onClick={handleEnhanceClick}
-              title="Mejorar imagen de fondo con IA"
-            >
-              <Icon name="sparkles" className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="secondary"
-              size="icon"
-              className="h-8 w-8"
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelectElement({ sectionId: data.id, elementKey: 'style' });
-              }}
-              title="Editar estilo del banner"
-            >
-              <Icon name="pencil" className="h-4 w-4" />
-            </Button>
-            <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={isSelected} />
-          </div>
+          <>
+            {/* Action Buttons: Left Side */}
+            <div className="absolute top-2 left-2 z-20 flex gap-2">
+              <Button
+                variant="secondary"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleEnhanceClick}
+                title="Mejorar imagen de fondo con IA"
+              >
+                <Icon name="sparkles" className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="secondary"
+                size="icon"
+                className="h-8 w-8"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectElement({ sectionId: data.id, elementKey: 'style' });
+                }}
+                title="Editar estilo del banner"
+              >
+                <Icon name="pencil" className="h-4 w-4" />
+              </Button>
+               <Button
+                  variant="destructive"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => onDelete(data.id)}
+                  title="Eliminar sección"
+              >
+                  <Icon name="trash" className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            {/* Parallax Switch: Right Side */}
+            <div className="absolute top-2 right-2 z-20 flex items-center space-x-2 bg-black/20 backdrop-blur-sm p-2 rounded-md">
+                <Switch
+                    id={`parallax-switch-${data.id}`}
+                    checked={data.isParallax}
+                    onCheckedChange={handleParallaxToggle}
+                />
+                <Label htmlFor={`parallax-switch-${data.id}`} className="text-xs text-white font-medium">
+                    Parallax
+                </Label>
+            </div>
+          </>
         )}
         
         <div className="absolute inset-0 bg-black/30 z-0"></div>
@@ -121,5 +151,3 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     </section>
   );
 };
-
-    

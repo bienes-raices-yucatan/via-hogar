@@ -47,6 +47,7 @@ export interface HeroSectionData extends PageSection {
   type: 'hero';
   title: DraggableTextData;
   backgroundImageUrl: string;
+  isParallax?: boolean;
 }
 
 // Data for a single feature item (e.g., '3 Bedrooms', 'Solar Panels')
@@ -80,7 +81,6 @@ export interface GalleryImage {
 // Data for the image gallery section
 export interface GallerySectionData extends PageSection {
   type: 'gallery';
-  title?: StyledText;
   images: GalleryImage[];
 }
 
@@ -96,7 +96,6 @@ export interface NearbyPlace {
 // Data for the map/location section
 export interface LocationSectionData extends PageSection {
   type: 'location';
-  title?: StyledText;
   coordinates: {
     lat: number; // Represents geographic latitude
     lng: number; // Represents geographic longitude
@@ -115,7 +114,6 @@ export interface AmenityItem {
 // Data for the amenities section
 export interface AmenitiesSectionData extends PageSection {
   type: 'amenities';
-  title?: StyledText;
   amenities: AmenityItem[];
 }
 
@@ -185,5 +183,3 @@ export interface ContactSubmission {
     userType: 'buyer' | 'broker';
     submittedAt: string;
 }
-
-    

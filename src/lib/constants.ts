@@ -52,6 +52,7 @@ export const createSectionData = (
             return {
                 ...base,
                 type: 'hero',
+                isParallax: true,
                 style: { height: 80, borderRadiusBottomLeft: 3, borderRadiusBottomRight: 3 },
                 title: { 
                     id: `title-${uniqueSuffix}`,
@@ -86,7 +87,6 @@ export const createSectionData = (
             return {
                 ...base,
                 type: 'gallery',
-                style: { backgroundColor: '#F9FAFB' }, // gray-50
                 images: [],
             };
         case 'amenities':
