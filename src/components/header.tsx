@@ -66,6 +66,8 @@ export const Header: React.FC<HeaderProps> = ({
         onSiteNameChange(currentSiteName);
     };
 
+    const titleColorClass = scrolled ? 'text-foreground' : 'text-white';
+
     return (
         <header className={cn(
             "fixed top-0 left-0 right-0 z-40 p-4 flex justify-between items-center transition-all duration-300",
@@ -80,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
                 ) : logoUrl ? (
                     <Image src={logoUrl} alt="Custom Logo" width={32} height={32} className="object-contain h-8 w-8" />
                 ) : (
-                    <Icon name="logo" className={cn("w-8 h-8 text-primary drop-shadow-sm")} />
+                    <Icon name="logo" className={cn("w-8 h-8", titleColorClass)} />
                 )}
                 {isAdminMode ? (
                      <ContentEditable
@@ -88,10 +90,10 @@ export const Header: React.FC<HeaderProps> = ({
                         tagName="h1"
                         onChange={handleSiteNameChange}
                         onBlur={handleSiteNameBlur}
-                        className={cn("text-xl font-bold text-primary drop-shadow-sm focus:outline-none focus:ring-2 focus:ring-primary rounded-sm px-1")}
+                        className={cn("text-xl font-bold focus:outline-none focus:ring-2 focus:ring-primary rounded-sm px-1", titleColorClass)}
                      />
                 ) : (
-                    <h1 className={cn("text-xl font-bold text-primary drop-shadow-sm")}>{siteName}</h1>
+                    <h1 className={cn("text-xl font-bold", titleColorClass)}>{siteName}</h1>
                 )}
                
                 {isAdminMode && (
