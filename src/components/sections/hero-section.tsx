@@ -125,8 +125,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     checked={data.isParallax}
                     onCheckedChange={handleParallaxToggle}
                 />
-                <Label htmlFor={`parallax-switch-${data.id}`} className="text-xs text-white font-medium">
-                    Parallax
+                <Label htmlFor={`parallax-switch-${data.id}`} className="text-xs text-white font-medium cursor-pointer">
+                    Efecto de Movilidad
                 </Label>
             </div>
           </>
