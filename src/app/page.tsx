@@ -154,13 +154,12 @@ export default function Home() {
   }, []);
 
   // Persist data to localStorage
-  useEffect(() => { 
-    if (properties && properties.length > 0) {
-        localStorage.setItem('propertiesData', JSON.stringify(properties)); 
-    } else {
-        localStorage.removeItem('propertiesData');
-    }
+  useEffect(() => {
+    // Always set the item, even if it's an empty array.
+    // This prevents issues where removing the last item makes it seem like nothing is saved.
+    localStorage.setItem('propertiesData', JSON.stringify(properties));
   }, [properties]);
+
   useEffect(() => { 
       if (submissions.length > 0) {
           localStorage.setItem('submissionsData', JSON.stringify(submissions)); 
@@ -318,9 +317,6 @@ export default function Home() {
         onConfirm: () => {
              setProperties(prev => {
                 const newProps = prev.filter(p => p.id !== id);
-                if (newProps.length === 0) {
-                    localStorage.removeItem('propertiesData');
-                }
                 return newProps;
              });
              if (selectedPropertyId === id) {
@@ -680,7 +676,7 @@ export default function Home() {
                 properties={properties}
                 onSelectProperty={setSelectedPropertyId}
                 onAddProperty={handleAddProperty}
-                onUpdateProperty={handleUpdateProperty}
+                onUpdateProperty={onUpdateProperty}
                 onDeleteProperty={handleDeleteProperty}
                 onUpdatePropertyImage={handleUpdatePropertyImage}
                 isAdminMode={isAdminMode}
@@ -724,5 +720,3 @@ export default function Home() {
     </div>
   );
 };
-
-    
