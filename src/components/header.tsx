@@ -80,7 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
                 ) : logoUrl ? (
                     <Image src={logoUrl} alt="Custom Logo" width={32} height={32} className="object-contain h-8 w-8" />
                 ) : (
-                    <Icon name="logo" className={cn("w-8 h-8", scrolled ? "text-foreground" : "text-white")} />
+                    <Icon name="logo" className={cn("w-8 h-8 text-primary drop-shadow-sm")} />
                 )}
                 {isAdminMode ? (
                      <ContentEditable
@@ -88,10 +88,10 @@ export const Header: React.FC<HeaderProps> = ({
                         tagName="h1"
                         onChange={handleSiteNameChange}
                         onBlur={handleSiteNameBlur}
-                        className={cn("text-xl font-bold focus:outline-none focus:ring-2 focus:ring-primary rounded-sm px-1", scrolled ? "text-foreground" : "text-white")}
+                        className={cn("text-xl font-bold text-primary drop-shadow-sm focus:outline-none focus:ring-2 focus:ring-primary rounded-sm px-1")}
                      />
                 ) : (
-                    <h1 className={cn("text-xl font-bold", scrolled ? "text-foreground" : "text-white")}>{siteName}</h1>
+                    <h1 className={cn("text-xl font-bold text-primary drop-shadow-sm")}>{siteName}</h1>
                 )}
                
                 {isAdminMode && (
