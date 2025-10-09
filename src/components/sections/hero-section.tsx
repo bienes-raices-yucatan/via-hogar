@@ -22,7 +22,6 @@ interface HeroSectionProps {
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
   isFirstSection: boolean;
-  onEnhance: (imageKey: string, onUpdate: (newKey: string) => void) => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
@@ -34,7 +33,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   selectedElement,
   onSelectElement,
   isFirstSection,
-  onEnhance,
 }) => {
   const { imageUrl, isLoading } = useImageLoader(data.backgroundImageUrl);
 
@@ -42,13 +40,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     onUpdate({ ...data, title: { ...data.title, ...newTitle } });
   };
   
-  const handleEnhanceClick = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      onEnhance(data.backgroundImageUrl, (newImageKey) => {
-          onUpdate({ ...data, backgroundImageUrl: newImageKey });
-      });
-  };
-
   const handleParallaxToggle = (isChecked: boolean) => {
       onUpdate({ ...data, isParallax: isChecked });
   };
@@ -86,15 +77,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           <>
             {/* Action Buttons: Left Side */}
             <div className="absolute top-2 left-2 z-20 flex gap-2">
-              <Button
-                variant="secondary"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleEnhanceClick}
-                title="Mejorar imagen de fondo con IA"
-              >
-                <Icon name="sparkles" className="h-4 w-4" />
-              </Button>
               <Button
                 variant="secondary"
                 size="icon"

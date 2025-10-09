@@ -25,8 +25,7 @@ const GalleryCarouselItem: React.FC<{
     image: GalleryImage; 
     isAdminMode: boolean; 
     onDelete: (id: string) => void; 
-    onEnhance: (e: React.MouseEvent, id: string) => void;
-}> = ({ image, isAdminMode, onDelete, onEnhance }) => {
+}> = ({ image, isAdminMode, onDelete }) => {
     const { imageUrl, isLoading } = useImageLoader(image.url);
 
     return (
@@ -52,13 +51,6 @@ const GalleryCarouselItem: React.FC<{
                     >
                         <Icon name="trash" />
                     </Button>
-                     <Button
-                        variant="secondary"
-                        size="icon"
-                        onClick={(e) => onEnhance(e, image.id)}
-                    >
-                        <Icon name="sparkles" />
-                    </Button>
                 </div>
                 )}
             </div>
@@ -74,7 +66,6 @@ interface GallerySectionProps {
   isAdminMode: boolean;
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
-  onEnhance: (imageKey: string, onUpdate: (newKey: string) => void) => void;
 }
 
 export const GallerySection: React.FC<GallerySectionProps> = ({
@@ -84,7 +75,6 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
   isAdminMode,
   selectedElement,
   onSelectElement,
-  onEnhance,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autoplay = useRef(
@@ -128,19 +118,6 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
     const newImages = data.images.filter(img => img.id !== imageId);
     onUpdate({ ...data, images: newImages });
   }, [data, onUpdate]);
-
-  const handleEnhanceImage = (e: React.MouseEvent, imageId: string) => {
-      e.stopPropagation();
-      const imageToEnhance = data.images.find(img => img.id === imageId);
-      if (!imageToEnhance) return;
-      
-      onEnhance(imageToEnhance.url, (newImageKey) => {
-          const newImages = data.images.map(img => 
-              img.id === imageId ? { ...img, url: newImageKey } : img
-          );
-          onUpdate({ ...data, images: newImages });
-      });
-  };
 
   const isSelected = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style';
 
@@ -195,7 +172,6 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
                     image={image}
                     isAdminMode={isAdminMode}
                     onDelete={handleDeleteImage}
-                    onEnhance={handleEnhanceImage}
                 />
               ))}
             </CarouselContent>
@@ -218,5 +194,3 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
     </section>
   );
 };
-
-    

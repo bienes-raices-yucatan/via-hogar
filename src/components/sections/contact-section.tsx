@@ -24,7 +24,6 @@ interface ContactSectionProps {
   isAdminMode: boolean;
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
-  onEnhance: (imageKey: string, onUpdate: (newKey: string) => void) => void;
 }
 
 export const ContactSection: React.FC<ContactSectionProps> = ({
@@ -35,7 +34,6 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
   isAdminMode,
   selectedElement,
   onSelectElement,
-  onEnhance,
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { imageUrl, isLoading } = useImageLoader(data.backgroundImageUrl);
@@ -68,13 +66,6 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
             onUpdate({ ...data, backgroundImageUrl: savedKey });
         };
         reader.readAsDataURL(file);
-    };
-
-    const handleEnhanceClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onEnhance(data.backgroundImageUrl, (newImageKey) => {
-            onUpdate({ backgroundImageUrl: newImageKey });
-        });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -111,14 +102,6 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
       {isAdminMode && <SectionToolbar sectionId={data.id} onDelete={onDelete} isSectionSelected={isSelected} />}
       {isAdminMode && (
           <div className="absolute top-2 right-14 z-20 flex gap-2">
-            <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleEnhanceClick}
-            >
-                <Icon name="sparkles" className="mr-2 h-4 w-4" />
-                Mejorar
-            </Button>
             <Button
                 variant="secondary"
                 size="sm"
@@ -218,5 +201,3 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
     </section>
   );
 };
-
-    

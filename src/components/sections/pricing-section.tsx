@@ -41,7 +41,6 @@ interface PricingSectionProps {
   isAdminMode: boolean;
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
-  onEnhance: (imageKey: string, onUpdate: (newKey: string) => void) => void;
 }
 
 export const PricingSection: React.FC<PricingSectionProps> = ({
@@ -51,7 +50,6 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
   isAdminMode,
   selectedElement,
   onSelectElement,
-  onEnhance,
 }) => {
   const { tier } = data;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,13 +75,6 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
       reader.readAsDataURL(file);
   };
   
-  const handleEnhanceClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onEnhance(data.backgroundImageUrl, (newImageKey) => {
-            onUpdate({ backgroundImageUrl: newImageKey });
-        });
-    };
-
   const handleSelectTierElement = (property: keyof Omit<PricingTier, 'id' | 'buttonText' | 'iconUrl'>) => {
       if(!isAdminMode) return;
       onSelectElement({ sectionId: data.id, elementKey: 'tier', subElementId: tier.id, property });
@@ -112,14 +103,6 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
         )}
          {isAdminMode && (
           <div className="absolute top-2 right-14 z-20 flex gap-2">
-            <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleEnhanceClick}
-            >
-                <Icon name="sparkles" className="mr-2 h-4 w-4" />
-                Mejorar
-            </Button>
             <Button
                 variant="secondary"
                 size="sm"
@@ -210,5 +193,3 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
     </section>
   );
 };
-
-    
