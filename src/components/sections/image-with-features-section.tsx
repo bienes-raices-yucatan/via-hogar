@@ -260,7 +260,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
 
   return (
     <section 
-        className="relative group"
+        className="relative group py-12 md:py-20"
         style={{ backgroundColor: data.style?.backgroundColor }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
@@ -287,7 +287,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
                 </Button>
             )}
 
-            <div className={cn("flex items-start gap-x-12 xl:gap-x-16", !isAdminMode && "justify-center")}>
+            <div className={cn("flex items-start gap-x-12 xl:gap-x-16 justify-center")}>
                 
                 <div 
                   className="flex-shrink-0"

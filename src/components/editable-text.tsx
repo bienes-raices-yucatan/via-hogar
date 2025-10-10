@@ -45,7 +45,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
         fontFamily: value.fontFamily,
         textAlign: value.textAlign || 'left',
         fontWeight: value.fontWeight || 'normal',
-        padding: '0.1em 0.2em' // Added padding for indentation
+        padding: '0.2em 0.4em' // Increased padding for more breathing room
     };
 
     if (!isAdminMode) {

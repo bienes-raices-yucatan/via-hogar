@@ -1,9 +1,11 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
   font-family: 'Poppins', Arial, Helvetica, sans-serif;
+  background-color: hsl(var(--background));
 }
 
 @layer base {
