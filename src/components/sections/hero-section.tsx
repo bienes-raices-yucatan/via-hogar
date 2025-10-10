@@ -46,10 +46,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
   const sectionStyle: React.CSSProperties = {
     height: data.style?.height ? `${data.style.height}vh` : '80vh',
-    minHeight: '400px', // Ensure a minimum height
+    minHeight: '400px',
     borderRadius: isFirstSection 
         ? `0 0 ${data.style?.borderRadiusBottomRight || 0}rem ${data.style?.borderRadiusBottomLeft || 0}rem`
         : `${data.style?.borderRadiusTopLeft || 0}rem ${data.style?.borderRadiusTopRight || 0}rem ${data.style?.borderRadiusBottomRight || 0}rem ${data.style?.borderRadiusBottomLeft || 0}rem`,
+    backgroundImage: `url(${imageUrl})`,
+    backgroundColor: 'white', // Fallback color
   };
 
   const isSelected = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'backgroundImageUrl' || selectedElement.elementKey === 'style');
@@ -71,11 +73,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             isAdminMode && "group-hover:brightness-90 transition-all",
             isSelected && "brightness-90"
         )}
-        style={{...sectionStyle, backgroundImage: `url(${imageUrl})`}}
+        style={sectionStyle}
     >
         {isAdminMode && (
           <>
-            {/* Action Buttons: Left Side */}
             <div className="absolute top-2 left-2 z-20 flex gap-2">
               <Button
                 variant="secondary"
@@ -100,7 +101,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </Button>
             </div>
             
-            {/* Parallax Switch: Right Side */}
             <div className="absolute top-2 right-2 z-20 flex items-center space-x-2 bg-black/20 backdrop-blur-sm p-2 rounded-md">
                 <Switch
                     id={`parallax-switch-${data.id}`}
@@ -114,7 +114,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </>
         )}
         
-        <div className="absolute inset-0 bg-black/30 z-0"></div>
+        <div className="absolute inset-0 bg-black/30 z-0" style={sectionStyle}></div>
 
         <div className={cn("relative z-10 h-full w-full", isDraggingMode && 'cursor-move')}>
             { (isAdminMode || data.title.text) && (
