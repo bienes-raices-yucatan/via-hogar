@@ -93,7 +93,7 @@ export const createSectionData = (
             return {
                 ...base,
                 type: 'amenities',
-                style: { backgroundColor: '#F9FAFB' }, // gray-50
+                style: { backgroundColor: '#FFFFFF' },
                 amenities: [],
             } as AmenitiesSectionData;
         case 'pricing':

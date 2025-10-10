@@ -35,7 +35,7 @@ const AmenityDisplay: React.FC<AmenityDisplayProps> = ({ amenity }) => {
     // Fallback to icon if no image
     return (
         <div className="bg-primary/10 p-4 rounded-full">
-            <Icon name={amenity.icon} className="w-8 h-8 text-primary" />
+            <Icon name={amenity.icon || 'generic-feature'} className="w-8 h-8 text-primary" />
         </div>
     );
 };
@@ -100,7 +100,7 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
   return (
     <section 
         className="py-12 md:py-20 relative group"
-        style={{ backgroundColor: data.style?.backgroundColor }}
+        style={{ backgroundColor: data.style?.backgroundColor || '#FFFFFF' }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
       <div className="container mx-auto px-4">
