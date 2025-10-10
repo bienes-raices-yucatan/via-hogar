@@ -47,11 +47,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   const sectionStyle: React.CSSProperties = {
     height: data.style?.height ? `${data.style.height}vh` : '80vh',
     minHeight: '400px',
+    backgroundColor: 'white', // Fallback color
+    backgroundImage: `url(${imageUrl})`,
     borderRadius: isFirstSection 
         ? `0 0 ${data.style?.borderRadiusBottomRight || 0}rem ${data.style?.borderRadiusBottomLeft || 0}rem`
         : `${data.style?.borderRadiusTopLeft || 0}rem ${data.style?.borderRadiusTopRight || 0}rem ${data.style?.borderRadiusBottomRight || 0}rem ${data.style?.borderRadiusBottomLeft || 0}rem`,
-    backgroundImage: `url(${imageUrl})`,
-    backgroundColor: 'white', // Fallback color
   };
 
   const isSelected = selectedElement?.sectionId === data.id && (selectedElement.elementKey === 'backgroundImageUrl' || selectedElement.elementKey === 'style');
@@ -59,7 +59,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   if (isLoading) {
     return (
         <Skeleton 
-            className="relative w-full shadow-lg"
+            className="relative w-full"
             style={{...sectionStyle, backgroundImage: 'none'}} 
         />
     )
@@ -68,7 +68,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   return (
     <section 
         className={cn(
-            "relative text-white group w-full shadow-lg bg-cover bg-center",
+            "relative text-white group w-full bg-cover bg-center smooth-shadow-bottom",
             data.isParallax && "bg-fixed",
             isAdminMode && "group-hover:brightness-90 transition-all",
             isSelected && "brightness-90"
@@ -114,7 +114,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </>
         )}
         
-        <div className="absolute inset-0 bg-black/30 z-0" style={sectionStyle}></div>
+        <div className={cn("absolute inset-0 bg-black/30 z-0")} style={{ borderRadius: 'inherit' }}></div>
 
         <div className={cn("relative z-10 h-full w-full", isDraggingMode && 'cursor-move')}>
             { (isAdminMode || data.title.text) && (
