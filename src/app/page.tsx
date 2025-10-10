@@ -130,6 +130,8 @@ export default function Home() {
             if (savedProps) {
                 const parsedProps: Property[] = JSON.parse(savedProps);
                 setProperties(parsedProps);
+            } else {
+                setProperties([]); // Start with empty array if nothing is saved
             }
 
             const savedSubmissions = localStorage.getItem('submissionsData');
@@ -166,18 +168,23 @@ export default function Home() {
   }, [properties, isLoading]);
 
   useEffect(() => { 
-      if (submissions.length > 0) {
+      if (!isLoading && submissions.length >= 0) {
           localStorage.setItem('submissionsData', JSON.stringify(submissions)); 
       }
-  }, [submissions]);
-  useEffect(() => { localStorage.setItem('siteName', siteName); }, [siteName]);
+  }, [submissions, isLoading]);
+
+  useEffect(() => { 
+    if (!isLoading) localStorage.setItem('siteName', siteName); 
+  }, [siteName, isLoading]);
+
   useEffect(() => {
+    if (isLoading) return;
     if (customLogo) {
         localStorage.setItem('customLogo', customLogo);
     } else {
         localStorage.removeItem('customLogo');
     }
-  }, [customLogo]);
+  }, [customLogo, isLoading]);
   
   useEffect(() => {
     if (selectedPropertyId) {
@@ -729,5 +736,3 @@ export default function Home() {
     </div>
   );
 };
-
-    
