@@ -18,7 +18,6 @@ interface HeroSectionProps {
   onUpdate: (data: HeroSectionData) => void;
   onDelete: (sectionId: string) => void;
   isAdminMode: boolean;
-  isDraggingMode: boolean;
   selectedElement: SelectedElement | null;
   onSelectElement: (element: SelectedElement | null) => void;
   isFirstSection: boolean;
@@ -29,7 +28,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onUpdate,
   onDelete,
   isAdminMode,
-  isDraggingMode,
   selectedElement,
   onSelectElement,
   isFirstSection,
@@ -77,7 +75,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     >
         {isAdminMode && (
           <>
-            <div className="absolute top-2 left-2 z-20 flex gap-2">
+            <div className="absolute top-2 right-2 z-20 flex gap-2">
               <Button
                 variant="secondary"
                 size="icon"
@@ -101,7 +99,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </Button>
             </div>
             
-            <div className="absolute top-2 right-2 z-20 flex items-center space-x-2 bg-black/20 backdrop-blur-sm p-2 rounded-md">
+            <div className="absolute bottom-2 right-2 z-20 flex items-center space-x-2 bg-black/20 backdrop-blur-sm p-2 rounded-md">
                 <Switch
                     id={`parallax-switch-${data.id}`}
                     checked={data.isParallax}
@@ -116,7 +114,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         
         <div className={cn("absolute inset-0 bg-black/30 z-0")} style={{ borderRadius: 'inherit' }}></div>
 
-        <div className={cn("relative z-10 h-full w-full", isDraggingMode && 'cursor-move')}>
+        <div className={cn("relative z-10 h-full w-full")}>
             { (isAdminMode || data.title.text) && (
               <DraggableEditableText
                   id={data.title.id}
@@ -124,7 +122,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   onUpdate={handleTitleUpdate}
                   bounds="parent"
                   isAdminMode={isAdminMode}
-                  isDraggingMode={isDraggingMode}
+                  isDraggingMode={false}
                   onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'title'})}
                   isSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'title'}
               />

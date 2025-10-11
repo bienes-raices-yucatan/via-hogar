@@ -68,6 +68,7 @@ import { ExportModal } from '@/components/export-modal';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Icon } from '@/components/icon';
+import { Button } from '@/components/ui/button';
 
 // Type for the state that tracks the currently selected element for editing
 type SelectedElementForToolbar = {
@@ -104,15 +105,10 @@ export default function Home() {
 
   // --- UI Editing State ---
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
-  const [isDraggingMode, setIsDraggingMode] = useState(false);
   const [siteName, setSiteName] = useState('Vía Hogar');
   const [customLogo, setCustomLogo] = useState<string | null>(null);
   const { toast } = useToast();
   
-  // --- Drag & Drop State ---
-  const dragItem = useRef<number | null>(null);
-  const dragOverItem = useRef<number | null>(null);
-
 
   // Derived state for the currently selected property
   const selectedProperty = useMemo(() => {
@@ -129,9 +125,14 @@ export default function Home() {
             const savedProps = localStorage.getItem('propertiesData');
             if (savedProps) {
                 const parsedProps: Property[] = JSON.parse(savedProps);
-                setProperties(parsedProps);
+                // If there are no properties, load the default one.
+                if (parsedProps.length === 0) {
+                     setProperties([]);
+                } else {
+                    setProperties(parsedProps);
+                }
             } else {
-                setProperties([]); // Start with empty array if nothing is saved
+                 setProperties([]);
             }
 
             const savedSubmissions = localStorage.getItem('submissionsData');
@@ -198,7 +199,6 @@ export default function Home() {
   useEffect(() => {
       if (!isAdminMode) {
           setSelectedElement(null);
-          setIsDraggingMode(false);
       }
   }, [isAdminMode]);
   
@@ -263,31 +263,25 @@ export default function Home() {
     });
   }, [selectedProperty, handleUpdateProperty]);
   
-  const handleDragEnter = (index: number) => {
-      if (dragItem.current === null || dragItem.current === index) return;
-      
-      dragOverItem.current = index;
-
+  const moveSection = (fromIndex: number, toIndex: number) => {
       if (!selectedProperty) return;
-
       const newSections = [...selectedProperty.sections];
-      const draggedItemContent = newSections.splice(dragItem.current, 1)[0];
-      newSections.splice(index, 0, draggedItemContent);
-      
-      // Update the dragging item's index to its new position
-      dragItem.current = index;
-      
-      // Update state to reflect the new order visually
+      const [movedItem] = newSections.splice(fromIndex, 1);
+      newSections.splice(toIndex, 0, movedItem);
       handleUpdateProperty({ ...selectedProperty, sections: newSections });
   };
   
-  const handleReorderSections = useCallback(() => {
-    // The state is already updated visually by handleDragEnter.
-    // This function can be used for finalization logic if needed, like saving to a DB.
-    // For now, we just reset the refs.
-    dragItem.current = null;
-    dragOverItem.current = null;
-  }, []);
+  const handleMoveSectionUp = (index: number) => {
+    if (index > 0) {
+      moveSection(index, index - 1);
+    }
+  };
+
+  const handleMoveSectionDown = (index: number) => {
+    if (!selectedProperty || index >= selectedProperty.sections.length - 1) return;
+    moveSection(index, index + 1);
+  };
+
 
   
     const handleUpdateAddress = useCallback(async (newAddress: string) => {
@@ -512,11 +506,6 @@ export default function Home() {
                     if (place) return { type: 'nearbyPlace', data: place };
                 }
                 break;
-            case 'contact':
-                if (elementKey === 'title' || elementKey === 'subtitle') {
-                    data = section[elementKey];
-                }
-                break;
             case 'button':
                 if (elementKey === 'title' || elementKey === 'subtitle') {
                     data = section[elementKey];
@@ -613,7 +602,7 @@ export default function Home() {
     const sectionContent = () => {
         switch (section.type) {
             case 'hero':
-                return <HeroSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} isDraggingMode={isDraggingMode} isFirstSection={index === 0} />;
+                return <HeroSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} isFirstSection={index === 0} />;
             case 'imageWithFeatures':
                 return <ImageWithFeaturesSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
             case 'gallery':
@@ -635,29 +624,37 @@ export default function Home() {
         }
     };
     
-    if (isAdminMode && isDraggingMode) {
-        return (
-             <div 
-                className={cn("relative py-2 transition-opacity", dragItem.current === index && "opacity-30")}
-                draggable
-                onDragStart={() => dragItem.current = index}
-                onDragEnter={() => handleDragEnter(index)}
-                onDragEnd={handleReorderSections}
-                onDragOver={(e) => e.preventDefault()}
-            >
-                <div className={cn(
-                    "absolute top-1/2 left-4 -translate-y-1/2 z-10 cursor-move text-muted-foreground bg-background rounded-full p-1",
-                )}>
-                    <Icon name="grip-vertical" />
+    return (
+        <div className="relative">
+             {isAdminMode && (
+                <div className="absolute top-1/2 -translate-y-1/2 left-2 z-30 flex flex-col gap-1">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7 bg-background/50 hover:bg-background"
+                        onClick={() => handleMoveSectionUp(index)}
+                        disabled={index === 0}
+                        aria-label="Move section up"
+                    >
+                        <Icon name="chevron-up" className="h-5 w-5" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7 bg-background/50 hover:bg-background"
+                        onClick={() => handleMoveSectionDown(index)}
+                        disabled={index === (selectedProperty?.sections.length ?? 0) - 1}
+                        aria-label="Move section down"
+                    >
+                        <Icon name="chevron-down" className="h-5 w-5" />
+                    </Button>
                 </div>
-                {sectionContent()}
-            </div>
-        )
-    }
+            )}
+            {sectionContent()}
+        </div>
+    );
 
-    return sectionContent();
-
-  }, [isAdminMode, isDraggingMode, selectedElement, handleUpdateSection, handleDeleteSection, handleContactSubmit, selectedProperty?.address, handleUpdateAddress, handleReorderSections, dragItem, dragOverItem]);
+  }, [isAdminMode, selectedElement, handleUpdateSection, handleDeleteSection, handleContactSubmit, selectedProperty?.address, handleUpdateAddress, selectedProperty?.sections.length]);
 
   if (isLoading) {
     return <div className="fixed inset-0 bg-white z-50"></div>;
@@ -719,8 +716,6 @@ export default function Home() {
         {/* --- Admin Tools --- */}
         {isAdminMode && (
             <AdminToolbar 
-                isDraggingMode={isDraggingMode} 
-                setIsDraggingMode={setIsDraggingMode}
                 onExportClick={() => setIsExportModalOpen(true)}
                 onImport={handleImport}
             />

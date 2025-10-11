@@ -5,13 +5,11 @@ import { Button } from './ui/button';
 import { Icon } from './icon';
 
 interface AdminToolbarProps {
-  isDraggingMode: boolean;
-  setIsDraggingMode: (isDragging: boolean) => void;
   onExportClick: () => void;
   onImport: (file: File) => void;
 }
 
-export const AdminToolbar: React.FC<AdminToolbarProps> = ({ isDraggingMode, setIsDraggingMode, onExportClick, onImport }) => {
+export const AdminToolbar: React.FC<AdminToolbarProps> = ({ onExportClick, onImport }) => {
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportClick = () => {
@@ -53,14 +51,6 @@ export const AdminToolbar: React.FC<AdminToolbarProps> = ({ isDraggingMode, setI
        >
         <Icon name="download" className="mr-2 h-4 w-4" />
         Guardar
-       </Button>
-       <Button 
-         variant={isDraggingMode ? "default" : "outline"} 
-         size="icon"
-         onClick={() => setIsDraggingMode(!isDraggingMode)}
-         title="Activar modo de arrastre"
-       >
-        <Icon name="arrows-move" />
        </Button>
     </div>
   );
