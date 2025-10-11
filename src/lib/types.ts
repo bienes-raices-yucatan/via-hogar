@@ -113,6 +113,7 @@ export interface AmenityItem {
 // Data for the amenities section
 export interface AmenitiesSectionData extends PageSection {
   type: 'amenities';
+  title?: StyledText;
   amenities: AmenityItem[];
 }
 

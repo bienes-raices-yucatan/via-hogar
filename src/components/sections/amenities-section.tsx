@@ -43,7 +43,7 @@ const AmenityDisplay: React.FC<AmenityDisplayProps> = ({ amenity }) => {
 
 interface AmenitiesSectionProps {
   data: AmenitiesSectionData;
-  onUpdate: (data: AmenitiesSectionData) => void;
+  onUpdate: (data: Partial<AmenitiesSectionData>) => void;
   onDelete: (sectionId: string) => void;
   isAdminMode: boolean;
   selectedElement: SelectedElement | null;
@@ -101,6 +101,19 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
             onDelete={onDelete}
             isSectionSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style'}
           />
+        )}
+        
+        {data.title && (data.title.text || isAdminMode) && (
+            <EditableText
+                as="h2"
+                id={`${data.id}-title`}
+                value={data.title}
+                onUpdate={handleTitleUpdate}
+                className="text-center mb-12"
+                isAdminMode={isAdminMode}
+                onSelect={() => onSelectElement({ sectionId: data.id, elementKey: 'title' })}
+                isSelected={selectedElement?.sectionId === data.id && selectedElement.elementKey === 'title'}
+            />
         )}
         
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">

@@ -94,6 +94,7 @@ export const createSectionData = (
                 ...base,
                 type: 'amenities',
                 style: { backgroundColor: '#FFFFFF' },
+                title: getDefaultTitle('Amenidades'),
                 amenities: [],
             } as AmenitiesSectionData;
         case 'pricing':
