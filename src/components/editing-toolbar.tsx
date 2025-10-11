@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { AlignCenter, AlignLeft, AlignRight, Bold, Italic } from 'lucide-react';
+import { saveImage } from '@/lib/storage';
 
 const allIcons: IconName[] = ['bed' , 'bath' , 'area' , 'map-pin' , 'school' , 'store' , 'bus' , 'sparkles' , 'x-mark' , 'chevron-down' , 'plus' , 'pencil' , 'trash' , 'nearby' , 'logo' , 'drag-handle' , 'chevron-left' , 'chevron-right' , 'copyright' , 'solar-panel' , 'parking' , 'laundry' , 'pool' , 'generic-feature' , 'street-view' , 'gym' , 'park' , 'whatsapp' , 'arrows-move' , 'check' , 'list', 'camera', 'upload', 'download', 'message-circle', 'grip-vertical'];
 
@@ -50,18 +51,16 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
         onUpdate({ [key]: value });
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, keyToUpdate: string = 'backgroundImageUrl') => {
         const file = e.target.files?.[0];
         if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const dataUrl = event.target?.result as string;
-            // The onUpdate will trigger the saveImage logic in the parent component
-            const keyToUpdate = 'backgroundImageUrl';
-            onUpdate({ [keyToUpdate]: dataUrl });
-        };
-        reader.readAsDataURL(file);
+        
+        try {
+            const savedKey = await saveImage(file);
+            onUpdate({ [keyToUpdate]: savedKey });
+        } catch (error) {
+            console.error(`Failed to save image for key ${keyToUpdate}:`, error);
+        }
     };
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -139,7 +138,7 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
     
     const renderSectionStyleControls = (data: PageSectionStyle) => (
         <>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+            <input type="file" ref={fileInputRef} onChange={(e) => handleFileChange(e, 'backgroundImageUrl')} className="hidden" accept="image/*" />
             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                 <Icon name="camera" className="mr-2" />
                 Cambiar Imagen de Fondo
@@ -190,7 +189,10 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 value={data.icon} 
                 imageUrl={data.imageUrl}
                 onIconChange={(icon) => onUpdate({ icon, imageUrl: null })}
-                onImageUpload={(newImageUrl) => onUpdate({ imageUrl: newImageUrl, icon: null })}
+                onImageUpload={async (file) => {
+                    const savedKey = await saveImage(file);
+                    onUpdate({ imageUrl: savedKey, icon: null });
+                }}
                 onImageRemove={() => onUpdate({ imageUrl: null, icon: 'generic-feature' })}
             />
             <div className="space-y-2">
@@ -208,7 +210,10 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                     value={data.icon} 
                     imageUrl={data.imageUrl}
                     onIconChange={(icon) => onUpdate({ icon, imageUrl: null })}
-                    onImageUpload={(newImageUrl) => onUpdate({ imageUrl: newImageUrl, icon: null })}
+                    onImageUpload={async (file) => {
+                        const savedKey = await saveImage(file);
+                        onUpdate({ imageUrl: savedKey, icon: null });
+                    }}
                     onImageRemove={() => onUpdate({ imageUrl: null, icon: 'generic-feature' })}
                 />
             </>
@@ -217,21 +222,9 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
 
 
     const renderPricingTierControls = (data: PricingTier) => {
-        const handleFileChangeForTier = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const dataUrl = event.target?.result as string;
-                onUpdate({ iconUrl: dataUrl });
-            };
-            reader.readAsDataURL(file);
-        };
-        
         return (
         <>
-            <input type="file" ref={fileInputRef} onChange={handleFileChangeForTier} className="hidden" accept="image/*" />
+            <input type="file" ref={fileInputRef} onChange={(e) => handleFileChange(e, 'iconUrl')} className="hidden" accept="image/*" />
             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                 <Icon name="camera" className="mr-2" />
                 Cambiar Imagen de Encabezado
@@ -252,7 +245,10 @@ export const EditingToolbar: React.FC<EditingToolbarProps> = ({ element, onUpdat
                 value={data.icon} 
                 imageUrl={data.imageUrl}
                 onIconChange={(icon) => onUpdate({ icon, imageUrl: null })}
-                onImageUpload={(newImageUrl) => onUpdate({ imageUrl: newImageUrl, icon: null })}
+                 onImageUpload={async (file) => {
+                    const savedKey = await saveImage(file);
+                    onUpdate({ imageUrl: savedKey, icon: null });
+                }}
                 onImageRemove={() => onUpdate({ imageUrl: null, icon: 'map-pin' })}
             />
             <div className="space-y-2">
@@ -406,7 +402,7 @@ const IconPicker: React.FC<{
     value: IconName | null;
     imageUrl?: string | null;
     onIconChange: (icon: IconName) => void;
-    onImageUpload: (dataUrl: string) => void;
+    onImageUpload: (file: File) => void;
     onImageRemove: () => void;
 }> = ({ label, value, imageUrl, onIconChange, onImageUpload, onImageRemove }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -414,13 +410,7 @@ const IconPicker: React.FC<{
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const dataUrl = event.target?.result as string;
-            onImageUpload(dataUrl);
-        };
-        reader.readAsDataURL(file);
+        onImageUpload(file);
     };
     
     return (
@@ -498,5 +488,3 @@ const SliderWithInput: React.FC<{
     </div>
   );
 };
-
-    

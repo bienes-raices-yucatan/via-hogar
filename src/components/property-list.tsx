@@ -116,21 +116,12 @@ export const PropertyList: React.FC<PropertyListProps> = ({
     const propertyId = propertyIdToUpdateRef.current;
     if (!file || !propertyId) return;
     
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        const dataUrl = e.target?.result as string;
-        try {
-            const savedKey = await saveImage(dataUrl);
-            onUpdatePropertyImage(propertyId, savedKey);
-        } catch(err) {
-            console.error("Failed to save image", err);
-             const propertyToUpdate = properties.find(p => p.id === propertyId);
-             if(propertyToUpdate) {
-                onUpdateProperty({ ...propertyToUpdate, mainImageUrl: dataUrl });
-             }
-        }
-    };
-    reader.readAsDataURL(file);
+    try {
+        const savedKey = await saveImage(file);
+        onUpdatePropertyImage(propertyId, savedKey);
+    } catch(err) {
+        console.error("Failed to save image", err);
+    }
 
     // Reset for next upload
     if(imageInputRef.current) imageInputRef.current.value = "";

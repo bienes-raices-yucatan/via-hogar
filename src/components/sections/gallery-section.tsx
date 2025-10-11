@@ -85,25 +85,13 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    const newImagesPromises = Array.from(files).map(file => {
-      return new Promise<GalleryImage>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          try {
-            const dataUrl = e.target?.result as string;
-            const savedKey = await saveImage(dataUrl);
-            resolve({
-              id: `img-${Date.now()}-${Math.random()}`,
-              url: savedKey,
-              title: file.name,
-            });
-          } catch (error) {
-            reject(error);
-          }
+    const newImagesPromises = Array.from(files).map(async (file) => {
+        const savedKey = await saveImage(file);
+        return {
+            id: `img-${Date.now()}-${Math.random()}`,
+            url: savedKey,
+            title: file.name,
         };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
     });
 
     const newImages = await Promise.all(newImagesPromises);

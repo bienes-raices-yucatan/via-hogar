@@ -66,13 +66,8 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
       const file = event.target.files?.[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-          const dataUrl = e.target?.result as string;
-          const savedKey = await saveImage(dataUrl);
-          onUpdate({ ...data, backgroundImageUrl: savedKey });
-      };
-      reader.readAsDataURL(file);
+      const savedKey = await saveImage(file);
+      onUpdate({ ...data, backgroundImageUrl: savedKey });
   };
   
   const handleSelectTierElement = (property: keyof Omit<PricingTier, 'id' | 'buttonText' | 'iconUrl'>) => {

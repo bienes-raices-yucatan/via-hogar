@@ -8,6 +8,7 @@ import { useImageLoader } from '@/hooks/use-image-loader';
 import { Skeleton } from './ui/skeleton';
 import ContentEditable from 'react-contenteditable';
 import { cn } from '@/lib/utils';
+import { saveImage } from '@/lib/storage';
 
 interface HeaderProps {
     isAdminMode: boolean;
@@ -49,13 +50,13 @@ export const Header: React.FC<HeaderProps> = ({
         const file = event.target.files?.[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const dataUrl = e.target?.result as string;
-            // For logo, we can save it directly to localStorage as it's small and frequently accessed
-            onLogoUpload(dataUrl);
-        };
-        reader.readAsDataURL(file);
+        // Directly save the blob to IndexedDB via saveImage
+        try {
+            const savedKey = await saveImage(file);
+            onLogoUpload(savedKey);
+        } catch (error) {
+            console.error("Failed to save logo:", error);
+        }
     };
 
     const handleSiteNameChange = (e: React.FormEvent<HTMLDivElement>) => {

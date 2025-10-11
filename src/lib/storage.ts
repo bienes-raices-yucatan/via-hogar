@@ -60,7 +60,7 @@ const dataURLToBlob = (dataURL: string): Blob => {
 }
 
 
-export const saveImage = (dataURL: string): Promise<string> => {
+export const saveImage = (image: Blob | string): Promise<string> => {
     return new Promise((resolve, reject) => {
         if (!db) {
             reject('DB not initialized');
@@ -70,7 +70,8 @@ export const saveImage = (dataURL: string): Promise<string> => {
             const transaction = db.transaction(STORE_NAME, 'readwrite');
             const store = transaction.objectStore(STORE_NAME);
             const key = crypto.randomUUID();
-            const blob = dataURLToBlob(dataURL);
+            
+            const blob = typeof image === 'string' ? dataURLToBlob(image) : image;
             
             const request = store.put(blob, key);
 
@@ -242,5 +243,3 @@ export const importData = async (jsonString: string): Promise<{ properties: any[
         }
     });
 };
-
-    

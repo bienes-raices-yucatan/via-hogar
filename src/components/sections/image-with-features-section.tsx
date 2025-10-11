@@ -41,14 +41,9 @@ const MediaComponent = ({ data, onUpdate, isAdminMode }: { data: ImageWithFeatur
         const file = event.target.files?.[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const dataUrl = e.target?.result as string;
-            const savedKey = await saveImage(dataUrl);
-            const fileType = file.type.startsWith('video') ? 'video' : 'image';
-            onUpdate({ media: { type: fileType, url: savedKey } });
-        };
-        reader.readAsDataURL(file);
+        const savedKey = await saveImage(file);
+        const fileType = file.type.startsWith('video') ? 'video' : 'image';
+        onUpdate({ media: { type: fileType, url: savedKey } });
     };
     
     const mediaContent = () => {
@@ -212,17 +207,7 @@ export const ImageWithFeaturesSection: React.FC<ImageWithFeaturesSectionProps> =
   };
   
   const handleFeatureUpdate = async (featureId: string, updates: Partial<FeatureItem>) => {
-    let finalUpdates = { ...updates };
-    if (updates.imageUrl && updates.imageUrl.startsWith('data:')) {
-        try {
-            finalUpdates.imageUrl = await saveImage(updates.imageUrl);
-        } catch (error) {
-            console.error("Failed to save feature image", error);
-            delete finalUpdates.imageUrl;
-        }
-    }
-    
-    const newFeatures = data.features.map(f => f.id === featureId ? { ...f, ...finalUpdates } : f);
+    const newFeatures = data.features.map(f => f.id === featureId ? { ...f, ...updates } : f);
     onUpdate({ ...data, features: newFeatures });
   };
 

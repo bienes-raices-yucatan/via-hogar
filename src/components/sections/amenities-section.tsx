@@ -79,15 +79,6 @@ export const AmenitiesSection: React.FC<AmenitiesSectionProps> = ({
   };
 
   const handleUpdateAmenity = async (id: string, updates: Partial<AmenityItem>) => {
-    // If imageUrl is a data URL, save it to IndexedDB and replace with key
-    if (updates.imageUrl && updates.imageUrl.startsWith('data:')) {
-        try {
-            updates.imageUrl = await saveImage(updates.imageUrl);
-        } catch (error) {
-            console.error("Failed to save amenity image", error);
-            // Optionally handle error, e.g., show a toast
-        }
-    }
     const newAmenities = data.amenities.map(a => a.id === id ? { ...a, ...updates } : a);
     onUpdate({ ...data, amenities: newAmenities });
   };

@@ -528,32 +528,16 @@ export default function Home() {
     const sectionIndex = selectedProperty.sections.findIndex(s => s.id === sectionId);
     if (sectionIndex === -1) return;
     
-    let processedChanges = { ...changes };
-
-    // Centralized image saving logic
-    const imageKeys: (keyof typeof processedChanges)[] = ['imageUrl', 'backgroundImageUrl', 'iconUrl'];
-    for (const key of imageKeys) {
-        if (processedChanges[key] && typeof processedChanges[key] === 'string' && processedChanges[key].startsWith('data:')) {
-            try {
-                processedChanges[key] = await saveImage(processedChanges[key]);
-            } catch (error) {
-                console.error(`Failed to save image for key ${key}:`, error);
-                toast({ title: 'Error al guardar imagen', variant: 'destructive' });
-                delete processedChanges[key];
-            }
-        }
-    }
-    
     const newSections = [...selectedProperty.sections];
     let sectionToUpdate: AnySectionData = JSON.parse(JSON.stringify(newSections[sectionIndex]));
 
     if (elementKey === 'style' || elementKey === 'mediaWidth' || elementKey === 'mediaScale') {
-        sectionToUpdate = { ...sectionToUpdate, ...processedChanges };
-        if (processedChanges.backgroundImageUrl !== undefined) {
-             (sectionToUpdate as any).backgroundImageUrl = processedChanges.backgroundImageUrl;
+        sectionToUpdate = { ...sectionToUpdate, ...changes };
+        if (changes.backgroundImageUrl !== undefined) {
+             (sectionToUpdate as any).backgroundImageUrl = changes.backgroundImageUrl;
         }
     } else if (sectionToUpdate.type === 'button' && (elementKey === 'alignment' || elementKey === 'linkTo')) {
-        sectionToUpdate = { ...sectionToUpdate, ...processedChanges };
+        sectionToUpdate = { ...sectionToUpdate, ...changes };
     } else if (subElementId && property && (sectionToUpdate as any)[elementKey]) {
         // Deeply nested update (e.g., feature title, pricing tier price)
         const array = (sectionToUpdate as any)[elementKey];
@@ -564,14 +548,14 @@ export default function Home() {
             if (itemToUpdate && (property in itemToUpdate)) {
                  (itemToUpdate[property as keyof typeof itemToUpdate] as any) = {
                     ...(itemToUpdate[property as keyof typeof itemToUpdate] as any),
-                    ...processedChanges
+                    ...changes
                  };
             }
         } else if (!Array.isArray(array) && array.id === subElementId) { // For non-array objects like 'tier'
             const itemToUpdate = (sectionToUpdate as any)[elementKey];
              (itemToUpdate[property as keyof typeof itemToUpdate] as any) = {
                     ...(itemToUpdate[property as keyof typeof itemToUpdate] as any),
-                    ...processedChanges
+                    ...changes
                  };
         }
 
@@ -580,11 +564,11 @@ export default function Home() {
         const array = (sectionToUpdate as any)[elementKey] as any[];
         const itemIndex = array.findIndex((item: any) => item.id === subElementId);
         if (itemIndex > -1) {
-            array[itemIndex] = { ...array[itemIndex], ...processedChanges };
+            array[itemIndex] = { ...array[itemIndex], ...changes };
         }
     } else if (elementKey) {
         // Update a direct property of the section or a whole object like 'tier'
-        (sectionToUpdate as any)[elementKey] = { ...(sectionToUpdate as any)[elementKey], ...processedChanges };
+        (sectionToUpdate as any)[elementKey] = { ...(sectionToUpdate as any)[elementKey], ...changes };
     }
 
     newSections[sectionIndex] = sectionToUpdate;
@@ -738,5 +722,3 @@ export default function Home() {
     </div>
   );
 };
-
-    
