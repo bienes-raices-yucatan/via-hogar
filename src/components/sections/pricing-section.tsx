@@ -114,7 +114,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
           </div>
         )}
         
-        <Card className="max-w-md w-full bg-background/90 backdrop-blur-sm shadow-2xl rounded-2xl">
+        <Card className="max-w-md w-full bg-background/90 backdrop-blur-sm rounded-2xl">
           <CardContent className="p-8 text-center flex flex-col items-center">
             <div 
                 className={cn("mb-4", isAdminMode && "cursor-pointer rounded-lg p-2 hover:bg-accent/50", selectedElement?.subElementId === tier.id && selectedElement?.elementKey === 'tier' && "bg-accent/50 ring-2 ring-primary")}

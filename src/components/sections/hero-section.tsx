@@ -68,7 +68,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   return (
     <section 
         className={cn(
-            "relative text-white group w-full bg-cover bg-center smooth-shadow-bottom",
+            "relative text-white group w-full bg-cover bg-center",
             data.isParallax && "bg-fixed",
             isAdminMode && "group-hover:brightness-90 transition-all",
             isSelected && "brightness-90"

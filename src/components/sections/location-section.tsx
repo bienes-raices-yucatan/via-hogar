@@ -148,7 +148,7 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
         )}
         
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-          <div className="lg:col-span-3 rounded-lg overflow-hidden shadow-xl">
+          <div className="lg:col-span-3 rounded-lg overflow-hidden border">
             <iframe
               width="100%"
               height="450"
@@ -159,7 +159,7 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
             ></iframe>
           </div>
 
-          <div className="lg:col-span-2 bg-card p-6 rounded-lg shadow-lg min-h-[450px]">
+          <div className="lg:col-span-2 bg-card p-6 rounded-lg border min-h-[450px]">
             <h3 className="text-xl font-bold mb-2 text-foreground">Ubicación</h3>
             {isEditingAddress && isAdminMode ? (
                 <div className="flex gap-2 items-center mb-6">

@@ -143,7 +143,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({
                 />
             )}
           
-          <Card className="w-full max-w-lg bg-background/90 backdrop-blur-sm shadow-2xl rounded-2xl">
+          <Card className="w-full max-w-lg bg-background/90 backdrop-blur-sm rounded-2xl">
               <CardContent className="p-6 sm:p-8">
                   <form onSubmit={handleSubmit} className="space-y-6">
                       <div className="space-y-2">
