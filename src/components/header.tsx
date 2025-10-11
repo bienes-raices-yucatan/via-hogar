@@ -67,23 +67,21 @@ export const Header: React.FC<HeaderProps> = ({
         onSiteNameChange(currentSiteName);
     };
 
-    const titleColorClass = scrolled ? 'text-foreground' : 'text-white';
-
     return (
         <header className={cn(
             "fixed top-0 left-0 right-0 z-40 p-4 flex justify-between items-center transition-all duration-300",
             scrolled ? "bg-background/80 backdrop-blur-sm shadow-md" : "bg-transparent"
         )}>
             <div 
-                className="flex items-center gap-2 cursor-pointer group relative"
+                className="flex items-center gap-3 cursor-pointer group relative"
                 onClick={onNavigateHome}
             >
                 {isLogoLoading ? (
-                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <Skeleton className="h-10 w-10 rounded-full" />
                 ) : logoUrl ? (
-                    <Image src={logoUrl} alt="Custom Logo" width={32} height={32} className="object-contain h-8 w-8" />
+                    <Image src={logoUrl} alt="Custom Logo" width={40} height={40} className="object-contain h-10 w-10" />
                 ) : (
-                    <Icon name="logo" className={cn("w-8 h-8", titleColorClass)} />
+                    <Icon name="logo" className="w-10 h-10 text-primary" />
                 )}
                 {isAdminMode ? (
                      <ContentEditable
@@ -91,10 +89,10 @@ export const Header: React.FC<HeaderProps> = ({
                         tagName="h1"
                         onChange={handleSiteNameChange}
                         onBlur={handleSiteNameBlur}
-                        className={cn("text-xl font-bold focus:outline-none focus:ring-2 focus:ring-primary rounded-sm px-1", titleColorClass)}
+                        className="text-2xl font-bold text-primary focus:outline-none focus:ring-2 focus:ring-primary rounded-sm px-1"
                      />
                 ) : (
-                    <h1 className={cn("text-xl font-bold", titleColorClass)}>{siteName}</h1>
+                    <h1 className="text-2xl font-bold text-primary">{siteName}</h1>
                 )}
                
                 {isAdminMode && (
