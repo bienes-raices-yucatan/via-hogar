@@ -25,11 +25,15 @@ const GalleryCarouselItem: React.FC<{
     image: GalleryImage; 
     isAdminMode: boolean; 
     onDelete: (id: string) => void; 
-}> = ({ image, isAdminMode, onDelete }) => {
+    onMoveLeft: () => void;
+    onMoveRight: () => void;
+    isFirst: boolean;
+    isLast: boolean;
+}> = ({ image, isAdminMode, onDelete, onMoveLeft, onMoveRight, isFirst, isLast }) => {
     const { imageUrl, isLoading } = useImageLoader(image.url);
 
     return (
-        <CarouselItem className="basis-1/2">
+        <CarouselItem className="basis-1/2 md:basis-1/3 lg:basis-1/4">
             <div className="p-1">
             <div className="relative aspect-video overflow-hidden rounded-lg group/image">
                 {isLoading ? <Skeleton className="w-full h-full" /> : 
@@ -45,11 +49,30 @@ const GalleryCarouselItem: React.FC<{
                 {isAdminMode && (
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={onMoveLeft}
+                        disabled={isFirst}
+                    >
+                        <Icon name="chevron-left" />
+                    </Button>
+                    <Button
                         variant="destructive"
                         size="icon"
+                        className="h-8 w-8"
                         onClick={() => onDelete(image.id)}
                     >
                         <Icon name="trash" />
+                    </Button>
+                     <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={onMoveRight}
+                        disabled={isLast}
+                    >
+                        <Icon name="chevron-right" />
                     </Button>
                 </div>
                 )}
@@ -107,15 +130,34 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
     onUpdate({ ...data, images: newImages });
   }, [data, onUpdate]);
 
+  const moveImage = (fromIndex: number, toIndex: number) => {
+      const newImages = [...data.images];
+      const [movedItem] = newImages.splice(fromIndex, 1);
+      newImages.splice(toIndex, 0, movedItem);
+      onUpdate({ ...data, images: newImages });
+  };
+  
+  const handleMoveImageLeft = (index: number) => {
+    if (index > 0) {
+      moveImage(index, index - 1);
+    }
+  };
+
+  const handleMoveImageRight = (index: number) => {
+    if (index < data.images.length - 1) {
+      moveImage(index, index + 1);
+    }
+  };
+
   const isSelected = selectedElement?.sectionId === data.id && selectedElement.elementKey === 'style';
 
   return (
     <section 
-        className="relative group"
+        className="relative group py-12"
         style={{ backgroundColor: data.style?.backgroundColor }}
         onClick={() => isAdminMode && onSelectElement({ sectionId: data.id, elementKey: 'style' })}
     >
-      <div className="w-full">
+      <div className="container mx-auto px-4">
         {isAdminMode && (
           <SectionToolbar
             sectionId={data.id}
@@ -123,12 +165,16 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
             isSectionSelected={isSelected}
           />
         )}
-        <div className={cn(data.images.length > 0 && "mb-4")}>
+        <div className="mb-8 flex justify-between items-center">
+             <div className="max-w-xl">
+                 <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Galería</h2>
+                 <p className="mt-4 text-lg text-muted-foreground">Explora cada rincón de la propiedad a través de nuestra galería de imágenes.</p>
+            </div>
           {isAdminMode && (
-            <div className="absolute top-2 left-2 z-20">
-              <Button onClick={() => fileInputRef.current?.click()} size="sm">
+            <div className="flex-shrink-0">
+              <Button onClick={() => fileInputRef.current?.click()}>
                 <Icon name="plus" className="mr-2" />
-                Añadir
+                Añadir Imágenes
               </Button>
               <input
                 type="file"
@@ -154,12 +200,16 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
             onMouseLeave={() => autoplay.current.reset()}
           >
             <CarouselContent className="-ml-1">
-              {data.images.map((image) => (
+              {data.images.map((image, index) => (
                 <GalleryCarouselItem
                     key={image.id}
                     image={image}
                     isAdminMode={isAdminMode}
                     onDelete={handleDeleteImage}
+                    onMoveLeft={() => handleMoveImageLeft(index)}
+                    onMoveRight={() => handleMoveImageRight(index)}
+                    isFirst={index === 0}
+                    isLast={index === data.images.length - 1}
                 />
               ))}
             </CarouselContent>
@@ -169,12 +219,12 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
         ) : (
           <div 
             onClick={() => isAdminMode && fileInputRef.current?.click()}
-            className="flex flex-col items-center justify-center text-center border-2 border-dashed rounded-lg p-12 hover:bg-accent hover:border-primary transition-colors cursor-pointer container mx-auto my-12"
+            className="flex flex-col items-center justify-center text-center border-2 border-dashed rounded-lg p-12 hover:bg-accent hover:border-primary transition-colors cursor-pointer"
           >
              <Icon name="camera" className="w-12 h-12 text-muted-foreground mb-4" />
              <h3 className="text-xl font-semibold text-foreground">Galería Vacía</h3>
              <p className="text-muted-foreground mt-2">
-                {isAdminMode ? "Haz clic aquí o en el botón 'Añadir' para empezar." : "Pronto se añadirán imágenes a esta galería."}
+                {isAdminMode ? "Haz clic aquí o en el botón 'Añadir' para empezar a subir imágenes." : "Pronto se añadirán imágenes a esta galería."}
              </p>
           </div>
         )}
