@@ -45,29 +45,29 @@ export async function geocodeAddress(address: string): Promise<GeocodeOutput> {
 const NearbyPlaceSchema = z.object({
   id: z.string().describe('Un ID único para este lugar.'),
   icon: z.enum(['school', 'store', 'park', 'bus', 'gym']).describe('El icono que mejor representa el lugar.'),
-  text: z.string().describe('Una breve descripción del lugar y su distancia (ej. "Parque Central a 5 min").'),
+  title: z.string().describe('Una breve descripción del lugar (ej. "Parque Central").'),
+  travelTime: z.string().describe('El tiempo de viaje hasta el lugar (ej. "a 5 min").'),
 });
 
 const NearbyPlacesSchema = z.array(NearbyPlaceSchema);
-type NearbyPlacesOutput = z.infer<typeof NearbyPlacesSchema>;
 
 const GenerateNearbyPlacesInputSchema = z.object({
   lat: z.number(),
   lng: z.number(),
 });
 
-export async function generateNearbyPlaces(lat: number, lng: number): Promise<NearbyPlace[]> {
-    const nearbyPlacesPrompt = ai.definePrompt({
-        name: 'nearbyPlacesPrompt',
-        input: { schema: GenerateNearbyPlacesInputSchema },
-        output: { schema: NearbyPlacesSchema },
-        prompt: `
-            Dadas las coordenadas (lat: {{lat}}, lng: {{lng}}), genera una lista de 5 puntos de interés relevantes cercanos (como parques, supermercados, escuelas, gimnasios, paradas de transporte).
-            Para cada lugar, proporciona un ID único, un icono adecuado de la lista [school, store, park, bus, gym], y un texto descriptivo breve que incluya la distancia o tiempo aproximado.
-            Tu respuesta DEBE ser únicamente un array de objetos JSON.
-        `,
-    });
+const nearbyPlacesPrompt = ai.definePrompt({
+    name: 'nearbyPlacesPrompt',
+    input: { schema: GenerateNearbyPlacesInputSchema },
+    output: { schema: NearbyPlacesSchema },
+    prompt: `
+        Dadas las coordenadas (lat: {{lat}}, lng: {{lng}}), genera una lista de 5 puntos de interés relevantes cercanos (como parques, supermercados, escuelas, gimnasios, paradas de transporte).
+        Para cada lugar, proporciona un ID único, un icono adecuado de la lista [school, store, park, bus, gym], un título descriptivo breve (ej. "Parque Central") y el tiempo de viaje (ej. "a 5 min").
+        Tu respuesta DEBE ser únicamente un array de objetos JSON.
+    `,
+});
 
+export async function generateNearbyPlaces(lat: number, lng: number): Promise<NearbyPlace[]> {
     const { output } = await nearbyPlacesPrompt({ lat, lng });
     return output || [];
 }
