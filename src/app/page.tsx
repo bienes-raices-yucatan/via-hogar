@@ -263,18 +263,32 @@ export default function Home() {
     });
   }, [selectedProperty, handleUpdateProperty]);
   
+  const handleDragEnter = (index: number) => {
+      if (dragItem.current === null || dragItem.current === index) return;
+      
+      dragOverItem.current = index;
+
+      if (!selectedProperty) return;
+
+      const newSections = [...selectedProperty.sections];
+      const draggedItemContent = newSections.splice(dragItem.current, 1)[0];
+      newSections.splice(index, 0, draggedItemContent);
+      
+      // Update the dragging item's index to its new position
+      dragItem.current = index;
+      
+      // Update state to reflect the new order visually
+      handleUpdateProperty({ ...selectedProperty, sections: newSections });
+  };
+  
   const handleReorderSections = useCallback(() => {
-    if (!selectedProperty || dragItem.current === null || dragOverItem.current === null) return;
-    
-    const newSections = [...selectedProperty.sections];
-    const draggedItemContent = newSections.splice(dragItem.current, 1)[0];
-    newSections.splice(dragOverItem.current, 0, draggedItemContent);
-    
+    // The state is already updated visually by handleDragEnter.
+    // This function can be used for finalization logic if needed, like saving to a DB.
+    // For now, we just reset the refs.
     dragItem.current = null;
     dragOverItem.current = null;
-    
-    handleUpdateProperty({ ...selectedProperty, sections: newSections });
-  }, [selectedProperty, handleUpdateProperty]);
+  }, []);
+
   
     const handleUpdateAddress = useCallback(async (newAddress: string) => {
         if (!selectedProperty) return;
@@ -627,7 +641,7 @@ export default function Home() {
                 className={cn("relative py-2 transition-opacity", dragItem.current === index && "opacity-30")}
                 draggable
                 onDragStart={() => dragItem.current = index}
-                onDragEnter={() => dragOverItem.current = index}
+                onDragEnter={() => handleDragEnter(index)}
                 onDragEnd={handleReorderSections}
                 onDragOver={(e) => e.preventDefault()}
             >
@@ -636,7 +650,6 @@ export default function Home() {
                 )}>
                     <Icon name="grip-vertical" />
                 </div>
-                 {dragOverItem.current === index && <div className="absolute top-0 left-0 w-full h-1 bg-primary z-20" />}
                 {sectionContent()}
             </div>
         )
