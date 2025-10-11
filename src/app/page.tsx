@@ -504,7 +504,9 @@ export default function Home() {
                 }
                 break;
             case 'button':
-                if (elementKey === 'text' || elementKey === 'alignment' || elementKey === 'linkTo') {
+                if (elementKey === 'title' || elementKey === 'subtitle') {
+                    data = section[elementKey];
+                } else if (elementKey === 'text' || elementKey === 'alignment' || elementKey === 'linkTo') {
                     return { type: 'button', data: section };
                 }
                 break;
@@ -550,7 +552,7 @@ export default function Home() {
         if (processedChanges.backgroundImageUrl !== undefined) {
              (sectionToUpdate as any).backgroundImageUrl = processedChanges.backgroundImageUrl;
         }
-    } else if (sectionToUpdate.type === 'button') {
+    } else if (sectionToUpdate.type === 'button' && (elementKey === 'alignment' || elementKey === 'linkTo')) {
         sectionToUpdate = { ...sectionToUpdate, ...processedChanges };
     } else if (subElementId && property && (sectionToUpdate as any)[elementKey]) {
         // Deeply nested update (e.g., feature title, pricing tier price)
@@ -646,7 +648,7 @@ export default function Home() {
                 onDragOver={(e) => e.preventDefault()}
             >
                 <div className={cn(
-                    "absolute top-1/2 left-4 -translate-y-1/2 z-10 cursor-move text-muted-foreground bg-background rounded-full p-1 shadow",
+                    "absolute top-1/2 left-4 -translate-y-1/2 z-10 cursor-move text-muted-foreground bg-background rounded-full p-1",
                 )}>
                     <Icon name="grip-vertical" />
                 </div>
@@ -661,7 +663,7 @@ export default function Home() {
   }, [isAdminMode, isDraggingMode, selectedElement, handleUpdateSection, handleDeleteSection, handleContactSubmit, selectedProperty?.address, handleUpdateAddress, handleReorderSections, dragItem, dragOverItem]);
 
   if (isLoading) {
-    return null; // or a loading spinner
+    return <div className="fixed inset-0 bg-white z-50"></div>;
   }
 
   return (
@@ -736,3 +738,5 @@ export default function Home() {
     </div>
   );
 };
+
+    

@@ -146,6 +146,8 @@ export interface PricingSectionData extends PageSection {
 // Data for the button call-to-action section
 export interface ButtonSectionData extends PageSection {
     type: 'button';
+    title?: StyledText;
+    subtitle?: StyledText;
     text: string;
     alignment: 'left' | 'center' | 'right';
     linkTo: 'contact' | 'location';
@@ -182,3 +184,5 @@ export interface ContactSubmission {
     userType: 'buyer' | 'broker';
     submittedAt: string;
 }
+
+    

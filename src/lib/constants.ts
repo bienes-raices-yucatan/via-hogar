@@ -137,6 +137,8 @@ export const createSectionData = (
                 ...base,
                 type: 'button',
                 style: { backgroundColor: '#FFFFFF' },
+                title: { text: '¿Listo para el siguiente paso?', fontSize: 2.25, color: '#1e293b', fontFamily: 'Montserrat', textAlign: 'center', fontWeight: 'bold' },
+                subtitle: { text: 'Haz clic en el botón de abajo para ponerte en contacto.', fontSize: 1.125, color: '#475569', fontFamily: 'Poppins', textAlign: 'center', fontWeight: 'normal' },
                 text: 'Contáctanos',
                 alignment: 'center',
                 linkTo: 'contact'
@@ -154,6 +156,7 @@ const DEFAULT_SECTIONS_FOR_NEW_PROPERTY: AnySectionData['type'][] = [
     'gallery',
     'amenities',
     'pricing',
+    'button',
     'contact',
     'location'
 ];
@@ -178,3 +181,5 @@ export const createNewProperty = (address: string, coordinates: { lat: number; l
         sections: uniqueSections,
     };
 };
+
+    
