@@ -165,11 +165,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
             isSectionSelected={isSelected}
           />
         )}
-        <div className="mb-8 flex justify-between items-center">
-             <div className="max-w-xl">
-                 <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Galería</h2>
-                 <p className="mt-4 text-lg text-muted-foreground">Explora cada rincón de la propiedad a través de nuestra galería de imágenes.</p>
-            </div>
+        <div className="mb-8 flex justify-end items-center">
           {isAdminMode && (
             <div className="flex-shrink-0">
               <Button onClick={() => fileInputRef.current?.click()}>
