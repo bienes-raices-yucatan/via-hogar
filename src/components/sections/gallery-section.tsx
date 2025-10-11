@@ -33,7 +33,7 @@ const GalleryCarouselItem: React.FC<{
     const { imageUrl, isLoading } = useImageLoader(image.url);
 
     return (
-        <CarouselItem className="basis-1/2 md:basis-1/3 lg:basis-1/4">
+        <CarouselItem className="basis-full md:basis-1/2 lg:basis-1/3">
             <div className="p-1">
             <div className="relative aspect-video overflow-hidden rounded-lg group/image">
                 {isLoading ? <Skeleton className="w-full h-full" /> : 
