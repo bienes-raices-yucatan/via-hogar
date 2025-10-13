@@ -548,7 +548,7 @@ export default function HomePage() {
             )}
           </div>
         ) : (
-          <div className="pt-24">
+          <div className="pt-20">
             <PropertyList
               properties={properties}
               onSelectProperty={handleSelectProperty}
