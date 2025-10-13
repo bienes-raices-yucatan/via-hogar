@@ -14,7 +14,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminLoginClick }) => {
         <span>&copy; {new Date().getFullYear()} Vía Hogar. Todos los derechos reservados.</span>
         <button
           onClick={onAdminLoginClick} 
-          className="cursor-pointer text-muted-foreground hover:text-foreground focus:outline-none"
+          className="cursor-pointer text-muted-foreground hover:text-foreground focus:outline-none w-4 h-4"
           title="Admin Login"
           aria-label="Admin Login"
         >
