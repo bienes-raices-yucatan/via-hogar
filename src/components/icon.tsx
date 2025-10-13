@@ -41,7 +41,7 @@ export const Icon: React.FC<IconProps> = ({ name, className = 'w-6 h-6', strokeW
     'drag-handle': <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h.01M15 12h.01M9 16.5h.01M15 16.5h.01M9 7.5h.01M15 7.5h.01" />,
     'chevron-left': <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />,
     'chevron-right': <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />,
-    copyright: <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18zm-1.05-11.25a3.75 3.75 0 115.1 0" />,
+    copyright: <><circle cx="12" cy="12" r="9" /><path d="M14.5 9.5c-1 0-1.8 1-1.8 2.2s.8 2.3 1.8 2.3c1 0 1.8-1 1.8-2.3 0-1.2-.8-2.2-1.8-2.2zm0 3.5c-.4 0-.8-.5-.8-1.2s.3-1.2.8-1.2c.4 0 .8.5.8 1.2s-.4 1.2-.8 1.2z"/></>,
     'solar-panel': <><path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h18M3 9h18M3 13.5h18M3 18h18" /><path strokeLinecap="round" strokeLinejoin="round" d="M6 2.25v19.5M10.5 2.25v19.5M15 2.25v19.5" /></>,
     parking: <path strokeLinecap="round" strokeLinejoin="round" d="M18.75 18h-1.5a1.5 1.5 0 01-1.5-1.5v-12a1.5 1.5 0 011.5-1.5h1.5m-1.5 6h-3M6.375 6h1.5a1.5 1.5 0 011.5 1.5v3.375a3.375 3.375 0 003.375 3.375h1.5" />,
     laundry: <><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15.91 15.91a5.25 5.25 0 01-7.42 0 5.25 5.25 0 010-7.42" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 12h.01" /></>,
@@ -67,13 +67,15 @@ export const Icon: React.FC<IconProps> = ({ name, className = 'w-6 h-6', strokeW
     return null; // or a default fallback icon
   }
 
-  if (name === 'logo' || name === 'whatsapp' || name === 'message-circle') {
+  if (name === 'logo' || name === 'whatsapp' || name === 'message-circle' || name === 'copyright') {
       return (
           <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               className={className}
               aria-hidden="true"
+              fill="currentColor"
+              stroke="none"
               {...props}
           >
               {iconSvg}
