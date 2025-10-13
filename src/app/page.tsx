@@ -548,18 +548,20 @@ export default function HomePage() {
             )}
           </div>
         ) : (
-          <PropertyList
-            properties={properties}
-            onSelectProperty={handleSelectProperty}
-            onAddProperty={() => setModalState('newProperty')}
-            onUpdateProperty={handleUpdateProperty}
-            onDeleteProperty={(id) => {
-                setItemToDelete({ propertyId: id });
-                setModalState('confirmDeleteProperty');
-            }}
-            onUpdatePropertyImage={handleUpdatePropertyImage}
-            isAdminMode={isAdminMode}
-          />
+          <div className="pt-24">
+            <PropertyList
+              properties={properties}
+              onSelectProperty={handleSelectProperty}
+              onAddProperty={() => setModalState('newProperty')}
+              onUpdateProperty={handleUpdateProperty}
+              onDeleteProperty={(id) => {
+                  setItemToDelete({ propertyId: id });
+                  setModalState('confirmDeleteProperty');
+              }}
+              onUpdatePropertyImage={handleUpdatePropertyImage}
+              isAdminMode={isAdminMode}
+            />
+          </div>
         )}
       </main>
       <Footer onAdminLoginClick={() => setModalState('login')} />
