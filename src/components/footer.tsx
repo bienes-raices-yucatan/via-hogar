@@ -19,7 +19,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminLoginClick }) => {
               onClick={onAdminLoginClick}
               aria-label="Admin Login"
             >
-              <Icon name="copyright" className="w-4 h-4"/>
+              <Icon name="copyright" className="w-2 h-2"/>
             </Button>
             <span>{new Date().getFullYear()} Vía Hogar. Todos los derechos reservados.</span>
         </div>
