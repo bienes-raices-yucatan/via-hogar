@@ -1,26 +1,17 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow public read access to properties and site config
-    match /properties/{propertyId} {
+    match /properties/{propertyId=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
-    
-    match /properties/{propertyId}/{allDescendants=**} {
-       allow read: if true;
-       allow write: if request.auth != null;
-    }
-
-    match /config/site {
+    match /config/{configId} {
       allow read: if true;
       allow write: if request.auth != null;
     }
-
-    // Allow authenticated users to submit contact forms
     match /contactSubmissions/{submissionId} {
-      allow create: if request.auth != null;
-      allow read, update, delete: if false; // Protect submitted data
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
     }
   }
 }

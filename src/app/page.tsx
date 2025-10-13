@@ -1,734 +1,672 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-
-// Import all types
-import { 
-    Property, 
-    AnySectionData, 
-    HeroSectionData, 
-    ImageWithFeaturesSectionData,
-    GallerySectionData,
-    AmenitiesSectionData,
-    ContactSectionData,
-    LocationSectionData,
-    PricingSectionData,
-    ButtonSectionData,
-    NearbyPlace,
-    ContactSubmission,
-    SelectedElement,
-    StyledText,
-    DraggableTextData,
-    IconName,
-    AmenityItem,
-    FeatureItem,
-    TextAlign,
-    PricingTier,
-    FontWeight,
-    PageSectionStyle,
-    GalleryImage
-} from '@/lib/types';
-
-// Import constants
-import { 
-    INITIAL_PROPERTIES_DATA, 
-    INITIAL_SUBMISSIONS_DATA, 
-    createNewProperty, 
-    createSectionData 
-} from '@/lib/constants';
-
-// Import services
-import { initDB, saveImage, exportData, importData, getImageBlob } from '@/lib/storage';
-import { geocodeAddress, generateNearbyPlaces } from '@/ai/gemini-service';
-
-
-// Import all components
+import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { PropertyList } from '@/components/property-list';
-import { NewPropertyModal } from '@/components/new-property-modal';
 import { AdminLoginModal } from '@/components/admin-login-modal';
-import { HeroSection } from '@/components/sections/hero-section';
-import { ImageWithFeaturesSection } from '@/components/sections/image-with-features-section';
-import { GallerySection } from '@/components/sections/gallery-section';
-import { AmenitiesSection } from '@/components/sections/amenities-section';
-import { ContactSection } from '@/components/sections/contact-section';
-import { LocationSection } from '@/components/sections/location-section';
-import { PricingSection } from '@/components/sections/pricing-section';
-import { ButtonSection } from '@/components/sections/button-section';
-import { AddSectionControl } from '@/components/add-section-control';
+import { NewPropertyModal } from '@/components/new-property-modal';
 import { AddSectionModal } from '@/components/add-section-modal';
-import { AdminToolbar } from '@/components/admin-toolbar';
+import { AddSectionControl } from '@/components/add-section-control';
 import { EditingToolbar } from '@/components/editing-toolbar';
-import { SubmissionsModal } from '@/components/submissions-modal';
 import { ConfirmationModal } from '@/components/confirmation-modal';
-import { DraggableEditableText } from '@/components/draggable-editable-text';
+import { ContactModal } from '@/components/contact-modal';
+import { SubmissionsModal } from '@/components/submissions-modal';
+import { AdminToolbar } from '@/components/admin-toolbar';
 import { ExportModal } from '@/components/export-modal';
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
-import { Icon } from '@/components/icon';
 import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/icon';
+import { useToast } from "@/hooks/use-toast";
+import { generateNearbyPlaces } from '@/ai/gemini-service';
 
-// Type for the state that tracks the currently selected element for editing
-type SelectedElementForToolbar = {
-    type: 'styledText' | 'draggableText' | 'sectionStyle' | 'amenity' | 'feature' | 'pricingTier' | 'nearbyPlace' | 'button' | 'imageWithFeatures';
-    data: Partial<StyledText & DraggableTextData & PageSectionStyle & AmenityItem & FeatureItem & PricingTier & NearbyPlace & ButtonSectionData & ImageWithFeaturesSectionData>;
-};
+import { 
+  Property, 
+  AnySectionData, 
+  SelectedElement, 
+  ContactSubmission,
+  AmenityItem, 
+  FeatureItem, 
+  PricingTier, 
+  NearbyPlace, 
+  DraggableTextData,
+  ImageWithFeaturesSectionData,
+  ButtonSectionData
+} from '@/lib/types';
+import { createSectionData, createNewProperty } from '@/lib/constants';
+import { initDB, saveImage, deleteImage, exportData, importData } from '@/lib/storage';
 
-const blobToDataURL = (blob: Blob): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
-};
+// Import all section components
+import { HeroSection } from '@/components/sections/hero-section';
+import { GallerySection } from '@/components/sections/gallery-section';
+import { LocationSection } from '@/components/sections/location-section';
+import { AmenitiesSection } from '@/components/sections/amenities-section';
+import { ImageWithFeaturesSection } from '@/components/sections/image-with-features-section';
+import { PricingSection } from '@/components/sections/pricing-section';
+import { ContactSection } from '@/components/sections/contact-section';
+import { ButtonSection } from '@/components/sections/button-section';
 
-export default function Home() {
-  // --- State Management ---
+type ModalState = 'none' | 'login' | 'newProperty' | 'addSection' | 'confirmDeleteProperty' | 'confirmDeleteSection' | 'contact' | 'submissions' | 'export';
+
+export default function HomePage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-
-  // --- Modal State ---
-  const [isNewPropertyModalOpen, setIsNewPropertyModalOpen] = useState(false);
-  const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = useState(false);
-  const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState<{ open: boolean; index: number }>({ open: false, index: 0 });
-  const [isSubmissionsModalOpen, setIsSubmissionsModalOpen] = useState(false);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [confirmationModalState, setConfirmationModalState] = useState<{isOpen: boolean; onConfirm: () => void; title: string; message: string}>({isOpen: false, onConfirm: () => {}, title: '', message: ''});
-
-
-  // --- UI Editing State ---
+  const [isClient, setIsClient] = useState(false);
+  const [dbInitialized, setDbInitialized] = useState(false);
+  const [modalState, setModalState] = useState<ModalState>('none');
+  const [addSectionIndex, setAddSectionIndex] = useState(0);
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
-  const [siteName, setSiteName] = useState('Vía Hogar');
+  const [draggingElement, setDraggingElement] = useState<string | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<{ propertyId?: string; sectionId?: string }>({});
+  const [isDraggingMode, setIsDraggingMode] = useState(false);
+  const [siteName, setSiteName] = useState("Vía Hogar");
   const [customLogo, setCustomLogo] = useState<string | null>(null);
+  
   const { toast } = useToast();
-  
 
-  // Derived state for the currently selected property
-  const selectedProperty = useMemo(() => {
-    return properties.find(p => p.id === selectedPropertyId) || null;
-  }, [properties, selectedPropertyId]);
-
-  // --- Effects ---
   useEffect(() => {
-    const loadFromStorage = async () => {
-        setIsLoading(true);
-        await initDB();
-        
-        try {
-            const savedProps = localStorage.getItem('propertiesData');
-            if (savedProps) {
-                const parsedProps: Property[] = JSON.parse(savedProps);
-                // If there are no properties, load the default one.
-                if (parsedProps.length === 0) {
-                     setProperties([]);
-                } else {
-                    setProperties(parsedProps);
-                }
-            } else {
-                 setProperties([]);
-            }
-
-            const savedSubmissions = localStorage.getItem('submissionsData');
-            setSubmissions(savedSubmissions ? JSON.parse(savedSubmissions) : []);
-
-            const savedSiteName = localStorage.getItem('siteName');
-            if (savedSiteName) setSiteName(savedSiteName);
-
-            const savedLogo = localStorage.getItem('customLogo');
-            if (savedLogo) setCustomLogo(savedLogo);
-
-            const savedSelectedPropId = sessionStorage.getItem('selectedPropertyId');
-            if(savedSelectedPropId) setSelectedPropertyId(savedSelectedPropId);
-        } catch (error) {
-            console.error("Failed to parse data from localStorage, starting fresh.", error);
-            // Clear potentially corrupted data
-            localStorage.removeItem('propertiesData');
-            localStorage.removeItem('submissionsData');
-            setProperties([]);
-            setSubmissions([]);
-        } finally {
-            setIsLoading(false);
-        }
-    }
-    
-    loadFromStorage();
+    setIsClient(true);
+    initDB().then(success => {
+      setDbInitialized(success);
+      if (success) {
+        // Load data from localStorage after DB is up
+        const savedProps = localStorage.getItem('properties');
+        const savedSubmissions = localStorage.getItem('submissions');
+        const savedSiteName = localStorage.getItem('siteName');
+        const savedLogo = localStorage.getItem('customLogo');
+        if (savedProps) setProperties(JSON.parse(savedProps));
+        if (savedSubmissions) setSubmissions(JSON.parse(savedSubmissions));
+        if (savedSiteName) setSiteName(JSON.parse(savedSiteName));
+        if (savedLogo) setCustomLogo(JSON.parse(savedLogo));
+      }
+    });
   }, []);
 
-  // Persist data to localStorage
   useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem('propertiesData', JSON.stringify(properties));
+    if (dbInitialized) {
+      localStorage.setItem('properties', JSON.stringify(properties));
     }
-  }, [properties, isLoading]);
-
-  useEffect(() => { 
-      if (!isLoading && submissions.length >= 0) {
-          localStorage.setItem('submissionsData', JSON.stringify(submissions)); 
-      }
-  }, [submissions, isLoading]);
-
-  useEffect(() => { 
-    if (!isLoading) localStorage.setItem('siteName', siteName); 
-  }, [siteName, isLoading]);
+  }, [properties, dbInitialized]);
 
   useEffect(() => {
-    if (isLoading) return;
-    if (customLogo) {
-        localStorage.setItem('customLogo', customLogo);
-    } else {
-        localStorage.removeItem('customLogo');
+    if (dbInitialized) {
+      localStorage.setItem('submissions', JSON.stringify(submissions));
     }
-  }, [customLogo, isLoading]);
-  
+  }, [submissions, dbInitialized]);
+
   useEffect(() => {
-    if (selectedPropertyId) {
-        sessionStorage.setItem('selectedPropertyId', selectedPropertyId);
-    } else {
-        sessionStorage.removeItem('selectedPropertyId');
+    if (dbInitialized) {
+      localStorage.setItem('siteName', JSON.stringify(siteName));
     }
-  }, [selectedPropertyId]);
+  }, [siteName, dbInitialized]);
   
-  // Deselect element when admin mode is turned off
   useEffect(() => {
-      if (!isAdminMode) {
-          setSelectedElement(null);
-      }
-  }, [isAdminMode]);
-  
-  // Global click listener to deselect elements
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-        if (isAdminMode && selectedElement) {
-            const target = event.target as HTMLElement;
-            // Check for a custom attribute on the toolbar, or if it's inside a popper
-            if (!target.closest('[data-editing-toolbar="true"], [data-radix-popper-content-wrapper]')) {
-                 setSelectedElement(null);
-            }
+    if (dbInitialized) {
+        if (customLogo) {
+            localStorage.setItem('customLogo', JSON.stringify(customLogo));
+        } else {
+            localStorage.removeItem('customLogo');
         }
-    };
-    window.addEventListener('click', handleClickOutside);
-    return () => window.removeEventListener('click', handleClickOutside);
-  }, [isAdminMode, selectedElement]);
+    }
+  }, [customLogo, dbInitialized]);
+
+  const handleSelectProperty = (id: string) => {
+    setSelectedPropertyId(id);
+    setSelectedElement(null);
+  };
+
+  const handleNavigateHome = () => {
+    setSelectedPropertyId(null);
+    setSelectedElement(null);
+  };
+
+  const handleUpdateProperty = (updatedProperty: Property) => {
+    setProperties(prev => prev.map(p => p.id === updatedProperty.id ? updatedProperty : p));
+  };
   
-
-  // --- Data Update Handlers ---
-  const handleUpdateProperty = useCallback((updatedProperty: Property) => {
-    setProperties(prev => prev.map(p => (p.id === updatedProperty.id ? updatedProperty : p)));
-  }, []);
-
-  const onUpdateProperty = handleUpdateProperty;
-
   const handleUpdateSection = useCallback((sectionId: string, updatedData: Partial<AnySectionData>) => {
-    if (!selectedProperty) return;
-    const newSections = selectedProperty.sections.map(s => s.id === sectionId ? { ...s, ...updatedData } : s);
-    handleUpdateProperty({ ...selectedProperty, sections: newSections });
-  }, [selectedProperty, handleUpdateProperty]);
-  
-  const handleAddSection = useCallback(async (type: AnySectionData['type'], index: number) => {
-    if (!selectedProperty) return;
-    const uniqueSuffix = `${Date.now()}`;
-    
-    const locationSection = selectedProperty.sections.find(s => s.type === 'location') as LocationSectionData | undefined;
-    const coordinates = locationSection?.coordinates || { lat: 19.4326, lng: -99.1332 };
-    
-    const newSection = createSectionData(type, uniqueSuffix, {
-      coordinates: coordinates,
-    });
+    if (!selectedPropertyId) return;
 
-    const newSections = [...selectedProperty.sections];
-    newSections.splice(index, 0, newSection);
-    handleUpdateProperty({ ...selectedProperty, sections: newSections });
-    setIsAddSectionModalOpen({ open: false, index: 0 });
-  }, [selectedProperty, handleUpdateProperty]);
-
-  const handleDeleteSection = useCallback((sectionId: string) => {
-    if (!selectedProperty) return;
-    
-    setConfirmationModalState({
-        isOpen: true,
-        title: 'Eliminar Sección',
-        message: '¿Estás seguro de que quieres eliminar esta sección? Esta acción no se puede deshacer.',
-        onConfirm: () => {
-            const newSections = selectedProperty.sections.filter(s => s.id !== sectionId);
-            handleUpdateProperty({ ...selectedProperty, sections: newSections });
-            setConfirmationModalState({isOpen: false, onConfirm: () => {}, title: '', message: ''});
+    setProperties(prev => prev.map(p => {
+        if (p.id === selectedPropertyId) {
+            const newSections = p.sections.map(s =>
+                s.id === sectionId ? { ...s, ...updatedData } : s
+            );
+            return { ...p, sections: newSections };
         }
-    });
-  }, [selectedProperty, handleUpdateProperty]);
-  
-  const moveSection = (fromIndex: number, toIndex: number) => {
-      if (!selectedProperty) return;
-      const newSections = [...selectedProperty.sections];
-      const [movedItem] = newSections.splice(fromIndex, 1);
-      newSections.splice(toIndex, 0, movedItem);
-      handleUpdateProperty({ ...selectedProperty, sections: newSections });
-  };
-  
-  const handleMoveSectionUp = (index: number) => {
-    if (index > 0) {
-      moveSection(index, index - 1);
-    }
-  };
-
-  const handleMoveSectionDown = (index: number) => {
-    if (!selectedProperty || index >= selectedProperty.sections.length - 1) return;
-    moveSection(index, index + 1);
-  };
+        return p;
+    }));
+  }, [selectedPropertyId]);
 
 
-  
-    const handleUpdateAddress = useCallback(async (newAddress: string) => {
-        if (!selectedProperty) return;
-        
-        toast({ title: "Actualizando dirección...", description: "Cambiando la dirección de la propiedad." });
-        
-        const updatedProperty = { ...selectedProperty, address: newAddress };
-        handleUpdateProperty(updatedProperty);
-        
-        toast({ title: "¡Dirección actualizada!", description: "La dirección ha sido cambiada.", variant: "default" });
+  const handleDeleteSection = (sectionId: string) => {
+    if (!selectedPropertyId) return;
 
-    }, [selectedProperty, handleUpdateProperty, toast]);
-
-
-  // --- Property Management Handlers ---
-  const handleAddProperty = () => {
-      setIsNewPropertyModalOpen(true);
-  };
-  
-    const handleCreateProperty = useCallback(async (address: string, lat: number, lng: number) => {
-      toast({ title: "Creando propiedad...", description: "Generando detalles y lugares cercanos." });
-      
-      try {
-        const nearbyPlaces = await generateNearbyPlaces(lat, lng);
-        const newProp = createNewProperty(address, { lat, lng }, nearbyPlaces);
-        
-        setProperties(prev => [...prev, newProp]);
-        setSelectedPropertyId(newProp.id);
-        setIsNewPropertyModalOpen(false);
-
-      } catch (error) {
-        console.error("Failed to create property with AI features:", error);
-        toast({
-            title: "Error de IA",
-            description: "No se pudieron generar los lugares cercanos. Se creará la propiedad con datos de ejemplo.",
-            variant: "destructive"
-        });
-        // Fallback to creating property without AI-generated places
-        const newProp = createNewProperty(address, { lat, lng }, []);
-        setProperties(prev => [...prev, newProp]);
-        setSelectedPropertyId(newProp.id);
-        setIsNewPropertyModalOpen(false);
-      }
-  }, [toast]);
-
-  
-  const handleDeleteProperty = (id: string) => {
-     setConfirmationModalState({
-        isOpen: true,
-        title: 'Eliminar Propiedad',
-        message: '¿Estás seguro de que quieres eliminar esta propiedad? Todos sus datos se perderán permanentemente.',
-        onConfirm: () => {
-             setProperties(prev => {
-                const newProps = prev.filter(p => p.id !== id);
-                return newProps;
-             });
-             if (selectedPropertyId === id) {
-                setSelectedPropertyId(null);
-             }
-             closeConfirmationModal();
+    setProperties(prev => prev.map(p => {
+        if (p.id === selectedPropertyId) {
+            const sectionToDelete = p.sections.find(s => s.id === sectionId);
+            if (sectionToDelete) {
+                // Recursively delete images from section
+                Object.values(sectionToDelete).forEach(value => {
+                    if (typeof value === 'string' && value.startsWith('blob:')) {
+                       deleteImage(value);
+                    } else if (Array.isArray(value)) {
+                        value.forEach(item => {
+                            if(item.url) deleteImage(item.url);
+                            if(item.imageUrl) deleteImage(item.imageUrl);
+                            if(item.backgroundImageUrl) deleteImage(item.backgroundImageUrl);
+                        });
+                    }
+                });
+            }
+            return { ...p, sections: p.sections.filter(s => s.id !== sectionId) };
         }
-    });
+        return p;
+    }));
+    setItemToDelete({});
+    setModalState('none');
+    setSelectedElement(null);
   };
 
+  const handleAddSection = (sectionType: AnySectionData['type']) => {
+    if (!selectedPropertyId) return;
 
-  // --- Admin & Login Handlers ---
-  const handleAdminLogin = (user: string, pass: string): boolean => {
-    if (user === 'Admin' && pass === 'Aguilar1') {
+    const property = properties.find(p => p.id === selectedPropertyId);
+    if (!property) return;
+    
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const newSection = createSectionData(sectionType, uniqueSuffix, { 
+      coordinates: { lat: 0, lng: 0 } // Placeholder, should be from property
+    });
+
+    setProperties(prev => prev.map(p => {
+        if (p.id === selectedPropertyId) {
+            const newSections = [...p.sections];
+            newSections.splice(addSectionIndex, 0, newSection);
+            return { ...p, sections: newSections };
+        }
+        return p;
+    }));
+    setModalState('none');
+  };
+
+  const handleAttemptDeleteSection = (sectionId: string) => {
+    setItemToDelete({ sectionId });
+    setModalState('confirmDeleteSection');
+  };
+
+  const handleLogin = (user: string, pass: string): boolean => {
+    // NOTE: Hardcoded credentials. In a real app, use a secure auth system.
+    if (user === 'admin' && pass === 'admin') {
       setIsAdminMode(true);
-      setIsAdminLoginModalOpen(false);
+      setModalState('none');
       return true;
     }
     return false;
   };
+  
+  const handleUpdatePropertyImage = async (propertyId: string, newImageKey: string) => {
+    setProperties(prev => prev.map(p => {
+      if (p.id === propertyId) {
+        // Delete the old image if it exists and it's not a placeholder URL
+        if (p.mainImageUrl && !p.mainImageUrl.startsWith('https://')) {
+          deleteImage(p.mainImageUrl);
+        }
+        return { ...p, mainImageUrl: newImageKey };
+      }
+      return p;
+    }));
+  };
+  
+  const handleCreateProperty = async (address: string, lat: number, lng: number) => {
+      const nearbyPlaces = await generateNearbyPlaces(lat, lng);
+      const newProp = createNewProperty(address, {lat, lng}, nearbyPlaces);
+      setProperties(prev => [...prev, newProp]);
+      toast({
+        title: "Propiedad Creada",
+        description: `Se ha creado la propiedad "${newProp.name}" en ${address}.`,
+      });
+  };
 
+  const handleDeleteProperty = async (id: string) => {
+      const propToDelete = properties.find(p => p.id === id);
+      if (propToDelete) {
+          // Delete main image
+          if (propToDelete.mainImageUrl && !propToDelete.mainImageUrl.startsWith('https://')) {
+              await deleteImage(propToDelete.mainImageUrl);
+          }
+          // Delete all images within sections
+          for (const section of propToDelete.sections) {
+              if ('backgroundImageUrl' in section && section.backgroundImageUrl) {
+                  await deleteImage(section.backgroundImageUrl);
+              }
+              if ('images' in section && Array.isArray(section.images)) {
+                  for (const img of section.images) {
+                      await deleteImage(img.url);
+                  }
+              }
+              // Add more checks for other potential image URLs if needed
+          }
+      }
+      setProperties(prev => prev.filter(p => p.id !== id));
+      setItemToDelete({});
+      setModalState('none');
+  };
+  
   const handleContactSubmit = (formData: Omit<ContactSubmission, 'id' | 'propertyId' | 'propertyName' | 'submittedAt'>) => {
-    if (!selectedProperty) return;
+    if (!selectedPropertyId) return;
+
+    const property = properties.find(p => p.id === selectedPropertyId);
+    if (!property) return;
+
     const newSubmission: ContactSubmission = {
       ...formData,
       id: `sub-${Date.now()}`,
-      propertyId: selectedProperty.id,
-      propertyName: selectedProperty.name,
+      propertyId: selectedPropertyId,
+      propertyName: property.name,
       submittedAt: new Date().toISOString(),
     };
     setSubmissions(prev => [...prev, newSubmission]);
-     toast({
-        title: "¡Gracias por tu interés!",
-        description: `Hemos recibido tu información para la propiedad "${selectedProperty.name}". Te contactaremos pronto.`,
-    });
   };
   
-  const getSubmissionsForCurrentProperty = () => {
-      return submissions.filter(sub => sub.propertyId === selectedPropertyId);
+  const handleExport = async (selectedIds: Set<string>) => {
+     try {
+        const propertiesToExport = properties.filter(p => selectedIds.has(p.id));
+        const submissionsToExport = submissions.filter(s => selectedIds.has(s.propertyId));
+        const jsonString = await exportData(propertiesToExport, submissionsToExport, siteName, customLogo);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'viahogar-backup.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: 'Exportación Exitosa', description: `Se guardaron ${selectedIds.size} propiedades.` });
+     } catch (e) {
+        console.error('Export failed', e);
+        toast({ variant: 'destructive', title: 'Error de Exportación', description: 'No se pudo guardar el archivo.' });
+     }
+     setModalState('none');
   };
   
-    // --- Import/Export Handlers ---
-    const handleExport = async (selectedIds: Set<string>) => {
-        setIsExportModalOpen(false);
-        try {
-            const propertiesToExport = properties.filter(p => selectedIds.has(p.id));
+  const handleImport = async (file: File) => {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+          try {
+              const jsonString = event.target?.result as string;
+              const { properties: importedProps, submissions: importedSubs, siteName: importedSiteName, customLogo: importedLogo } = await importData(jsonString);
 
-            if (propertiesToExport.length === 0) {
-                toast({ title: "No hay propiedades seleccionadas", description: "Por favor, selecciona al menos una propiedad para guardar.", variant: "destructive" });
-                return;
-            }
+              // Basic validation
+              if (!Array.isArray(importedProps)) {
+                  throw new Error('El archivo no contiene un array de propiedades válido.');
+              }
 
-            toast({ title: "Guardando...", description: `Recopilando datos de ${propertiesToExport.length} propiedades.` });
-            
-            const jsonString = await exportData(propertiesToExport, submissions, siteName, customLogo);
-            const blob = new Blob([jsonString], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "via-hogar-backup.json";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            toast({ title: "¡Exportación Completa!", description: "El archivo de respaldo se ha descargado." });
-        } catch (error) {
-            console.error("Export failed:", error);
-            toast({ title: "Error de Exportación", description: String(error), variant: "destructive" });
-        }
-    };
+              // Create a map of existing properties for efficient lookup
+              const existingPropsMap = new Map(properties.map(p => [p.id, p]));
+              
+              // Merge properties: update existing, add new
+              const updatedProperties = [...properties];
+              importedProps.forEach(importedProp => {
+                  if (existingPropsMap.has(importedProp.id)) {
+                      // It's an update - find index and replace
+                      const index = updatedProperties.findIndex(p => p.id === importedProp.id);
+                      if (index !== -1) {
+                          updatedProperties[index] = importedProp;
+                      }
+                  } else {
+                      // It's a new property
+                      updatedProperties.push(importedProp);
+                  }
+              });
 
-    const handleImport = (file: File) => {
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            try {
-                const jsonString = event.target?.result as string;
-                if (!jsonString) {
-                    throw new Error("El archivo está vacío.");
-                }
-                toast({ title: "Importando...", description: "Restaurando propiedades e imágenes." });
-                const { properties, submissions, siteName, customLogo } = await importData(jsonString);
+              setProperties(updatedProperties);
+              if (importedSubs) setSubmissions(prev => [...prev, ...importedSubs]);
+              if (importedSiteName) setSiteName(importedSiteName);
+              if (importedLogo) setCustomLogo(importedLogo);
 
-                // This logic forces a re-render of all image components
-                // by temporarily setting properties to an empty array.
-                setProperties([]);
-                setSubmissions([]);
-                
-                setTimeout(() => {
-                    setProperties(properties);
-                    setSubmissions(submissions || []);
-                    setSiteName(siteName || 'Vía Hogar');
-                    setCustomLogo(customLogo || null);
-                    setSelectedPropertyId(null); // Go back to property list
-                    toast({ title: "¡Importación Completa!", description: "Los datos han sido restaurados exitosamente." });
-                }, 100);
+              toast({ title: 'Importación Exitosa', description: 'Se cargaron los datos desde el archivo.' });
+          } catch(e) {
+              const error = e as Error;
+              console.error('Import failed', error);
+              toast({ variant: 'destructive', title: 'Error de Importación', description: error.message || 'No se pudo leer el archivo.' });
+          }
+      };
+      reader.readAsText(file);
+  };
+  
+  const handleUpdateAddress = async (newAddress: string): Promise<void> => {
+      const property = properties.find(p => p.id === selectedPropertyId);
+      if (!property) return;
 
+      try {
+          // This should call a geocoding service and get new coordinates.
+          // For now, we'll just update the address.
+          const { lat, lng } = await generateNearbyPlaces(0,0);
+          const newNearby = await generateNearbyPlaces(lat, lng);
 
-            } catch (error) {
-                console.error("Import failed:", error);
-                toast({ title: "Error de Importación", description: String(error), variant: "destructive" });
-            }
-        };
-        reader.readAsText(file);
-    };
+          setProperties(prev => prev.map(p => {
+              if (p.id === selectedPropertyId) {
+                  const locationSection = p.sections.find(s => s.type === 'location');
+                  if (locationSection && locationSection.type === 'location') {
+                      locationSection.coordinates = { lat, lng };
+                      locationSection.nearbyPlaces = newNearby;
+                  }
+                  return { ...p, address: newAddress, sections: [...p.sections] };
+              }
+              return p;
+          }));
+          toast({ title: "Dirección Actualizada", description: "La dirección y el mapa se han actualizado." });
+      } catch (error) {
+          console.error("Failed to update address and geocode", error);
+          toast({ variant: 'destructive', title: "Error al Actualizar", description: "No se pudo actualizar la dirección." });
+      }
+  };
 
-  // --- Toolbar Logic ---
-    const selectedElementForToolbar: SelectedElementForToolbar | null = useMemo(() => {
-        if (!selectedElement || !selectedProperty) return null;
-
-        const { sectionId, elementKey, subElementId, property } = selectedElement;
-        const section = selectedProperty.sections.find(s => s.id === sectionId);
-        if (!section) return null;
-
-        // Handle section-level style selections
-        if (elementKey === 'style') {
-            return { type: 'sectionStyle', data: { ...section.style, backgroundImageUrl: (section as any).backgroundImageUrl }};
-        }
-        
-        let data: any;
-
-        switch(section.type) {
-            case 'hero':
-                if (elementKey === 'title') {
-                    data = section.title;
-                }
-                break;
-            case 'imageWithFeatures':
-                if (elementKey === 'title') data = section.title;
-                if (elementKey === 'mediaWidth' || elementKey === 'mediaScale') {
-                    return { type: 'imageWithFeatures', data: section };
-                }
-                if (elementKey === 'features') {
-                     const feature = section.features.find(f => f.id === subElementId);
-                     if (feature) {
-                        if (property === 'title' || property === 'description') {
-                            data = feature[property];
-                        } else {
-                            return { type: 'feature', data: feature };
-                        }
-                    }
-                }
-                break;
-            case 'gallery':
-                 if (elementKey === 'title') data = section.title;
-                 break;
-            case 'amenities':
-                 if (elementKey === 'title') data = section.title;
-                 if (elementKey === 'amenities') {
-                    const amenity = section.amenities.find(a => a.id === subElementId);
-                     if (amenity) return { type: 'amenity', data: amenity };
-                 }
-                 break;
-            case 'pricing':
-                if (elementKey === 'tier') {
-                    const tier = section.tier;
-                    if (subElementId === tier.id && property && (property === 'title' || property === 'price' || property === 'oldPrice' || property === 'currency' || property === 'description')) {
-                        data = tier[property];
-                    } else {
-                        return { type: 'pricingTier', data: tier };
-                    }
-                }
-                break;
-            case 'location':
-                if (elementKey === 'title') data = section.title;
-                if (elementKey === 'nearbyPlaces') {
-                    const place = section.nearbyPlaces?.find(p => p.id === subElementId);
-                    if (place) return { type: 'nearbyPlace', data: place };
-                }
-                break;
-            case 'button':
-                if (elementKey === 'title' || elementKey === 'subtitle') {
-                    data = section[elementKey];
-                } else if (elementKey === 'text' || elementKey === 'alignment' || elementKey === 'linkTo') {
-                    return { type: 'button', data: section };
-                }
-                break;
-        }
-        
-        if (data) {
-            if ('position' in data) return { type: 'draggableText', data };
-            if ('fontSize' in data) return { type: 'styledText', data };
-        }
-
-        return null;
-    }, [selectedElement, selectedProperty]);
-
-
-  const handleToolbarUpdate = async (changes: any) => {
-    if (!selectedElement || !selectedProperty) return;
-    const { sectionId, elementKey, subElementId, property } = selectedElement;
-
-    const sectionIndex = selectedProperty.sections.findIndex(s => s.id === sectionId);
-    if (sectionIndex === -1) return;
+  const handleMoveSectionUp = (sectionIndex: number) => {
+    if (!selectedPropertyId || sectionIndex === 0) return;
     
-    const newSections = [...selectedProperty.sections];
-    let sectionToUpdate: AnySectionData = JSON.parse(JSON.stringify(newSections[sectionIndex]));
+    setProperties(prev => prev.map(p => {
+      if (p.id === selectedPropertyId) {
+        const newSections = [...p.sections];
+        const [movedSection] = newSections.splice(sectionIndex, 1);
+        newSections.splice(sectionIndex - 1, 0, movedSection);
+        return { ...p, sections: newSections };
+      }
+      return p;
+    }));
+  };
 
-    if (elementKey === 'style' || elementKey === 'mediaWidth' || elementKey === 'mediaScale') {
-        sectionToUpdate = { ...sectionToUpdate, ...changes };
-        if (changes.backgroundImageUrl !== undefined) {
-             (sectionToUpdate as any).backgroundImageUrl = changes.backgroundImageUrl;
-        }
-    } else if (sectionToUpdate.type === 'button' && (elementKey === 'alignment' || elementKey === 'linkTo')) {
-        sectionToUpdate = { ...sectionToUpdate, ...changes };
-    } else if (subElementId && property && (sectionToUpdate as any)[elementKey]) {
-        // Deeply nested update (e.g., feature title, pricing tier price)
-        const array = (sectionToUpdate as any)[elementKey];
-        const itemIndex = Array.isArray(array) ? array.findIndex((item: any) => item.id === subElementId) : -1;
+  const handleMoveSectionDown = (sectionIndex: number) => {
+      if (!selectedPropertyId) return;
 
-        if (itemIndex > -1) {
-            const itemToUpdate = array[itemIndex];
-            if (itemToUpdate && (property in itemToUpdate)) {
-                 (itemToUpdate[property as keyof typeof itemToUpdate] as any) = {
-                    ...(itemToUpdate[property as keyof typeof itemToUpdate] as any),
-                    ...changes
-                 };
+      const property = properties.find(p => p.id === selectedPropertyId);
+      if (!property || sectionIndex >= property.sections.length - 1) return;
+
+      setProperties(prev => prev.map(p => {
+          if (p.id === selectedPropertyId) {
+              const newSections = [...p.sections];
+              const [movedSection] = newSections.splice(sectionIndex, 1);
+              newSections.splice(sectionIndex + 1, 0, movedSection);
+              return { ...p, sections: newSections };
+          }
+          return p;
+      }));
+  };
+
+  if (!isClient) return null; // Render nothing on the server
+
+  const selectedProperty = properties.find(p => p.id === selectedPropertyId);
+  
+  const getElementData = () => {
+    if (!selectedElement || !selectedProperty) return null;
+
+    const { sectionId, elementKey, subElementId, property } = selectedElement;
+    const section = selectedProperty.sections.find(s => s.id === sectionId);
+    if (!section) return null;
+
+    if (elementKey === 'style' || elementKey === 'backgroundImageUrl') {
+        return { type: 'sectionStyle', data: section.style };
+    }
+    
+    if (elementKey === 'mediaWidth' && section.type === 'imageWithFeatures') {
+        return { type: 'imageWithFeatures', data: section };
+    }
+    
+    if (subElementId) {
+        const list = (section as any)[elementKey];
+        if (Array.isArray(list)) {
+            const item = list.find(i => i.id === subElementId);
+            if(item) {
+                 if (elementKey === 'features') return { type: 'feature', data: item, subElementId, property };
+                 if (elementKey === 'amenities') return { type: 'amenity', data: item, subElementId };
+                 if (elementKey === 'nearbyPlaces') return { type: 'nearbyPlace', data: item, subElementId };
+                 if (elementKey === 'tier') return { type: 'pricingTier', data: item, subElementId };
             }
-        } else if (!Array.isArray(array) && array.id === subElementId) { // For non-array objects like 'tier'
-            const itemToUpdate = (sectionToUpdate as any)[elementKey];
-             (itemToUpdate[property as keyof typeof itemToUpdate] as any) = {
-                    ...(itemToUpdate[property as keyof typeof itemToUpdate] as any),
-                    ...changes
-                 };
         }
-
-    } else if (subElementId && (sectionToUpdate as any)[elementKey]) {
-        // Update a specific item in an array (e.g., an amenity, a feature object, a nearby place)
-        const array = (sectionToUpdate as any)[elementKey] as any[];
-        const itemIndex = array.findIndex((item: any) => item.id === subElementId);
-        if (itemIndex > -1) {
-            array[itemIndex] = { ...array[itemIndex], ...changes };
-        }
-    } else if (elementKey) {
-        // Update a direct property of the section or a whole object like 'tier'
-        (sectionToUpdate as any)[elementKey] = { ...(sectionToUpdate as any)[elementKey], ...changes };
     }
 
-    newSections[sectionIndex] = sectionToUpdate;
-    handleUpdateProperty({ ...selectedProperty, sections: newSections });
-  };
+    const data = (section as any)[elementKey];
+    if (data) {
+        if ('position' in data) { // It's a DraggableTextData
+             return { type: 'draggableText', data };
+        }
+        if ('text' in data && 'fontSize' in data) { // It's a StyledText
+             return { type: 'styledText', data };
+        }
+        if (elementKey === 'text' && section.type === 'button') {
+            return { type: 'button', data: section };
+        }
+        if (elementKey === 'tier' && section.type === 'pricing') {
+             return { type: 'pricingTier', data: (section as PricingSectionData).tier };
+        }
+
+    }
+    return null;
+  }
   
-  const closeConfirmationModal = () => {
-      setConfirmationModalState({isOpen: false, onConfirm: () => {}, title: '', message: ''});
-  };
-
-  const handleUpdatePropertyImage = useCallback(async (propertyId: string, newImageKey: string) => {
-      const propertyToUpdate = properties.find(p => p.id === propertyId);
-      if (propertyToUpdate) {
-          onUpdateProperty({ ...propertyToUpdate, mainImageUrl: newImageKey });
-      }
-  }, [properties, onUpdateProperty]);
-
-  // --- Render Logic ---
-  const renderSection = useCallback((section: AnySectionData, index: number) => {
-    const commonProps = {
+  const elementToEdit = getElementData();
+  
+  const renderSection = (section: AnySectionData, index: number, totalSections: number) => {
+    const sectionProps = {
       key: section.id,
-      onDelete: handleDeleteSection,
-      isAdminMode: isAdminMode,
+      data: section as any,
+      onUpdate: (updatedData: any) => handleUpdateSection(section.id, updatedData),
+      onDelete: () => handleAttemptDeleteSection(section.id),
+      isAdminMode,
       selectedElement,
       onSelectElement: setSelectedElement,
     };
-
-    const sectionContent = () => {
-        switch (section.type) {
-            case 'hero':
-                return <HeroSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} isFirstSection={index === 0} />;
-            case 'imageWithFeatures':
-                return <ImageWithFeaturesSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
-            case 'gallery':
-                return <GallerySection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
-            case 'amenities':
-                return <AmenitiesSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
-            case 'contact':
-                return <ContactSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} onSubmit={handleContactSubmit} />;
-            case 'location':
-                return <LocationSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} propertyAddress={selectedProperty?.address || ''} onUpdateAddress={handleUpdateAddress} />;
-            case 'pricing':
-                return <PricingSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
-            case 'button':
-                return <ButtonSection {...commonProps} data={section} onUpdate={(d) => handleUpdateSection(section.id, d)} />;
-            default:
-                const _exhaustiveCheck: never = section;
-                console.warn("Unknown section type, cannot render:", section);
-                return null;
-        }
-    };
     
-    return (
-        <div className="relative">
-             {isAdminMode && (
-                <div className="absolute top-1/2 -translate-y-1/2 left-2 z-30 flex flex-col gap-1">
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7 bg-background/50 hover:bg-background"
-                        onClick={() => handleMoveSectionUp(index)}
-                        disabled={index === 0}
-                        aria-label="Move section up"
-                    >
-                        <Icon name="chevron-up" className="h-5 w-5" />
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7 bg-background/50 hover:bg-background"
-                        onClick={() => handleMoveSectionDown(index)}
-                        disabled={index === (selectedProperty?.sections.length ?? 0) - 1}
-                        aria-label="Move section down"
-                    >
-                        <Icon name="chevron-down" className="h-5 w-5" />
-                    </Button>
-                </div>
-            )}
-            {sectionContent()}
-        </div>
+     const fullProps = {
+      ...sectionProps,
+      isDraggingMode,
+      onSetDraggingElement: setDraggingElement,
+    };
+
+    const sectionWrapper = (content: React.ReactNode) => (
+      <div key={section.id} className="relative group/section">
+        {isAdminMode && (
+          <div className="absolute top-1/2 -left-12 z-20 flex flex-col gap-1 -translate-y-1/2 opacity-0 group-hover/section:opacity-100 transition-opacity">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => handleMoveSectionUp(index)}
+              disabled={index === 0}
+            >
+              <Icon name="chevron-up" className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => handleMoveSectionDown(index)}
+              disabled={index === totalSections - 1}
+            >
+              <Icon name="chevron-down" className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+        {content}
+      </div>
     );
+    
+    switch (section.type) {
+      case 'hero': return sectionWrapper(<HeroSection {...fullProps} data={section} isFirstSection={index === 0} />);
+      case 'gallery': return sectionWrapper(<GallerySection {...fullProps} data={section} />);
+      case 'location': return sectionWrapper(<LocationSection {...sectionProps} data={section} propertyAddress={selectedProperty?.address || ''} onUpdateAddress={handleUpdateAddress}/>);
+      case 'amenities': return sectionWrapper(<AmenitiesSection {...sectionProps} data={section} />);
+      case 'imageWithFeatures': return sectionWrapper(<ImageWithFeaturesSection {...sectionProps} data={section} />);
+      case 'pricing': return sectionWrapper(<PricingSection {...sectionProps} data={section} />);
+      case 'contact': return sectionWrapper(<ContactSection {...sectionProps} data={section} onSubmit={handleContactSubmit} />);
+      case 'button': return sectionWrapper(<ButtonSection {...sectionProps} data={section} />);
+      default: return null;
+    }
+  };
 
-  }, [isAdminMode, selectedElement, handleUpdateSection, handleDeleteSection, handleContactSubmit, selectedProperty?.address, handleUpdateAddress, selectedProperty?.sections.length]);
-
-  if (isLoading) {
-    return <div className="fixed inset-0 bg-white z-50"></div>;
-  }
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-        <Header 
-            isAdminMode={isAdminMode} 
-            setIsAdminMode={setIsAdminMode}
-            siteName={siteName}
-            onSiteNameChange={setSiteName}
-            customLogo={customLogo}
-            onLogoUpload={setCustomLogo}
-            onNavigateHome={() => setSelectedPropertyId(null)}
-        />
-
-        <main className={cn("flex-grow", !selectedProperty && "pt-24")}>
-            {selectedProperty ? (
-                <div>
-                    {isAdminMode && <AddSectionControl index={0} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
-                    {selectedProperty.sections.map((section, index) => (
-                        <React.Fragment key={section.id}>
-                            {renderSection(section, index)}
-                            {isAdminMode && <AddSectionControl index={index + 1} onClick={(i) => setIsAddSectionModalOpen({ open: true, index: i })} />}
-                        </React.Fragment>
-                    ))}
+    <div className="flex flex-col min-h-screen bg-background">
+      <Header 
+        isAdminMode={isAdminMode} 
+        setIsAdminMode={setIsAdminMode}
+        onNavigateHome={handleNavigateHome}
+        siteName={siteName}
+        onSiteNameChange={setSiteName}
+        customLogo={customLogo}
+        onLogoUpload={setCustomLogo}
+      />
+      <main className="flex-grow">
+        {selectedProperty ? (
+          <div>
+            {selectedProperty.sections.map((section, index) => (
+              <React.Fragment key={section.id}>
+                {renderSection(section, index, selectedProperty.sections.length)}
+                {isAdminMode && index < selectedProperty.sections.length - 1 && (
+                  <AddSectionControl 
+                    index={index + 1} 
+                    onClick={(idx) => {
+                      setAddSectionIndex(idx);
+                      setModalState('addSection');
+                    }}
+                  />
+                )}
+              </React.Fragment>
+            ))}
+             {isAdminMode && selectedProperty.sections.length === 0 && (
+                <div className="container mx-auto py-20 text-center">
+                    <AddSectionControl index={0} onClick={(idx) => {
+                        setAddSectionIndex(idx);
+                        setModalState('addSection');
+                    }} />
                 </div>
-            ) : (
-            <PropertyList
-                properties={properties}
-                onSelectProperty={setSelectedPropertyId}
-                onAddProperty={handleAddProperty}
-                onUpdateProperty={onUpdateProperty}
-                onDeleteProperty={handleDeleteProperty}
-                onUpdatePropertyImage={handleUpdatePropertyImage}
-                isAdminMode={isAdminMode}
-            />
             )}
-        </main>
-        
-        <Footer onAdminLoginClick={() => setIsAdminLoginModalOpen(true)} />
+          </div>
+        ) : (
+          <PropertyList
+            properties={properties}
+            onSelectProperty={handleSelectProperty}
+            onAddProperty={() => setModalState('newProperty')}
+            onUpdateProperty={handleUpdateProperty}
+            onDeleteProperty={(id) => {
+                setItemToDelete({ propertyId: id });
+                setModalState('confirmDeleteProperty');
+            }}
+            onUpdatePropertyImage={handleUpdatePropertyImage}
+            isAdminMode={isAdminMode}
+          />
+        )}
+      </main>
+      <Footer onAdminLoginClick={() => setModalState('login')} />
 
-        {/* --- Modals --- */}
-        {isNewPropertyModalOpen && <NewPropertyModal onClose={() => setIsNewPropertyModalOpen(false)} onCreate={handleCreateProperty} />}
-        {isAdminLoginModalOpen && <AdminLoginModal onClose={() => setIsAdminLoginModalOpen(false)} onLogin={handleAdminLogin} />}
-        {isAddSectionModalOpen.open && <AddSectionModal onClose={() => setIsAddSectionModalOpen({ open: false, index: 0 })} onSelect={(type) => handleAddSection(type, isAddSectionModalOpen.index)} />}
-        {isSubmissionsModalOpen && <SubmissionsModal isOpen={isSubmissionsModalOpen} onClose={() => setIsSubmissionsModalOpen(false)} submissions={getSubmissionsForCurrentProperty()} />}
-        <ConfirmationModal {...confirmationModalState} onClose={closeConfirmationModal} />
-        {isExportModalOpen && (
-            <ExportModal
-                isOpen={isExportModalOpen}
-                onClose={() => setIsExportModalOpen(false)}
+      {/* Modals */}
+      {modalState === 'login' && <AdminLoginModal onLogin={handleLogin} onClose={() => setModalState('none')} />}
+      {modalState === 'newProperty' && <NewPropertyModal onCreate={handleCreateProperty} onClose={() => setModalState('none')} />}
+      {modalState === 'addSection' && <AddSectionModal onClose={() => setModalState('none')} onSelect={handleAddSection} />}
+      {modalState === 'confirmDeleteProperty' && (
+        <ConfirmationModal
+          isOpen={true}
+          onClose={() => setModalState('none')}
+          onConfirm={() => handleDeleteProperty(itemToDelete.propertyId!)}
+          title="¿Estás seguro?"
+          message="Esta acción eliminará permanentemente la propiedad y todo su contenido. No se puede deshacer."
+        />
+      )}
+      {modalState === 'confirmDeleteSection' && (
+        <ConfirmationModal
+          isOpen={true}
+          onClose={() => setModalState('none')}
+          onConfirm={() => handleDeleteSection(itemToDelete.sectionId!)}
+          title="¿Eliminar Sección?"
+          message="¿Estás seguro de que quieres eliminar esta sección? Esta acción es permanente."
+        />
+      )}
+       {modalState === 'contact' && selectedProperty && (
+            <ContactModal
+                isOpen={true}
+                onClose={() => setModalState('none')}
+                onSubmit={handleContactSubmit}
+                property={selectedProperty}
+            />
+        )}
+       {modalState === 'submissions' && selectedProperty && (
+            <SubmissionsModal
+                isOpen={true}
+                onClose={() => setModalState('none')}
+                submissions={submissions.filter(s => s.propertyId === selectedProperty.id)}
+            />
+        )}
+        {modalState === 'export' && (
+             <ExportModal
+                isOpen={true}
+                onClose={() => setModalState('none')}
                 properties={properties}
                 onExport={handleExport}
             />
         )}
         
-        {/* --- Admin Tools --- */}
-        {isAdminMode && (
-            <AdminToolbar 
-                onExportClick={() => setIsExportModalOpen(true)}
-                onImport={handleImport}
-            />
-        )}
-        {isAdminMode && selectedElementForToolbar && (
-            <EditingToolbar
-                element={selectedElementForToolbar}
-                onUpdate={handleToolbarUpdate}
-                onClose={() => setSelectedElement(null)}
-            />
-        )}
+
+      {/* Editing Toolbar */}
+      {isAdminMode && elementToEdit && (
+        <EditingToolbar
+          key={selectedElement ? `${selectedElement.sectionId}-${selectedElement.elementKey}-${selectedElement.subElementId}`: ''}
+          element={elementToEdit}
+          onUpdate={(updates) => {
+             if (!selectedElement || !selectedProperty) return;
+             const { sectionId, elementKey, subElementId, property } = selectedElement;
+
+            if (elementKey === 'style') {
+                 handleUpdateSection(sectionId, { style: { ...elementToEdit.data, ...updates } });
+            } else if (elementKey === 'backgroundImageUrl') {
+                handleUpdateSection(sectionId, { backgroundImageUrl: updates.backgroundImageUrl });
+            } else if (elementKey === 'mediaWidth' && elementToEdit.type === 'imageWithFeatures') {
+                handleUpdateSection(sectionId, { mediaWidth: updates.mediaWidth });
+            }
+             else if (elementKey === 'text' && elementToEdit.type === 'button') {
+                handleUpdateSection(sectionId, { text: updates.text, alignment: updates.alignment, linkTo: updates.linkTo });
+             } else if (subElementId && (elementToEdit.type === 'feature' || elementToEdit.type === 'amenity' || elementToEdit.type === 'nearbyPlace')) {
+                 const section = selectedProperty.sections.find(s => s.id === sectionId) as any;
+                 const list = section[elementKey] as any[];
+                 const newList = list.map(item => item.id === subElementId ? {...item, ...updates} : item);
+                 handleUpdateSection(sectionId, { [elementKey]: newList });
+             } else if (elementToEdit.type === 'pricingTier' && subElementId) {
+                const section = selectedProperty.sections.find(s => s.id === sectionId) as PricingSectionData;
+                const newTier = { ...section.tier, ...updates };
+                handleUpdateSection(sectionId, { tier: newTier });
+             } else if (elementToEdit.type === 'draggableText' || elementToEdit.type === 'styledText' || (elementToEdit.type === 'pricingTier' && property)) {
+                
+                let targetObjectKey: string = elementKey;
+                let targetObject: any = (selectedProperty.sections.find(s => s.id === sectionId) as any);
+                
+                if(elementToEdit.type === 'pricingTier' && subElementId && property) {
+                    targetObject = (targetObject.tier as any);
+                    targetObjectKey = property as string;
+                }
+
+                const updatedObject = { ...targetObject[targetObjectKey], ...updates };
+                handleUpdateSection(sectionId, { [targetObjectKey]: updatedObject });
+            }
+          }}
+          onClose={() => setSelectedElement(null)}
+        />
+      )}
+      
+       {isAdminMode && selectedPropertyId && (
+        <div className="fixed bottom-20 right-4 z-50 flex flex-col gap-2">
+           <Button onClick={() => setModalState('submissions')} variant="outline" size="sm">
+               <Icon name="list" className="mr-2" />
+               Ver Contactos ({submissions.filter(s => s.propertyId === selectedPropertyId).length})
+           </Button>
+        </div>
+      )}
+
+      {isAdminMode && (
+          <AdminToolbar onExportClick={() => setModalState('export')} onImport={handleImport} />
+      )}
     </div>
   );
-};
-
-    
+}
