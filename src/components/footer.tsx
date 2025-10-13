@@ -1,7 +1,6 @@
 
 "use client";
 import React from 'react';
-import { Button } from './ui/button';
 
 interface FooterProps {
   onAdminLoginClick: () => void;
@@ -16,7 +15,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminLoginClick }) => {
         </div>
         <div>
             <button 
-              className="h-2 w-2 rounded-full bg-muted-foreground hover:bg-foreground transition-colors"
+              className="h-1.5 w-1.5 rounded-full bg-muted-foreground hover:bg-foreground transition-colors"
               onClick={onAdminLoginClick}
               aria-label="Admin Login"
             />
