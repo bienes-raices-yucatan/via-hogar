@@ -15,7 +15,7 @@ export const Footer: React.FC<FooterProps> = ({ onAdminLoginClick }) => {
         </div>
         <div>
             <button 
-              className="h-1.5 w-1.5 rounded-full bg-muted-foreground hover:bg-foreground transition-colors"
+              className="h-1 w-1 rounded-full bg-muted-foreground hover:bg-foreground transition-colors"
               onClick={onAdminLoginClick}
               aria-label="Admin Login"
             />
