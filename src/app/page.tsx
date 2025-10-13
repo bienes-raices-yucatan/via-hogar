@@ -200,7 +200,7 @@ export default function HomePage() {
 
   const handleLogin = (user: string, pass: string): boolean => {
     // NOTE: Hardcoded credentials. In a real app, use a secure auth system.
-    if (user === 'admin' && pass === 'admin') {
+    if (user === 'Admin' && pass === 'Aguilar1') {
       setIsAdminMode(true);
       setModalState('none');
       return true;
@@ -673,5 +673,7 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
 
     
