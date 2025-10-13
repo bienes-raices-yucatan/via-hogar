@@ -31,7 +31,8 @@ import {
   NearbyPlace, 
   DraggableTextData,
   ImageWithFeaturesSectionData,
-  ButtonSectionData
+  ButtonSectionData,
+  PricingSectionData
 } from '@/lib/types';
 import { createSectionData, createNewProperty } from '@/lib/constants';
 import { initDB, saveImage, deleteImage, exportData, importData } from '@/lib/storage';
@@ -78,8 +79,8 @@ export default function HomePage() {
         const savedLogo = localStorage.getItem('customLogo');
         if (savedProps) setProperties(JSON.parse(savedProps));
         if (savedSubmissions) setSubmissions(JSON.parse(savedSubmissions));
-        if (savedSiteName) setSiteName(JSON.parse(savedSiteName));
-        if (savedLogo) setCustomLogo(JSON.parse(savedLogo));
+        if (savedSiteName) setSiteName(savedSiteName);
+        if (savedLogo) setCustomLogo(savedLogo);
       }
     });
   }, []);
@@ -98,14 +99,14 @@ export default function HomePage() {
 
   useEffect(() => {
     if (dbInitialized) {
-      localStorage.setItem('siteName', JSON.stringify(siteName));
+      localStorage.setItem('siteName', siteName);
     }
   }, [siteName, dbInitialized]);
   
   useEffect(() => {
     if (dbInitialized) {
         if (customLogo) {
-            localStorage.setItem('customLogo', JSON.stringify(customLogo));
+            localStorage.setItem('customLogo', customLogo);
         } else {
             localStorage.removeItem('customLogo');
         }
@@ -670,3 +671,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
